@@ -7,6 +7,7 @@ import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import StatTile from "@/components/StatTile";
+import AreaCard from "@/components/AreaCard";
 import Footer from "@/components/Footer";
 
 const FOOTER_COLUMNS = [
@@ -350,10 +351,10 @@ function HowItWorks() {
 
 function FeaturedAreas() {
   const areas = [
-    { name: "Brixton", count: 142, price: "from R 4,200" },
-    { name: "Melville", count: 88, price: "from R 5,800" },
-    { name: "Yeoville", count: 207, price: "from R 3,200" },
-    { name: "Westdene", count: 65, price: "from R 4,800" },
+    { name: "Brixton", count: 142, priceFrom: "R 4,200" },
+    { name: "Melville", count: 88, priceFrom: "R 5,800" },
+    { name: "Yeoville", count: 207, priceFrom: "R 3,200" },
+    { name: "Westdene", count: 65, priceFrom: "R 4,800" },
   ];
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)" }}>
@@ -374,26 +375,13 @@ function FeaturedAreas() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
           {areas.map((a) => (
-            <Card key={a.name} interactive style={{ overflow: "hidden", padding: 0 }}>
-              <Photo ratio="3/2" label={`${a.name.toLowerCase()}.jpg`} style={{ borderRadius: 0 }} />
-              <div style={{ padding: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                  <div style={{ fontSize: 16, fontWeight: 600 }}>{a.name}</div>
-                  <Icon name="arrUR" size={14} style={{ color: "var(--slate)" }} />
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: "var(--slate)",
-                    display: "flex",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span>{a.count} units</span>
-                  <span className="tabular">{a.price}</span>
-                </div>
-              </div>
-            </Card>
+            <AreaCard
+              key={a.name}
+              name={a.name}
+              count={a.count}
+              priceFrom={a.priceFrom}
+              ratio="3/2"
+            />
           ))}
         </div>
       </div>

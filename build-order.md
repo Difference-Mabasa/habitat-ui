@@ -163,11 +163,11 @@ Highest-load-bearing screens; the user-journey backbone. Tier C components get e
 
 ## Phase 6 — Growth & discovery (5 screens, artboards 32–36)
 
-- [ ] `32` Landlord pricing & plans — `screen-pricing.jsx`.
-- [ ] `33` Refer & earn — `screen-referral.jsx`.
-- [ ] `34` Landlord onboarding — `screen-llonboarding.jsx`.
-- [ ] `35` Neighbourhood (Soweto) — `screen-neighbourhood.jsx`.
-- [ ] `36` Agent public profile — `screen-agent.jsx`. Reuses AgentCard, RatingDisplay.
+- [x] `32` Landlord pricing & plans — `screen-pricing.jsx`. Inline `PricingTier` (Tier D); featured tier overlays a tag pill.
+- [x] `33` Refer & earn — `screen-referral.jsx`. Espresso pitch card + earnings card + referrals table.
+- [x] `34` Landlord onboarding — `screen-llonboarding.jsx`. Celebration banner + checklist + tip cards.
+- [x] `35` Neighbourhood (Soweto) — `screen-neighbourhood.jsx`. Reuses `AreaCard` (newly extracted Tier C, shared with landing's FeaturedAreas).
+- [x] `36` Agent public profile — `screen-agent.jsx`. Reuses Tabs (underline variant), RatingDisplay.
 
 ---
 

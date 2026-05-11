@@ -55,6 +55,11 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   settings: lazy(() => import("@/screens/settings/Settings")),
   states: lazy(() => import("@/screens/states/States")),
   mobile: lazy(() => import("@/screens/mobile/Mobile")),
+  pricing: lazy(() => import("@/screens/pricing/Pricing")),
+  referral: lazy(() => import("@/screens/referral/Referral")),
+  "landlord-onboarding": lazy(() => import("@/screens/landlord-onboarding/LandlordOnboarding")),
+  neighbourhood: lazy(() => import("@/screens/neighbourhood/Neighbourhood")),
+  agent: lazy(() => import("@/screens/agent/AgentProfile")),
 };
 
 export default function App() {
