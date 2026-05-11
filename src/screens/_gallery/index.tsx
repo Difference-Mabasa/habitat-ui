@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import Icon from "@/components/Icon";
+import { ROUTES } from "@/routes";
 import { useTheme, ACCENT_OPTIONS } from "@/hooks/useTheme";
 
 export default function DevHome() {
@@ -65,17 +66,17 @@ export default function DevHome() {
             BACKROOM <span style={{ color: "var(--accent)" }}>UI</span>
           </h1>
           <p style={{ fontSize: 15, color: "var(--slate)", marginTop: 12, maxWidth: 560 }}>
-            Phase 1 scaffolding for the 43-screen rebuild. Foundation primitives are wired; screens
-            land in Phases 2–8.
+            Pixel-perfect React rebuild of the Backroom Web handoff — {ROUTES.length} screens shipped
+            across 14 sections. Talks to backroom-api on :8080.
           </p>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
           <DevCard
             to="/_routes"
-            eyebrow="43 screens"
+            eyebrow={`${ROUTES.length} screens`}
             title="Routes"
-            body="Every prototype artboard wired to a route. Most are placeholders until their phase ships."
+            body="Every prototype artboard from the handoff, live. Click any to view."
           />
           <DevCard
             to="/_components"
