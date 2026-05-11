@@ -13,7 +13,13 @@ export type RouteGroup =
   | "growth"
   | "trust"
   | "docs"
-  | "components";
+  | "components"
+  | "lifecycle"
+  | "money"
+  | "content"
+  | "comms"
+  | "power"
+  | "system";
 
 export interface ScreenRoute {
   id: string;
@@ -82,6 +88,40 @@ export const ROUTES: ScreenRoute[] = [
 
   // Component gallery
   { id: "cards", label: "43 — Property card variations", path: "/cards", group: "components" },
+
+  // Lease lifecycle
+  { id: "renewal", label: "44 — Lease renewal", path: "/renewal", group: "lifecycle" },
+  { id: "moveout", label: "45 — Move-out inspection", path: "/moveout", group: "lifecycle" },
+  { id: "vacate", label: "46 — Vacate notice", path: "/vacate", group: "lifecycle" },
+  { id: "waitlist", label: "47 — Waitlist", path: "/waitlist", group: "lifecycle" },
+
+  // Trust & money
+  { id: "ll-kyc", label: "48 — Landlord KYC", path: "/ll-kyc", group: "money" },
+  { id: "failed", label: "49 — Failed payment / retry", path: "/failed", group: "money" },
+  { id: "guarantee", label: "50 — Rent-guarantee insurance", path: "/guarantee", group: "money" },
+  { id: "credit", label: "51 — Credit report / TPN", path: "/credit", group: "money" },
+
+  // Content & brand
+  { id: "blog", label: "52 — Blog / guide hub", path: "/blog", group: "content" },
+  { id: "about", label: "53 — About / press", path: "/about", group: "content" },
+  { id: "careers", label: "54 — Careers", path: "/careers", group: "content" },
+  { id: "case", label: "55 — Landlord case study", path: "/case", group: "content" },
+
+  // Communication
+  { id: "video", label: "56 — Live viewing (video call)", path: "/video", group: "comms" },
+  { id: "push", label: "57 — Push / SMS templates", path: "/push", group: "comms" },
+  { id: "newsletter", label: "58 — Newsletter digest", path: "/newsletter", group: "comms" },
+
+  // Mobile & power users
+  { id: "tmobile", label: "59 — Tenant mobile dashboard", path: "/tmobile", group: "power" },
+  { id: "lmobile", label: "60 — Landlord mobile ops", path: "/lmobile", group: "power" },
+  { id: "pwa", label: "61 — PWA install + offline", path: "/pwa", group: "power" },
+  { id: "cmdk", label: "62 — Command palette ⌘K", path: "/cmdk", group: "power" },
+
+  // System & inclusion
+  { id: "i18n", label: "63 — Localisation (Zulu/Sesotho)", path: "/i18n", group: "system" },
+  { id: "tokens", label: "64 — Design tokens spec", path: "/tokens", group: "system" },
+  { id: "a11y", label: "65 — Accessibility audit", path: "/a11y", group: "system" },
 ];
 
 export const GROUP_LABEL: Record<RouteGroup, string> = {
@@ -93,4 +133,10 @@ export const GROUP_LABEL: Record<RouteGroup, string> = {
   trust: "Trust, safety & support",
   docs: "Documents & notifications",
   components: "Component gallery",
+  lifecycle: "Lease lifecycle",
+  money: "Trust & money",
+  content: "Content & brand",
+  comms: "Communication",
+  power: "Mobile & power users",
+  system: "System & inclusion",
 };

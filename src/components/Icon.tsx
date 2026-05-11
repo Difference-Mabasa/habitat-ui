@@ -7,7 +7,7 @@ export type IconName =
   | "star" | "eye" | "calendar" | "cash" | "trend" | "inbox" | "users" | "logout"
   | "burger" | "list" | "filter" | "info" | "shield" | "sparkle" | "paper" | "park"
   | "pet" | "wifi" | "flame" | "edit" | "download" | "clock" | "bolt" | "trash"
-  | "moon" | "sun";
+  | "moon" | "sun" | "mic" | "video" | "wrench" | "arrL" | "refresh";
 
 const PATHS: Record<IconName, JSX.Element> = {
   search: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></>,
@@ -62,6 +62,11 @@ const PATHS: Record<IconName, JSX.Element> = {
   trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /><path d="M10 11v6M14 11v6" /></>,
   moon: <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" />,
   sun: <><circle cx="12" cy="12" r="4" /><line x1="12" y1="2" x2="12" y2="4" /><line x1="12" y1="20" x2="12" y2="22" /><line x1="4.9" y1="4.9" x2="6.3" y2="6.3" /><line x1="17.7" y1="17.7" x2="19.1" y2="19.1" /><line x1="2" y1="12" x2="4" y2="12" /><line x1="20" y1="12" x2="22" y2="12" /><line x1="4.9" y1="19.1" x2="6.3" y2="17.7" /><line x1="17.7" y1="6.3" x2="19.1" y2="4.9" /></>,
+  mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0" /><line x1="12" y1="18" x2="12" y2="21" /><line x1="8" y1="21" x2="16" y2="21" /></>,
+  video: <><path d="M2 7a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2z" /><polyline points="16 11 22 7 22 17 16 13" /></>,
+  wrench: <path d="M21.7 5.3l-3 3a3 3 0 01-4.2-4.2l3-3a5 5 0 00-6.5 6.5l-8 8a2 2 0 002.8 2.8l8-8a5 5 0 006.5-6.5z" />,
+  arrL: <><line x1="19" y1="12" x2="5" y2="12" /><polyline points="11 6 5 12 11 18" /></>,
+  refresh: <><polyline points="21 12 21 6 15 6" /><path d="M21 12a9 9 0 11-3-6.7L21 8" /></>,
 };
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "name"> {

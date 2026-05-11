@@ -17,6 +17,12 @@ const PHASE_FOR_GROUP: Record<string, string> = {
   trust: "Phase 7",
   docs: "Phase 8",
   components: "Phase 9",
+  lifecycle: "Phase 9",
+  money: "Phase 9",
+  content: "Phase 9",
+  comms: "Phase 9",
+  power: "Phase 9",
+  system: "Phase 9",
 };
 
 /**
@@ -66,6 +72,29 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   "lease-pdf": lazy(() => import("@/screens/lease-pdf/LeasePdf")),
   invoice: lazy(() => import("@/screens/invoice/Invoice")),
   emails: lazy(() => import("@/screens/emails/EmailTemplates")),
+  cards: lazy(() => import("@/screens/cards/Cards")),
+  renewal: lazy(() => import("@/screens/renewal/Renewal")),
+  moveout: lazy(() => import("@/screens/moveout/MoveOut")),
+  vacate: lazy(() => import("@/screens/vacate/Vacate")),
+  waitlist: lazy(() => import("@/screens/waitlist/Waitlist")),
+  "ll-kyc": lazy(() => import("@/screens/ll-kyc/LandlordKyc")),
+  failed: lazy(() => import("@/screens/failed/FailedPayment")),
+  guarantee: lazy(() => import("@/screens/guarantee/Guarantee")),
+  credit: lazy(() => import("@/screens/credit/Credit")),
+  blog: lazy(() => import("@/screens/blog/Blog")),
+  about: lazy(() => import("@/screens/about/About")),
+  careers: lazy(() => import("@/screens/careers/Careers")),
+  case: lazy(() => import("@/screens/case/CaseStudy")),
+  video: lazy(() => import("@/screens/video/VideoCall")),
+  push: lazy(() => import("@/screens/push/PushSms")),
+  newsletter: lazy(() => import("@/screens/newsletter/Newsletter")),
+  tmobile: lazy(() => import("@/screens/tmobile/TenantMobile")),
+  lmobile: lazy(() => import("@/screens/lmobile/LandlordMobile")),
+  pwa: lazy(() => import("@/screens/pwa/Pwa")),
+  cmdk: lazy(() => import("@/screens/cmdk/CmdK")),
+  i18n: lazy(() => import("@/screens/i18n/I18n")),
+  tokens: lazy(() => import("@/screens/tokens/Tokens")),
+  a11y: lazy(() => import("@/screens/a11y/A11y")),
 };
 
 export default function App() {

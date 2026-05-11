@@ -189,17 +189,55 @@ Print-optimised A4 layouts + email templates.
 
 ---
 
-## Phase 9 — Component gallery + API integration + polish
+## Phase 9 — Final: gallery + new sections (23 added screens)
 
-- [ ] `43` Property card variations — `screen-cards.jsx` → `src/screens/cards/`. Component gallery using all PropertyCard variants + MapPin variants + EmptyState.
+The v2 handoff added 22 new screens across 6 new sections plus the unbuilt cards gallery — 23 screens total. All shipped in this phase, no new shared component extracts (these screens compose existing primitives).
+
+### Component gallery (1)
+- [x] `43` Property card variations — `screen-cards.jsx` → `src/screens/cards/`. Showcases PropertyCard variants, MapPin variants (default/active/cluster/sold), EmptyState.
+
+### Lease lifecycle (4)
+- [x] `44` Lease renewal — `screen-renewal.jsx`. Offer card with current vs new rent, term row table, counter-offer.
+- [x] `45` Move-out inspection — `screen-moveout.jsx`. Room list + active-room photos + condition checklist.
+- [x] `46` Vacate notice — `screen-vacate.jsx`. Form + reason chips + cooling-off card.
+- [x] `47` Waitlist — `screen-waitlist.jsx`. Filled-spot join page with similar spots grid.
+
+### Trust & money (4)
+- [x] `48` Landlord KYC — `screen-ll-kyc.jsx`. 4-step verification rail + upload dropzone.
+- [x] `49` Failed payment — `screen-failed.jsx`. Danger card + late-fee timer + retry/plan options + attempts log.
+- [x] `50` Rent guarantee — `screen-guarantee.jsx`. Espresso hero + coverage card + 4-step how-it-works.
+- [x] `51` Credit / TPN — `screen-credit.jsx`. Score with gradient bar, factors list, share-link card.
+
+### Content & brand (4)
+- [x] `52` Blog — `screen-blog.jsx`. Featured article + tag chips + 3-col grid + newsletter CTA.
+- [x] `53` About — `screen-about.jsx`. Hero + stats + story + founders + milestones + press.
+- [x] `54` Careers — `screen-careers.jsx`. Values + roles table + benefits panel.
+- [x] `55` Landlord case study — `screen-case.jsx`. Hero + metrics + article body + pullquote.
+
+### Communication (3)
+- [x] `56` Live viewing video call — `screen-video.jsx`. Full-bleed video + self preview + chat panel + control bar. Added `mic` + `video` icons to Icon.tsx.
+- [x] `57` Push & SMS templates — `screen-push.jsx`. Two columns of phone notifications + preference toggle matrix.
+- [x] `58` Newsletter digest — `screen-newsletter.jsx`. Standalone email mock (Tuesday Digest format).
+
+### Mobile & power users (4)
+- [x] `59` Tenant mobile dashboard — `screen-tmobile.jsx`. Two phone frames: home + rent breakdown.
+- [x] `60` Landlord mobile ops — `screen-lmobile.jsx`. Two phone frames: dashboard + applicant card. Added `wrench` + `arrL` icons.
+- [x] `61` PWA install + offline — `screen-pwa.jsx`. Install prompt + offline state cards. Added `refresh` icon.
+- [x] `62` Command palette ⌘K — `screen-cmdk.jsx`. Overlay with grouped commands + keyboard hints.
+
+### System & inclusion (3)
+- [x] `63` Localisation — `screen-i18n.jsx`. 3-locale hero cards + 8-language coverage table with progress bars.
+- [x] `64` Design tokens spec — `screen-tokens.jsx`. Color swatches + type scale + spacing/radii + shadows.
+- [x] `65` Accessibility audit — `screen-a11y.jsx`. WCAG 2.2 AA summary + focus rings + contrast pairs + touch targets + reduced motion.
+
+### Deferred to a later release
+
 - [ ] Auth flow wired to backroom-api: `POST /auth/login`, `POST /auth/register`, `POST /auth/refresh`, `GET /users/me`. Token in memory; refresh interceptor in `src/lib/api.ts`.
-- [ ] Paginated lists wired (`PageResponse<T>` shape — `{ content, page, size, totalPages, totalElements }`).
+- [ ] Paginated lists wired (`PageResponse<T>` shape).
 - [ ] Global error boundary; toast on API errors via existing ToastHost.
-- [ ] Replace `Photo` placeholders with real image upload + display (build `<ImageUpload>` + `<ImageThumb>` if not already).
-- [ ] Promote any Tier C/D component to a higher tier if a second consumer appeared during build.
+- [ ] Replace `Photo` placeholders with real image upload + display.
 - [ ] Browser smoke test of every screen, dark mode pass, accent variants pass.
 - [ ] `npm audit` triage, dependency bump round.
-- [ ] README final pass.
 
 ---
 
