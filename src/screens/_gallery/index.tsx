@@ -73,13 +73,13 @@ export default function DevHome() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
           <DevCard
-            to="/_routes"
+            to="/dev/routes"
             eyebrow={`${ROUTES.length} screens`}
             title="Routes"
             body="Every prototype artboard from the handoff, live. Click any to view."
           />
           <DevCard
-            to="/_components"
+            to="/dev/components"
             eyebrow="Phase 1 primitives"
             title="Component gallery"
             body="Live preview of every Tier A and Tier B primitive in every variant. The storybook substitute."

@@ -49,7 +49,7 @@ export default function ComponentGallery() {
     <main style={{ minHeight: "100vh", background: "var(--paper)" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 32px" }}>
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
-          <Link to="/" style={{ display: "inline-flex" }}>
+          <Link to="/dev" style={{ display: "inline-flex" }}>
             <Logo size={20} />
           </Link>
           <Eyebrow>Tier A + Tier B primitives</Eyebrow>

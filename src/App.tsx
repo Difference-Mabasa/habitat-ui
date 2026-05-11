@@ -1,5 +1,5 @@
 import { Suspense, lazy, type ComponentType, type LazyExoticComponent } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ROUTES } from "@/routes";
 import { useTheme } from "@/hooks/useTheme";
 import DevHome from "@/screens/_gallery";
@@ -105,9 +105,15 @@ export default function App() {
     <>
       <Suspense fallback={<div style={{ padding: 40 }}>Loading…</div>}>
         <Routes>
-          <Route path="/" element={<DevHome />} />
-          <Route path="/_routes" element={<RoutesGallery />} />
-          <Route path="/_components" element={<ComponentGallery />} />
+          {/* Root redirects to the customer-facing landing page. The dev hub
+              lives under /dev so it stays out of the user's way. */}
+          <Route path="/" element={<Navigate to="/landing" replace />} />
+          <Route path="/dev" element={<DevHome />} />
+          <Route path="/dev/routes" element={<RoutesGallery />} />
+          <Route path="/dev/components" element={<ComponentGallery />} />
+          {/* Legacy dev URLs — redirect so old bookmarks still work. */}
+          <Route path="/_routes" element={<Navigate to="/dev/routes" replace />} />
+          <Route path="/_components" element={<Navigate to="/dev/components" replace />} />
           {ROUTES.map((r) => {
             const Component = SCREEN_COMPONENTS[r.id];
             return (

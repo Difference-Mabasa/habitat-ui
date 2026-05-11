@@ -32,13 +32,13 @@ export default function Placeholder({ label, phase }: PlaceholderProps) {
         {location.pathname}
       </code>
       <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-        <Button as="a" href="/" variant="secondary">
+        <Button as="a" href="/dev" variant="secondary">
           ← Dev home
         </Button>
-        <Link to="/_routes">
+        <Link to="/dev/routes">
           <Button variant="ghost">All routes</Button>
         </Link>
-        <Link to="/_components">
+        <Link to="/dev/components">
           <Button variant="ghost">Component gallery</Button>
         </Link>
       </div>
