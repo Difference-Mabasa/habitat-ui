@@ -110,12 +110,12 @@ Goal: ship the 30 components in `component-audit.md` Tier A and Tier B. Every la
 
 Highest-load-bearing screens; the user-journey backbone. Tier C components get extracted as they're first needed (PropertyCard variants, PriceDisplay usage, KpiTile, ActionItem, NotificationRow, etc.).
 
-- [ ] `01` Landing (landlord acquisition) — `screen-landing.jsx` → `src/screens/landing/`. Extracts: `Hero` (D), `ValueGrid` (D), `StatTile` (C), `PropertyCard` grid variant (C).
-- [ ] `02` Landlord dashboard — `screen-landlord.jsx` → `src/screens/landlord-dashboard/`. Extracts: `KpiTile` (C), `ActionItem` (C), `PropertyTable` (D), `ApplicationPipeline` (D), `Sidebar` (B, already built).
-- [ ] `03` Browse + map (split) — `screen-browse.jsx` → `src/screens/browse/`. Extracts: `FilterBar` (C), `PropertyCard` row variant (C), `MapPin` (C).
-- [ ] `04` Property detail — `screen-property.jsx` → `src/screens/property-detail/`. Extracts: `PriceDisplay` already exists; `RatingDisplay` (C), `AgentCard` (C).
-- [ ] `05` Apply flow (step 3) — `screen-apply.jsx` → `src/screens/apply/`. Extracts: `DocumentStatusRow` (C), `FileUploadZone` (C). Uses `Stepper` vertical.
-- [ ] `06` Tenant portal (My Rental) — `screen-tenant.jsx` → `src/screens/tenant-portal/`.
+- [x] `01` Landing (landlord acquisition) — `screen-landing.jsx` → `src/screens/landing/`. Extracts: `Hero` (D), `ValueGrid` (D), `StatTile` (C), `PropertyCard` grid variant (C).
+- [x] `02` Landlord dashboard — `screen-landlord.jsx` → `src/screens/landlord-dashboard/`. Extracts: `KpiTile` (C), `ActionItem` (C), `PropertyTable` (D), `ApplicationPipeline` (D), `Sidebar` (B, already built).
+- [x] `03` Browse + map (split) — `screen-browse.jsx` → `src/screens/browse/`. Extracts: `FilterBar` (C), `PropertyCard` row variant (C), `MapPin` (C).
+- [x] `04` Property detail — `screen-property.jsx` → `src/screens/property-detail/`. Extracts: `PriceDisplay` already exists; `RatingDisplay` (C), `AgentCard` (C).
+- [x] `05` Apply flow (step 3) — `screen-apply.jsx` → `src/screens/apply/`. Extracts: `DocumentStatusRow` (C), `FileUploadZone` (C). Uses `Stepper` vertical.
+- [x] `06` Tenant portal (My Rental) — `screen-tenant.jsx` → `src/screens/tenant-portal/`.
 
 **Exit**: 6 routes render pixel-perfect with inline mock data. Responsive at 1440 fixed-width. `npm run lint/typecheck/build` green.
 

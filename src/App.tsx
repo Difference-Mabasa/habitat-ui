@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, lazy, type ComponentType, type LazyExoticComponent } from "react";
 import { Route, Routes } from "react-router-dom";
 import { ROUTES } from "@/routes";
 import { useTheme } from "@/hooks/useTheme";
@@ -19,6 +19,19 @@ const PHASE_FOR_GROUP: Record<string, string> = {
   components: "Phase 9",
 };
 
+/**
+ * Screens are added to this manifest as they ship. Anything not in here renders
+ * a Placeholder for the appropriate phase.
+ */
+const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentType>>> = {
+  landing: lazy(() => import("@/screens/landing/Landing")),
+  "landlord-dashboard": lazy(() => import("@/screens/landlord-dashboard/LandlordDashboard")),
+  browse: lazy(() => import("@/screens/browse/Browse")),
+  property: lazy(() => import("@/screens/property-detail/PropertyDetail")),
+  apply: lazy(() => import("@/screens/apply/Apply")),
+  "tenant-portal": lazy(() => import("@/screens/tenant-portal/TenantPortal")),
+};
+
 export default function App() {
   // Bootstrap theme (sets data-theme + --accent on <html> from localStorage).
   useTheme();
@@ -30,15 +43,22 @@ export default function App() {
           <Route path="/" element={<DevHome />} />
           <Route path="/_routes" element={<RoutesGallery />} />
           <Route path="/_components" element={<ComponentGallery />} />
-          {ROUTES.map((r) => (
-            <Route
-              key={r.id}
-              path={r.path}
-              element={
-                <Placeholder label={r.label} phase={PHASE_FOR_GROUP[r.group] ?? "a future phase"} />
-              }
-            />
-          ))}
+          {ROUTES.map((r) => {
+            const Component = SCREEN_COMPONENTS[r.id];
+            return (
+              <Route
+                key={r.id}
+                path={r.path}
+                element={
+                  Component ? (
+                    <Component />
+                  ) : (
+                    <Placeholder label={r.label} phase={PHASE_FOR_GROUP[r.group] ?? "a future phase"} />
+                  )
+                }
+              />
+            );
+          })}
           <Route path="*" element={<Placeholder label="Not found" phase="Phase 5 (states)" />} />
         </Routes>
       </Suspense>
