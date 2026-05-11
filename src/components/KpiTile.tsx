@@ -5,13 +5,29 @@ import Badge, { type BadgeTone } from "./Badge";
 export interface KpiTileProps {
   label: ReactNode;
   value: ReactNode;
+  valueTone?: "ink" | "success" | "warn" | "accent";
   delta?: ReactNode;
   deltaTone?: BadgeTone;
   subText?: ReactNode;
+  subTone?: "slate" | "success" | "warn" | "accent";
   /** Tiny sparkline trace (8 points fits nicely). */
   spark?: number[];
   sparkTone?: "success" | "accent" | "warn" | "danger";
 }
+
+const VALUE_COLOR = {
+  ink: "var(--ink)",
+  success: "var(--success)",
+  warn: "var(--warn)",
+  accent: "var(--accent)",
+} as const;
+
+const SUB_COLOR = {
+  slate: "var(--slate)",
+  success: "var(--success)",
+  warn: "var(--warn)",
+  accent: "var(--accent)",
+} as const;
 
 const SPARK_TONE_COLOR = {
   success: "var(--success)",
@@ -44,9 +60,11 @@ function Spark({ data, color }: { data: number[]; color: string }) {
 export default function KpiTile({
   label,
   value,
+  valueTone = "ink",
   delta,
   deltaTone = "neutral",
   subText,
+  subTone = "slate",
   spark,
   sparkTone = "success",
 }: KpiTileProps) {
@@ -65,7 +83,13 @@ export default function KpiTile({
       </div>
       <div
         className="tabular"
-        style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1 }}
+        style={{
+          fontSize: 28,
+          fontWeight: 600,
+          letterSpacing: "-0.02em",
+          lineHeight: 1.1,
+          color: VALUE_COLOR[valueTone],
+        }}
       >
         {value}
       </div>
@@ -73,7 +97,7 @@ export default function KpiTile({
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
           {delta ? <Badge tone={deltaTone}>{delta}</Badge> : null}
           {subText ? (
-            <span style={{ fontSize: 12, color: "var(--slate)" }}>{subText}</span>
+            <span style={{ fontSize: 12, color: SUB_COLOR[subTone] }}>{subText}</span>
           ) : null}
         </div>
       )}

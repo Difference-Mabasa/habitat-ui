@@ -4,9 +4,11 @@ import Icon from "./Icon";
 export interface MapPinProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type" | "children"> {
   price?: number;
   cluster?: number;
+  /** Currently selected/hovered — ink bg overrides tone. */
   active?: boolean;
   sold?: boolean;
-  /** Position styles set by the parent (e.g. left/top %). */
+  /** Visual tone for non-active state. `accent` is the "hot/featured" look. */
+  tone?: "default" | "accent";
 }
 
 function formatPrice(n: number): string {
@@ -20,11 +22,23 @@ export default function MapPin({
   cluster,
   active = false,
   sold = false,
+  tone = "default",
   style,
   ...rest
 }: MapPinProps) {
   const isCluster = cluster != null && cluster > 0;
   const text = isCluster ? cluster : price != null ? formatPrice(price) : "";
+  const bg = active
+    ? "var(--ink)"
+    : tone === "accent"
+      ? "var(--accent)"
+      : "var(--surface)";
+  const color = active || tone === "accent" ? "var(--paper)" : "var(--ink)";
+  const borderColor = active
+    ? "var(--ink)"
+    : tone === "accent"
+      ? "var(--accent)"
+      : "var(--hairline-strong)";
 
   return (
     <button
@@ -32,9 +46,9 @@ export default function MapPin({
       {...rest}
       style={{
         transform: `translate(-50%, -100%) scale(${active ? 1.05 : 1})`,
-        background: active ? "var(--ink)" : "var(--surface)",
-        color: active ? "var(--paper)" : "var(--ink)",
-        border: `1px solid ${active ? "var(--ink)" : "var(--hairline-strong)"}`,
+        background: bg,
+        color,
+        border: `1px solid ${borderColor}`,
         borderRadius: 999,
         padding: "6px 12px",
         fontSize: 13,

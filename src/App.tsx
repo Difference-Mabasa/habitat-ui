@@ -30,6 +30,16 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   property: lazy(() => import("@/screens/property-detail/PropertyDetail")),
   apply: lazy(() => import("@/screens/apply/Apply")),
   "tenant-portal": lazy(() => import("@/screens/tenant-portal/TenantPortal")),
+  wizard: lazy(() => import("@/screens/wizard/Wizard")),
+  applicant: lazy(() => import("@/screens/applicant/ApplicantDetail")),
+  mandates: lazy(() => import("@/screens/mandates/Mandates")),
+  viewings: lazy(() => import("@/screens/viewings/Viewings")),
+  map: lazy(() => import("@/screens/map/Map")),
+  inbox: lazy(() => import("@/screens/inbox/Inbox")),
+  statements: lazy(() => import("@/screens/statements/Statements")),
+  analytics: lazy(() => import("@/screens/analytics/Analytics")),
+  agency: lazy(() => import("@/screens/agency/Agency")),
+  notifications: lazy(() => import("@/screens/notifications/Notifications")),
 };
 
 export default function App() {

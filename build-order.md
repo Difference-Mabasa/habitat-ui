@@ -123,16 +123,16 @@ Highest-load-bearing screens; the user-journey backbone. Tier C components get e
 
 ## Phase 3 — Landlord surfaces (10 screens, artboards 07–10, 21–26)
 
-- [ ] `07` List a property wizard (step 3) — `screen-wizard.jsx`. Uses Stepper horizontal, FileUploadZone.
-- [ ] `08` Applicant detail — `screen-applicant.jsx`. Extracts: `AffordabilityBreakdown` (D), `ApplicantCard` (C, may already exist from landlord-dashboard).
-- [ ] `09` Mandates & agents — `screen-mandates.jsx`. Extracts: `AgentCard` (already built).
-- [ ] `10` Viewings calendar — `screen-viewings.jsx`. Extracts: `ViewingCard` (C), `ViewingCalendarGrid` (D).
-- [ ] `21` Full map view — `screen-map.jsx`. Reuses FilterBar, MapPin, PropertyCard row.
-- [ ] `22` Inbox / messaging — `screen-inbox.jsx`. Extracts: `MessageBubble` (C), `InboxThreadList` (D).
-- [ ] `23` Statements & payouts — `screen-statements.jsx`. Extracts: `StatementsTable` (D), `MonthlyCollectionChart` (D), `KpiTile` (already).
-- [ ] `24` Property analytics — `screen-analytics.jsx`. Reuses KpiTile.
-- [ ] `25` Agency portfolio — `screen-agency.jsx`. Reuses Sidebar, PropertyTable.
-- [ ] `26` Notifications — `screen-notifications.jsx`. Extracts: `NotificationRow` (C) — also wired into nav DrawerShell.
+- [x] `07` List a property wizard (step 3) — `screen-wizard.jsx`. Uses Stepper horizontal, FileUploadZone.
+- [x] `08` Applicant detail — `screen-applicant.jsx`. Extracts: `ScoreBreakdown` (Tier C — reused in onboarding Phase 4).
+- [x] `09` Mandates & agents — `screen-mandates.jsx`. Reuses KpiTile, Avatar, Badge.
+- [x] `10` Viewings calendar — `screen-viewings.jsx`. Extracts: `ViewingCalendarGrid` (D).
+- [x] `21` Full map view — `screen-map.jsx`. Reuses MapPin (added `tone="accent"` for hot pins).
+- [x] `22` Inbox / messaging — `screen-inbox.jsx`. Extracts: `InboxThreadList` (D). Reuses MessageBubble.
+- [x] `23` Statements & payouts — `screen-statements.jsx`. Extracts: `StatementsTable` (D), `MonthlyCollectionChart` (D). Reuses KpiTile.
+- [x] `24` Property analytics — `screen-analytics.jsx`. Reuses KpiTile; inline ConversionFunnel + DailyViewsChart.
+- [x] `25` Agency portfolio — `screen-agency.jsx`. Extracts: `AgencyTable` (D — different columns from PropertyTable).
+- [x] `26` Notifications — `screen-notifications.jsx`. NotificationRow extended with `variant: "drawer" | "page"`.
 
 ---
 
