@@ -14,7 +14,7 @@ export interface FooterProps {
 export default function Footer({
   columns,
   tagline = "Calm utility for renting and letting in South Africa.",
-  copyright = `© ${new Date().getFullYear()} Backroom`,
+  copyright = `© ${new Date().getFullYear()} Habitat`,
 }: FooterProps) {
   return (
     <footer style={{ background: "var(--ink)", color: "var(--paper)" }}>

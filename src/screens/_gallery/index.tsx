@@ -63,10 +63,10 @@ export default function DevHome() {
               textTransform: "uppercase",
             }}
           >
-            BACKROOM <span style={{ color: "var(--accent)" }}>UI</span>
+            HABI<span style={{ color: "var(--accent)" }}>TAT</span> UI
           </h1>
           <p style={{ fontSize: 15, color: "var(--slate)", marginTop: 12, maxWidth: 560 }}>
-            Pixel-perfect React rebuild of the Backroom Web handoff — {ROUTES.length} screens shipped
+            Pixel-perfect React rebuild of the Habitat Web handoff — {ROUTES.length} screens shipped
             across 14 sections. Talks to backroom-api on :8080.
           </p>
         </div>
@@ -89,7 +89,7 @@ export default function DevHome() {
         <Card padding={24}>
           <Eyebrow>Why this exists</Eyebrow>
           <p style={{ fontSize: 14, lineHeight: 1.7, margin: "8px 0 0", color: "var(--ink)" }}>
-            Backroom UI ships in phases. <code className="mono">build-order.md</code> tracks what's
+            Habitat UI ships in phases. <code className="mono">build-order.md</code> tracks what's
             done; <code className="mono">component-audit.md</code> is the single source of truth for
             what's reusable. If a pattern in a screen looks like an existing component, it should
             <em> be</em> the existing component.

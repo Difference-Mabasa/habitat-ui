@@ -1,5 +1,5 @@
 /**
- * Backroom API client.
+ * Habitat API client (talks to the backroom-api backend service).
  *
  * Dev: requests to /api are proxied to http://localhost:8080 (see vite.config.ts).
  * Prod: set VITE_API_BASE_URL to the deployed backroom-api origin.

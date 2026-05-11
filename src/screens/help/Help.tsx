@@ -24,7 +24,7 @@ const FAQS = [
   "How do I cancel an application after applying?",
   "When will my deposit be returned?",
   "What's the difference between Free and Landlord plans?",
-  "How does Backroom verify landlords?",
+  "How does Habitat verify landlords?",
   "Can I pay rent via cash deposit?",
   "What happens if my landlord doesn't respond?",
 ];

@@ -34,7 +34,7 @@ export default function About() {
       <Nav role="tenant" />
 
       <div style={{ padding: "64px 32px 32px", maxWidth: 1100, margin: "0 auto" }}>
-        <Eyebrow>Backroom · est. 2022</Eyebrow>
+        <Eyebrow>Habitat · est. 2022</Eyebrow>
         <h1 className="display" style={{ fontSize: 120, lineHeight: 0.92, margin: "16px 0 24px" }}>
           OUR JOB IS
           <br />
@@ -80,7 +80,7 @@ export default function About() {
               next room either.
             </p>
             <p style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.7 }}>
-              Three years later, Backroom helps over 38,000 tenants and 4,200 verified landlords keep
+              Three years later, Habitat helps over 38,000 tenants and 4,200 verified landlords keep
               clean records, pay rent on time, and resolve disputes — without lawyers.
             </p>
           </div>

@@ -100,7 +100,7 @@ export default function CaseStudy() {
             </blockquote>
 
             <p>
-              She joined Backroom in August 2025 after a neighbour pointed her to the verified-landlord
+              She joined Habitat in August 2025 after a neighbour pointed her to the verified-landlord
               program. Within three weeks she'd listed all 8 properties, FICA'd through the wizard, and
               switched to next-day payouts.
             </p>

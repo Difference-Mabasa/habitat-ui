@@ -62,7 +62,7 @@ export default function Tokens() {
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh", padding: "48px 32px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <Eyebrow>Design tokens · Backroom v3</Eyebrow>
+        <Eyebrow>Design tokens · Habitat v3</Eyebrow>
         <h1 className="display" style={{ fontSize: 80, margin: "8px 0 36px" }}>
           DESIGN TOKENS
         </h1>

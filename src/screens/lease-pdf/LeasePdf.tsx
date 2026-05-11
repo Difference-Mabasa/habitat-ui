@@ -14,7 +14,7 @@ const rows: { section: string; items: RowProps[] }[] = [
     items: [
       { label: "Landlord", value: "Naledi Mokoena (ID 8201180123087)" },
       { label: "Tenant", value: "Sipho Khumalo (ID 9304120876081)" },
-      { label: "Witness", value: "Backroom SA Pty Ltd · ref BR-W-12831" },
+      { label: "Witness", value: "Habitat SA Pty Ltd · ref HB-W-12831" },
     ],
   },
   {
@@ -48,7 +48,7 @@ export default function LeasePdf() {
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
         >
           <div style={{ fontSize: 13, color: "var(--slate)" }}>
-            Lease #BR-LSE-2026-04891 · A4 portrait · 2 pages
+            Lease #HB-LSE-2026-04891 · A4 portrait · 2 pages
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <Button variant="secondary" size="sm" leftIcon="download">
@@ -105,7 +105,7 @@ export default function LeasePdf() {
             <Logo size={18} />
             <div style={{ textAlign: "right", fontSize: 10, color: "var(--slate)", lineHeight: 1.5 }}>
               <div className="mono" style={{ fontWeight: 600, fontSize: 11 }}>
-                LEASE #BR-LSE-2026-04891
+                LEASE #HB-LSE-2026-04891
               </div>
               <div>Generated 4 May 2026</div>
               <div>POPIA-compliant electronic instrument</div>
@@ -200,8 +200,8 @@ export default function LeasePdf() {
               color: "var(--slate)",
             }}
           >
-            <span>Page 1 of 2 · Backroom SA Pty Ltd · PPRA reg. FFC2026/00831</span>
-            <span className="mono">br.co.za/L/04891</span>
+            <span>Page 1 of 2 · Habitat SA Pty Ltd · PPRA reg. FFC2026/00831</span>
+            <span className="mono">hb.co.za/L/04891</span>
           </div>
         </div>
       </div>

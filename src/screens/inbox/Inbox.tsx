@@ -13,7 +13,7 @@ const THREADS: InboxThread[] = [
   { id: "t3", name: "PlumberPro · Sipho M.", initials: "PP", role: "Contractor", subject: "MNT-0421 · Geyser leaking", preview: "On site at 16:00 today. Will need water off for 30 min.", time: "Yesterday", unread: 0 },
   { id: "t4", name: "Lerato P.", initials: "LP", role: "Applicant", subject: "Cottage · Caroline", preview: "Thanks for accepting. I'll send the deposit tomorrow.", time: "Tue", unread: 0 },
   { id: "t5", name: "Lebo Properties", initials: "LP", role: "Agent", subject: "Mandate Q1 statement", preview: "March statement attached. R3,952 collected, R316 in…", time: "Mon", unread: 0 },
-  { id: "t6", name: "Backroom Support", initials: "BR", role: "System", subject: "FICA verification approved", preview: "Your tenant Sipho Dlamini's FICA documents are verified.", time: "12 Mar", unread: 0 },
+  { id: "t6", name: "Habitat Support", initials: "HB", role: "System", subject: "FICA verification approved", preview: "Your tenant Sipho Dlamini's FICA documents are verified.", time: "12 Mar", unread: 0 },
 ];
 
 const FILTERS = [
@@ -72,7 +72,7 @@ export default function Inbox() {
             <div>
               <div style={{ fontSize: 16, fontWeight: 600 }}>{thread?.name ?? "—"}</div>
               <div style={{ fontSize: 11, color: "var(--slate)" }}>
-                Re: {thread?.subject} · application BR-A-2025-04 ·{" "}
+                Re: {thread?.subject} · application HB-A-2025-04 ·{" "}
                 <a href="#" style={{ color: "var(--accent)" }}>
                   view application
                 </a>

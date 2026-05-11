@@ -25,7 +25,7 @@ export default function Blog() {
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
       <Nav role="tenant" />
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 32px" }}>
-        <Eyebrow>Backroom guide</Eyebrow>
+        <Eyebrow>Habitat guide</Eyebrow>
         <h1 className="display" style={{ fontSize: 80, margin: "8px 0 24px" }}>
           RENT, SMARTER.
         </h1>

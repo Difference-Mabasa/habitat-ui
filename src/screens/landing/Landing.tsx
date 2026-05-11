@@ -49,7 +49,7 @@ export default function Landing() {
       <Footer
         columns={FOOTER_COLUMNS}
         tagline="The calmest way to rent out a backroom in South Africa. Built in Joburg."
-        copyright="© 2026 Backroom · Your Spot. Your Hood."
+        copyright="© 2026 Habitat · Your Spot. Your Hood."
       />
     </div>
   );
@@ -103,7 +103,7 @@ function Hero() {
               maxWidth: 520,
             }}
           >
-            Backroom is the calm, professional way to rent out a backroom, cottage or flatlet — with
+            Habitat is the calm, professional way to rent out a backroom, cottage or flatlet — with
             verified tenants, digital leases, and rent collection in one place.
           </p>
 
@@ -233,7 +233,7 @@ function ValueGrid() {
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "80px 32px" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 48 }}>
           <div>
-            <Eyebrow style={{ marginBottom: 12 }}>Why landlords choose Backroom</Eyebrow>
+            <Eyebrow style={{ marginBottom: 12 }}>Why landlords choose Habitat</Eyebrow>
             <h2
               style={{
                 fontSize: 40,

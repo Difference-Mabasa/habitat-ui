@@ -183,7 +183,7 @@ export default function Newsletter() {
               textAlign: "center",
             }}
           >
-            Backroom SA Pty Ltd · 8 Bree Street, Cape Town
+            Habitat SA Pty Ltd · 8 Bree Street, Cape Town
             <br />
             You're getting this because you saved searches in Orlando.{" "}
             <a href="#" style={{ color: "var(--slate)", textDecoration: "underline" }}>

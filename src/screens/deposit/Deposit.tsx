@@ -110,7 +110,7 @@ export default function Deposit() {
                   style={{ color: "var(--accent)", flexShrink: 0, marginTop: 2 }}
                 />
                 <div style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5 }}>
-                  Held in trust per s.5(3) of the Rental Housing Act. Backroom arbitration is free and
+                  Held in trust per s.5(3) of the Rental Housing Act. Habitat arbitration is free and
                   binding within 30 days.
                 </div>
               </div>

@@ -34,7 +34,7 @@ export default function A11y() {
           ACCESSIBILITY
         </h1>
         <p style={{ fontSize: 15, color: "var(--slate)", maxWidth: 580, marginBottom: 36 }}>
-          27% of South Africans live with a disability. Backroom is built to WCAG 2.2 AA — verified by
+          27% of South Africans live with a disability. Habitat is built to WCAG 2.2 AA — verified by
           Axe + manual review every release.
         </p>
 

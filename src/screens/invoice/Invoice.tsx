@@ -16,7 +16,7 @@ const LINES: InvoiceLine[] = [
   { description: "Rent · May 2026", details: "23 Vilakazi St", qty: "1", unit: "R 3,450.00", total: "R 3,450.00" },
   { description: "Water (excess 1.2 kL)", details: "Municipal pass-through", qty: "1", unit: "R 26.40", total: "R 26.40" },
   { description: "Maintenance · geyser fix", details: "Approved by tenant 12 Apr", qty: "1", unit: "R 480.00", total: "R 480.00" },
-  { description: "Backroom service fee", details: "5% of collected rent", qty: "1", unit: "R 172.50", total: "R 172.50" },
+  { description: "Habitat service fee", details: "5% of collected rent", qty: "1", unit: "R 172.50", total: "R 172.50" },
 ];
 
 const SUBTOTAL = "R 4,128.90";
@@ -33,7 +33,7 @@ export default function Invoice() {
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
         >
           <div style={{ fontSize: 13, color: "var(--slate)" }}>
-            Tax invoice #BR-INV-2026-04-1124 · paid 2 May 2026
+            Tax invoice #HB-INV-2026-04-1124 · paid 2 May 2026
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <Button variant="secondary" size="sm" leftIcon="download">
@@ -54,7 +54,7 @@ export default function Invoice() {
               <div
                 style={{ marginTop: 12, fontSize: 11, color: "var(--slate)", lineHeight: 1.5 }}
               >
-                Backroom SA (Pty) Ltd
+                Habitat SA (Pty) Ltd
                 <br />
                 3rd Floor, The Hive · 8 Bree Street, Cape Town 8001
                 <br />
@@ -66,7 +66,7 @@ export default function Invoice() {
                 TAX INVOICE
               </div>
               <div className="mono" style={{ fontSize: 12, color: "var(--slate)", marginTop: 6 }}>
-                #BR-INV-2026-04-1124
+                #HB-INV-2026-04-1124
               </div>
               <div className="mono" style={{ fontSize: 12, color: "var(--slate)" }}>
                 Issued 1 May 2026
@@ -189,9 +189,9 @@ export default function Invoice() {
               lineHeight: 1.6,
             }}
           >
-            This is an electronically generated tax invoice — no signature required. Backroom acts as a
+            This is an electronically generated tax invoice — no signature required. Habitat acts as a
             trust-account intermediary under PPRA regulations. For queries, email{" "}
-            <strong>billing@backroom.co.za</strong> within 30 days.
+            <strong>billing@habitat.co.za</strong> within 30 days.
           </div>
         </div>
       </div>

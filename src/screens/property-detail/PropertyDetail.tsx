@@ -43,7 +43,7 @@ const QUICK_STATS: { i: IconName; l: string; v: string }[] = [
   { i: "home", l: "Property type", v: "Free-standing house" },
   { i: "users", l: "Units available", v: "2 of 3" },
   { i: "calendar", l: "Earliest move-in", v: "Now" },
-  { i: "shield", l: "Verified by", v: "Backroom · Mar 2026" },
+  { i: "shield", l: "Verified by", v: "Habitat · Mar 2026" },
 ];
 
 const NEIGHBOURHOOD_STATS = [

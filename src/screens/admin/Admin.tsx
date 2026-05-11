@@ -20,12 +20,12 @@ interface FlagRow {
 }
 
 const QUEUE: FlagRow[] = [
-  { id: "BR-FLG-1421", type: "Listing", reason: "Suspicious pricing", subject: "Cottage · Sandton · R 850", source: "User report ×3", priority: "high", state: "open" },
-  { id: "BR-FLG-1419", type: "Review", reason: "Slander · personal attack", subject: "Naledi Mokoena · 1★", source: "Auto-detect", priority: "med", state: "open" },
-  { id: "BR-FLG-1418", type: "Listing", reason: "Duplicate of #BR-LST-08123", subject: "Backroom · Vilakazi St", source: "Auto-detect", priority: "low", state: "open" },
-  { id: "BR-FLG-1416", type: "Message", reason: "Off-platform payment ask", subject: "Conversation #4421", source: "User report", priority: "high", state: "in-review" },
-  { id: "BR-FLG-1411", type: "Profile", reason: "Failed FICA · 3rd attempt", subject: "User #92041", source: "System", priority: "med", state: "in-review" },
-  { id: "BR-FLG-1408", type: "Listing", reason: "Photo of another listing", subject: "Bachelor · Diepkloof", source: "User report", priority: "low", state: "resolved" },
+  { id: "HB-FLG-1421", type: "Listing", reason: "Suspicious pricing", subject: "Cottage · Sandton · R 850", source: "User report ×3", priority: "high", state: "open" },
+  { id: "HB-FLG-1419", type: "Review", reason: "Slander · personal attack", subject: "Naledi Mokoena · 1★", source: "Auto-detect", priority: "med", state: "open" },
+  { id: "HB-FLG-1418", type: "Listing", reason: "Duplicate of #HB-LST-08123", subject: "Backroom · Vilakazi St", source: "Auto-detect", priority: "low", state: "open" },
+  { id: "HB-FLG-1416", type: "Message", reason: "Off-platform payment ask", subject: "Conversation #4421", source: "User report", priority: "high", state: "in-review" },
+  { id: "HB-FLG-1411", type: "Profile", reason: "Failed FICA · 3rd attempt", subject: "User #92041", source: "System", priority: "med", state: "in-review" },
+  { id: "HB-FLG-1408", type: "Listing", reason: "Photo of another listing", subject: "Bachelor · Diepkloof", source: "User report", priority: "low", state: "resolved" },
 ];
 
 const PRIORITY_TONE: Record<FlagPriority, BadgeTone> = {

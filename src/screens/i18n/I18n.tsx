@@ -90,7 +90,7 @@ export default function I18n() {
               SAWUBONA. DUMELA.
             </h1>
             <p style={{ fontSize: 14, color: "var(--slate)" }}>
-              Backroom in your language. 38% of users use a non-English UI.
+              Habitat in your language. 38% of users use a non-English UI.
             </p>
           </div>
           <div style={{ display: "flex", gap: 6 }}>

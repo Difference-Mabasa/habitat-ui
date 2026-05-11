@@ -27,7 +27,7 @@ export default function Pwa() {
       <Phone>
         <div style={{ padding: "44px 20px 20px", background: "var(--surface-2)" }}>
           <Eyebrow>Browser · Chrome</Eyebrow>
-          <div style={{ fontWeight: 600, fontSize: 14, marginTop: 4 }}>backroom.co.za</div>
+          <div style={{ fontWeight: 600, fontSize: 14, marginTop: 4 }}>habitat.co.za</div>
         </div>
         <div style={{ padding: "60px 24px", textAlign: "center" }}>
           <div style={{ height: 80, opacity: 0.5 }} />
@@ -60,7 +60,7 @@ export default function Pwa() {
               <Logo size={12} invert />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: 15 }}>Add Backroom to home</div>
+              <div style={{ fontWeight: 600, fontSize: 15 }}>Add Habitat to home</div>
               <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>
                 Faster · works offline · uses 2 MB
               </div>

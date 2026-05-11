@@ -28,7 +28,7 @@ const HIGHLIGHTS: [string, string][] = [
   ["✓", "Affordability: pays ≤ 28% of income"],
   ["✓", "Stable employer · 3yrs"],
   ["✓", "Previous landlord rated 5★"],
-  ["—", "First-time on Backroom"],
+  ["—", "First-time on Habitat"],
 ];
 
 export default function LandlordMobile() {

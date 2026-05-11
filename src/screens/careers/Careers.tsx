@@ -48,7 +48,7 @@ export default function Careers() {
         <h1 className="display" style={{ fontSize: 120, lineHeight: 0.92, margin: "16px 0 24px" }}>
           BUILD WITH
           <br />
-          BACKROOM.
+          HABITAT.
         </h1>
         <p style={{ fontSize: 17, color: "var(--slate)", maxWidth: 580, lineHeight: 1.5 }}>
           27 people. 9 cities. One mission: fix renting for the 65% of South Africans nobody else is

@@ -18,7 +18,7 @@ export default function Logo({ size = 22, invert = false }: LogoProps) {
         className="display"
         style={{ fontSize: size + 4, color: wordmarkColor, letterSpacing: "0.02em" }}
       >
-        BACK<span style={{ color: "var(--accent)" }}>ROOM</span>
+        HABI<span style={{ color: "var(--accent)" }}>TAT</span>
       </span>
     </div>
   );

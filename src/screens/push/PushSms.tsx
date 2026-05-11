@@ -17,11 +17,11 @@ const PUSH: PushNotif[] = [
 ];
 
 const SMS = [
-  "Backroom: New applicant Sipho K. (score 84). Reply YES to invite to a viewing, INFO for details, STOP to opt out.",
-  "Backroom: Your viewing is confirmed for Sat 14 May, 14:00, 23 Vilakazi St. Reply CANCEL to reschedule. Help: 0618229100",
-  "Backroom: Rent R 3,450 not yet received. Pay by 12 May to avoid R 250 fee. Pay now: br.co.za/p/4891",
-  "Backroom: Your deposit refund of R 3,602 was sent to FNB •••2114. Allow 2–3 working days. Ref: BR-RFD-1124",
-  "Backroom: 1-time code 481209. Don't share. We will never ask for this.",
+  "Habitat:New applicant Sipho K. (score 84). Reply YES to invite to a viewing, INFO for details, STOP to opt out.",
+  "Habitat:Your viewing is confirmed for Sat 14 May, 14:00, 23 Vilakazi St. Reply CANCEL to reschedule. Help: 0618229100",
+  "Habitat:Rent R 3,450 not yet received. Pay by 12 May to avoid R 250 fee. Pay now: hb.co.za/p/4891",
+  "Habitat:Your deposit refund of R 3,602 was sent to FNB •••2114. Allow 2–3 working days. Ref: HB-RFD-1124",
+  "Habitat:1-time code 481209. Don't share. We will never ask for this.",
 ];
 
 const PREFS: [string, boolean, boolean, boolean][] = [
@@ -63,7 +63,7 @@ function PushItem({ title, body }: PushNotif) {
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Backroom</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Habitat</div>
           <div style={{ fontSize: 11, color: "var(--slate)" }}>now</div>
         </div>
         <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{title}</div>

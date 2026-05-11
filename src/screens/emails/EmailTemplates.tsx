@@ -25,7 +25,7 @@ function Email({ tag, subject, preheader, cta, children }: EmailProps) {
       <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 12 }}>
         <Badge tone="accent">{tag}</Badge>
         <span className="mono" style={{ fontSize: 11, color: "var(--slate)" }}>
-          noreply@backroom.co.za
+          noreply@habitat.co.za
         </span>
       </div>
       <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2 }}>{subject}</div>
@@ -77,9 +77,9 @@ function Email({ tag, subject, preheader, cta, children }: EmailProps) {
             borderTop: "1px solid var(--hairline)",
           }}
         >
-          Backroom SA (Pty) Ltd · 8 Bree Street, Cape Town · PPRA FFC2026/00831
+          Habitat SA (Pty) Ltd · 8 Bree Street, Cape Town · PPRA FFC2026/00831
           <br />
-          You're getting this because you have an account at Backroom.{" "}
+          You're getting this because you have an account at Habitat.{" "}
           <a href="#" style={{ color: "var(--slate)", textDecoration: "underline" }}>
             Unsubscribe
           </a>{" "}
@@ -282,7 +282,7 @@ export default function EmailTemplates() {
                     className="mono"
                     style={{ textAlign: "right", borderTop: "1px dotted var(--hairline)" }}
                   >
-                    BR-PMT-04891
+                    HB-PMT-04891
                   </td>
                 </tr>
                 <tr>
@@ -304,7 +304,7 @@ export default function EmailTemplates() {
             <p style={{ marginTop: 16, fontSize: 12, color: "var(--slate)" }}>
               Tax invoice attached:{" "}
               <a href="#" style={{ color: "var(--accent)", fontWeight: 600 }}>
-                BR-INV-2026-04-1124.pdf
+                HB-INV-2026-04-1124.pdf
               </a>
             </p>
           </Email>

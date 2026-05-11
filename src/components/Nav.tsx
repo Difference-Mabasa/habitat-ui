@@ -122,7 +122,7 @@ export default function Nav({
           gap: 32,
         }}
       >
-        <Link to="/" aria-label="Backroom home">
+        <Link to="/" aria-label="Habitat home">
           <Logo size={20} />
         </Link>
 

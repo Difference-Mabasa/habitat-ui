@@ -11,7 +11,7 @@ interface TransactionRow {
 }
 
 const ROWS: TransactionRow[] = [
-  { label: "Reference", value: "BR-RENT-04250-SD", mono: true },
+  { label: "Reference", value: "HB-RENT-04250-SD", mono: true },
   { label: "Method", value: "FNB Cheque ••3091" },
   { label: "Date", value: "01 Apr 2025 · 09:14 SAST" },
   { label: "Receipt #", value: "RCP-2025-04-00482", mono: true },
@@ -144,7 +144,7 @@ export default function Payment() {
           }}
         >
           <Icon name="shield" size={12} style={{ color: "var(--success)" }} />
-          <span>Held in regulated trust account · Backroom Escrow Pty Ltd · FSP 51234</span>
+          <span>Held in regulated trust account · Habitat Escrow Pty Ltd · FSP 51234</span>
         </div>
       </div>
     </div>

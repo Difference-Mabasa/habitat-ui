@@ -1,4 +1,4 @@
-/* Backroom — warm brand design tokens (ported from prototype) */
+/* Habitat — warm brand design tokens (ported from prototype) */
 :root {
   /* Neutral whites with espresso ink */
   --paper: #ffffff;
@@ -14,7 +14,7 @@
   --slate-2: #8e7458;
   --slate-3: #b39a7c;
 
-  /* Accent — Backroom orange */
+  /* Accent — Habitat orange */
   --accent: #e97a1f;
   --accent-hover: #d86913;
   --accent-soft: #fbe6d0;
