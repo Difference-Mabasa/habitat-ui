@@ -50,6 +50,11 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   deposit: lazy(() => import("@/screens/deposit/Deposit")),
   reviews: lazy(() => import("@/screens/reviews/Reviews")),
   onboarding: lazy(() => import("@/screens/onboarding/Onboarding")),
+  auth: lazy(() => import("@/screens/auth/Auth")),
+  profile: lazy(() => import("@/screens/profile/Profile")),
+  settings: lazy(() => import("@/screens/settings/Settings")),
+  states: lazy(() => import("@/screens/states/States")),
+  mobile: lazy(() => import("@/screens/mobile/Mobile")),
 };
 
 export default function App() {

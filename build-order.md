@@ -153,11 +153,11 @@ Highest-load-bearing screens; the user-journey backbone. Tier C components get e
 
 ## Phase 5 — Account, system, mobile (5 screens, artboards 27–31)
 
-- [ ] `27` Sign in — `screen-auth.jsx`.
-- [ ] `28` Profile & verification — `screen-profile.jsx`.
-- [ ] `29` Settings & billing — `screen-settings.jsx`.
-- [ ] `30` Empty / loading / error states — `screen-states.jsx`. Becomes the gallery for `EmptyState`, `Alert`, `LoadingSkeleton` (which are already built in Phase 1; this screen just shows them all).
-- [ ] `31` Mobile (Browse · Property · Rental triad) — `screen-mobile.jsx`. Possibly extracts mobile sheet drawer.
+- [x] `27` Sign in — `screen-auth.jsx`. Split-pane with espresso pitch panel + sign-in form.
+- [x] `28` Profile & verification — `screen-profile.jsx`. Extracts: `SubNav` (Tier C — section-level rail, also used by settings).
+- [x] `29` Settings & billing — `screen-settings.jsx`. Reuses SubNav.
+- [x] `30` Empty / loading / error states — `screen-states.jsx`. Gallery composed of Phase 1 `EmptyState`, `LoadingSkeleton`.
+- [x] `31` Mobile (Browse · Property · Rental triad) — `screen-mobile.jsx`. Extracts: `PhoneFrame` (D — phone chrome reused across the 3 frames).
 
 ---
 
