@@ -138,16 +138,16 @@ Highest-load-bearing screens; the user-journey backbone. Tier C components get e
 
 ## Phase 4 — Tenant surfaces (10 screens, artboards 11–20)
 
-- [ ] `11` My applications — `screen-my-apps.jsx`. Extracts: `ApplicationStatusTimeline` (D).
-- [ ] `12` Lease review & sign — `screen-lease.jsx`. Extracts: `LeaseDocument` (D).
-- [ ] `13` Payment receipt — `screen-payment.jsx`. Reuses KeyValueRow.
-- [ ] `14` Communities — `screen-communities.jsx`.
-- [ ] `15` Saved searches & wishlist — `screen-saved.jsx`. Extracts: `SavedSearchCard` (C). Reuses PropertyCard.
-- [ ] `16` Compare drawer — `screen-compare.jsx`. Extracts: `ComparisonTable` (D).
-- [ ] `17` Report maintenance — `screen-maintenance.jsx`. Reuses FormField, FileUploadZone.
-- [ ] `18` Deposit return — `screen-deposit.jsx`. Extracts: `DepositReturnChecklist` (D).
-- [ ] `19` Reviews — `screen-reviews.jsx`. Extracts: `RatingReviewForm` (D), reuses StarRating + Chip.
-- [ ] `20` Tenant onboarding (affordability) — `screen-onboarding.jsx`. Uses Stepper horizontal.
+- [x] `11` My applications — `screen-my-apps.jsx`. Extracts: `ApplicationStatusTimeline` (D).
+- [x] `12` Lease review & sign — `screen-lease.jsx`. Extracts: `LeaseDocument` (D — paginated reader).
+- [x] `13` Payment receipt — `screen-payment.jsx`. Reuses Card, Button, Eyebrow.
+- [x] `14` Communities — `screen-communities.jsx`. Reuses MessageBubble + Avatar in a 3-col layout.
+- [x] `15` Saved searches & wishlist — `screen-saved.jsx`. Extracts: `SavedSearchCard` (C).
+- [x] `16` Compare drawer — `screen-compare.jsx`. Extracts: `ComparisonTable` (D — generic property comparison).
+- [x] `17` Report maintenance — `screen-maintenance.jsx`. Reuses FormField, Select, Textarea, Photo.
+- [x] `18` Deposit return — `screen-deposit.jsx`. Extracts: `DepositReturnChecklist` (D); `totalDeductions` helper in `lib/deposit.ts`.
+- [x] `19` Reviews — `screen-reviews.jsx`. Extracts: `RatingReviewForm` (D); reuses StarRating, Chip, RatingDisplay.
+- [x] `20` Tenant onboarding — `screen-onboarding.jsx`. Reuses Stepper, Avatar, ProgressBar, Badge.
 
 ---
 
