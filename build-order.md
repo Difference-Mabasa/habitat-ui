@@ -48,54 +48,54 @@ Goal: ship the 30 components in `component-audit.md` Tier A and Tier B. Every la
 
 ### Tier A — foundation primitives (15)
 
-- [ ] `src/components/Icon.tsx` — typed wrapper, all ~50 outlines from `primitives.jsx`. `name: IconName` union.
-- [ ] `src/components/Photo.tsx` — cross-hatch placeholder (`.ph`). Props: `ratio`, `label`, `src`.
-- [ ] `src/components/Logo.tsx` — Backroom wordmark + faceted house. Variants: light, invert.
-- [ ] `src/components/Button.tsx` — variants: primary/accent/secondary/ghost; sizes: sm/md/lg; `iconOnly`, `leftIcon`, `rightIcon`, `loading`, `as`.
-- [ ] `src/components/IconButton.tsx` — shortcut for `<Button iconOnly>` with optional `badge` count.
-- [ ] `src/components/Chip.tsx` — filter pill with `active`, `leftIcon`, `count`, `onToggle`.
-- [ ] `src/components/Badge.tsx` — tones: neutral/success/warn/danger/accent. Helper `scoreTone(n)` exported alongside.
-- [ ] `src/components/Card.tsx` — `padding`, `interactive`, `as`.
-- [ ] `src/components/Input.tsx` + `Textarea.tsx` + `Select.tsx` — `label`, `helper`, `error`, `leftIcon`, `rightSlot`.
-- [ ] `src/components/Checkbox.tsx` + `Radio.tsx` + `Toggle.tsx`.
-- [ ] `src/components/FormField.tsx` — composite: label + control + helper + error. Forms always use this.
-- [ ] `src/components/Eyebrow.tsx` + `src/components/Hairline.tsx` — small atoms.
-- [ ] `src/components/Stepper.tsx` — `orientation: "vertical" | "horizontal"`, `steps`, `currentStep`, optional `aside`.
-- [ ] `src/components/ProgressBar.tsx` — `value`, `tone`, `height`.
-- [ ] `src/components/StarRating.tsx` — display or interactive, `value`, `count`, `size`.
-- [ ] `src/components/Avatar.tsx` — `src`, `name` (initials fallback), `size`, `tone`.
-- [ ] `src/components/PriceDisplay.tsx` — `amount`, `period`, `currency="R"`, `size`, `tone`.
-- [ ] `src/components/KeyValueRow.tsx` — `label`, `value`, `tone`, `divider`.
+- [x] `src/components/Icon.tsx` — typed wrapper, all ~50 outlines from `primitives.jsx`. `name: IconName` union.
+- [x] `src/components/Photo.tsx` — cross-hatch placeholder (`.ph`). Props: `ratio`, `label`, `src`.
+- [x] `src/components/Logo.tsx` — Backroom wordmark + faceted house. Variants: light, invert.
+- [x] `src/components/Button.tsx` — variants: primary/accent/secondary/ghost; sizes: sm/md/lg; `iconOnly`, `leftIcon`, `rightIcon`, `loading`, `as`.
+- [x] `src/components/IconButton.tsx` — shortcut for `<Button iconOnly>` with optional `badge` count.
+- [x] `src/components/Chip.tsx` — filter pill with `active`, `leftIcon`, `count`, `onToggle`.
+- [x] `src/components/Badge.tsx` — tones: neutral/success/warn/danger/accent. Helper `scoreTone(n)` exported alongside.
+- [x] `src/components/Card.tsx` — `padding`, `interactive`, `as`.
+- [x] `src/components/Input.tsx` + `Textarea.tsx` + `Select.tsx` — `label`, `helper`, `error`, `leftIcon`, `rightSlot`.
+- [x] `src/components/Checkbox.tsx` + `Radio.tsx` + `Toggle.tsx`.
+- [x] `src/components/FormField.tsx` — composite: label + control + helper + error. Forms always use this.
+- [x] `src/components/Eyebrow.tsx` + `src/components/Hairline.tsx` — small atoms.
+- [x] `src/components/Stepper.tsx` — `orientation: "vertical" | "horizontal"`, `steps`, `currentStep`, optional `aside`.
+- [x] `src/components/ProgressBar.tsx` — `value`, `tone`, `height`.
+- [x] `src/components/StarRating.tsx` — display or interactive, `value`, `count`, `size`.
+- [x] `src/components/Avatar.tsx` — `src`, `name` (initials fallback), `size`, `tone`.
+- [x] `src/components/PriceDisplay.tsx` — `amount`, `period`, `currency="R"`, `size`, `tone`.
+- [x] `src/components/KeyValueRow.tsx` — `label`, `value`, `tone`, `divider`.
 
 ### Tier B — layout/shell primitives (15)
 
-- [ ] `src/components/Nav.tsx` — port `nav.jsx:4-102`. Role variants (tenant/landlord/agent/admin), search, chat/notif buttons.
-- [ ] `src/components/DrawerShell.tsx` — top-right dropdown panel (NotifDrawer + ChatDrawer share this).
-- [ ] `src/components/NotificationDrawer.tsx` — uses NotificationRow rows (Tier C, built when first needed).
-- [ ] `src/components/ChatDrawer.tsx` — uses MessageBubble preview rows.
-- [ ] `src/components/PageShell.tsx` — Nav + optional Sidebar + content max-width 1440, padding 32.
-- [ ] `src/components/Sidebar.tsx` — 240px landlord/agency/admin nav with icon + label + count items.
-- [ ] `src/components/TwoColumnSplit.tsx` — main + sticky right rail.
-- [ ] `src/components/ThreeColumnLayout.tsx` — left rail + center + right rail.
-- [ ] `src/components/PageHeader.tsx` — eyebrow + title + subtitle + actions.
-- [ ] `src/components/SectionHeader.tsx` — smaller, in-content header with optional `<InlineLink>` action. (Merge `SectionActionHeader` — same thing.)
-- [ ] `src/components/Breadcrumbs.tsx` — chevron-separated path items.
-- [ ] `src/components/Tabs.tsx` — `variant: "pill" | "underline" | "segmented"`, `tabs`, `value`, `onChange`. Converges chip-tabs and button-group tabs.
-- [ ] `src/components/InlineLink.tsx` — text link with optional icon.
-- [ ] `src/components/EmptyState.tsx` — icon + title + description + CTA.
-- [ ] `src/components/Alert.tsx` — banner with tone (error/warn/info/success).
-- [ ] `src/components/LoadingSkeleton.tsx` — shimmer placeholder.
-- [ ] `src/components/Modal.tsx` + `src/components/ConfirmDialog.tsx` — overlay primitives.
-- [ ] `src/components/ToastHost.tsx` + `src/lib/toast.ts` — imperative `toast.success(msg)` / `toast.error(msg)`.
-- [ ] `src/components/Footer.tsx` — dark-bg footer (used by landing).
+- [x] `src/components/Nav.tsx` — port `nav.jsx:4-102`. Role variants (tenant/landlord/agent/admin), search, chat/notif buttons.
+- [x] `src/components/DrawerShell.tsx` — top-right dropdown panel (NotifDrawer + ChatDrawer share this).
+- [x] `src/components/NotificationDrawer.tsx` — uses NotificationRow rows (Tier C, built when first needed).
+- [x] `src/components/ChatDrawer.tsx` — uses MessageBubble preview rows.
+- [x] `src/components/PageShell.tsx` — Nav + optional Sidebar + content max-width 1440, padding 32.
+- [x] `src/components/Sidebar.tsx` — 240px landlord/agency/admin nav with icon + label + count items.
+- [x] `src/components/TwoColumnSplit.tsx` — main + sticky right rail.
+- [x] `src/components/ThreeColumnLayout.tsx` — left rail + center + right rail.
+- [x] `src/components/PageHeader.tsx` — eyebrow + title + subtitle + actions.
+- [x] `src/components/SectionHeader.tsx` — smaller, in-content header with optional `<InlineLink>` action. (Merge `SectionActionHeader` — same thing.)
+- [x] `src/components/Breadcrumbs.tsx` — chevron-separated path items.
+- [x] `src/components/Tabs.tsx` — `variant: "pill" | "underline" | "segmented"`, `tabs`, `value`, `onChange`. Converges chip-tabs and button-group tabs.
+- [x] `src/components/InlineLink.tsx` — text link with optional icon.
+- [x] `src/components/EmptyState.tsx` — icon + title + description + CTA.
+- [x] `src/components/Alert.tsx` — banner with tone (error/warn/info/success).
+- [x] `src/components/LoadingSkeleton.tsx` — shimmer placeholder.
+- [x] `src/components/Modal.tsx` + `src/components/ConfirmDialog.tsx` — overlay primitives.
+- [x] `src/components/ToastHost.tsx` + `src/lib/toast.ts` — imperative `toast.success(msg)` / `toast.error(msg)`.
+- [x] `src/components/Footer.tsx` — dark-bg footer (used by landing).
 
 ### Infrastructure for Phase 1
 
-- [ ] `src/hooks/useTheme.ts` — set `data-theme` + `--accent` on `<html>`.
-- [ ] `src/routes.ts` — single source of truth for all 43 routes. `{ id, label, path, group }`. Drives `<Routes>` and the dev gallery index.
-- [ ] `src/App.tsx` — replace placeholder with `<Routes>` + lazy imports for every screen.
-- [ ] `src/screens/_gallery/` — dev-only landing page that lists every route in groups (mirrors the prototype's `DesignCanvas` sections).
-- [ ] `src/screens/_components/` — dev-only gallery of every Tier A + B primitive in every variant (manual Storybook substitute). Lets us QA primitives before screens consume them.
+- [x] `src/hooks/useTheme.ts` — set `data-theme` + `--accent` on `<html>`.
+- [x] `src/routes.ts` — single source of truth for all 43 routes. `{ id, label, path, group }`. Drives `<Routes>` and the dev gallery index.
+- [x] `src/App.tsx` — replaced placeholder with `<Routes>`; each unimplemented screen renders a `Placeholder` until its phase ships. Lazy imports added when real screens land.
+- [x] `src/screens/_gallery/` — dev-only landing page (`/`) plus `/_routes` lists every screen route in groups, mirrors the prototype's `DesignCanvas` sections.
+- [x] `src/screens/_gallery/Components.tsx` — `/_components` shows every Tier A + B primitive in every variant. Manual Storybook substitute.
 
 **Exit criteria**:
 - All 30 Tier A + B components exist with TS types and at least one usage in `_components/` gallery.

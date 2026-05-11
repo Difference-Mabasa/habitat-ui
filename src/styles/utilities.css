@@ -206,6 +206,27 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ---------- Loading skeleton shimmer ---------- */
+@keyframes skel {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.skel {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2),
+    var(--surface-3),
+    var(--surface-2)
+  );
+  background-size: 200% 100%;
+  animation: skel 1.4s infinite;
+  border-radius: var(--r-sm);
+}
+
 /* Photo placeholder — warm cross-hatch */
 .ph {
   background: repeating-linear-gradient(

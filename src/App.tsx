@@ -1,22 +1,48 @@
+import { Suspense } from "react";
+import { Route, Routes } from "react-router-dom";
+import { ROUTES } from "@/routes";
+import { useTheme } from "@/hooks/useTheme";
+import DevHome from "@/screens/_gallery";
+import RoutesGallery from "@/screens/_gallery/Routes";
+import ComponentGallery from "@/screens/_gallery/Components";
+import Placeholder from "@/screens/_placeholder/Placeholder";
+import ToastHost from "@/components/ToastHost";
+
+const PHASE_FOR_GROUP: Record<string, string> = {
+  core: "Phase 2",
+  landlord: "Phase 3",
+  tenant: "Phase 4",
+  account: "Phase 5",
+  growth: "Phase 6",
+  trust: "Phase 7",
+  docs: "Phase 8",
+  components: "Phase 9",
+};
+
 export default function App() {
+  // Bootstrap theme (sets data-theme + --accent on <html> from localStorage).
+  useTheme();
+
   return (
-    <main style={{ padding: 48, maxWidth: 720 }}>
-      <h1 className="display" style={{ fontSize: 64, margin: 0 }}>
-        BACKROOM
-      </h1>
-      <p className="eyebrow" style={{ marginTop: 12 }}>
-        UI scaffold ready
-      </p>
-      <p style={{ marginTop: 24, lineHeight: 1.6 }}>
-        Vite + React + TypeScript is up. Design tokens loaded from{" "}
-        <code className="mono">src/styles/tokens.css</code>. Utility classes
-        available from <code className="mono">src/styles/utilities.css</code>.
-      </p>
-      <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-        <button className="btn btn--accent">Accent</button>
-        <button className="btn btn--primary">Primary</button>
-        <button className="btn btn--secondary">Secondary</button>
-      </div>
-    </main>
+    <>
+      <Suspense fallback={<div style={{ padding: 40 }}>Loading…</div>}>
+        <Routes>
+          <Route path="/" element={<DevHome />} />
+          <Route path="/_routes" element={<RoutesGallery />} />
+          <Route path="/_components" element={<ComponentGallery />} />
+          {ROUTES.map((r) => (
+            <Route
+              key={r.id}
+              path={r.path}
+              element={
+                <Placeholder label={r.label} phase={PHASE_FOR_GROUP[r.group] ?? "a future phase"} />
+              }
+            />
+          ))}
+          <Route path="*" element={<Placeholder label="Not found" phase="Phase 5 (states)" />} />
+        </Routes>
+      </Suspense>
+      <ToastHost />
+    </>
   );
 }
