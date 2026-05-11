@@ -60,6 +60,9 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   "landlord-onboarding": lazy(() => import("@/screens/landlord-onboarding/LandlordOnboarding")),
   neighbourhood: lazy(() => import("@/screens/neighbourhood/Neighbourhood")),
   agent: lazy(() => import("@/screens/agent/AgentProfile")),
+  verification: lazy(() => import("@/screens/verification/Verification")),
+  help: lazy(() => import("@/screens/help/Help")),
+  admin: lazy(() => import("@/screens/admin/Admin")),
 };
 
 export default function App() {

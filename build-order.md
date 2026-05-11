@@ -173,9 +173,9 @@ Highest-load-bearing screens; the user-journey backbone. Tier C components get e
 
 ## Phase 7 — Trust, safety & support (3 screens, artboards 37–39)
 
-- [ ] `37` FICA / POPIA verification — `screen-verification.jsx`. Uses Stepper vertical, FileUploadZone, Alert.
-- [ ] `38` Help & support center — `screen-help.jsx`.
-- [ ] `39` Admin / moderation queue — `screen-admin.jsx`. Reuses Sidebar.
+- [x] `37` FICA / POPIA verification — `screen-verification.jsx`. Reuses vertical Stepper, FileUploadZone, Alert danger.
+- [x] `38` Help & support center — `screen-help.jsx`. Espresso search hero + categories grid + FAQ + contact card.
+- [x] `39` Admin / moderation queue — `screen-admin.jsx`. KPI stats + Tabs filters + moderation table with priority/state badges.
 
 ---
 
