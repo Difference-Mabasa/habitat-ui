@@ -183,9 +183,9 @@ Highest-load-bearing screens; the user-journey backbone. Tier C components get e
 
 Print-optimised A4 layouts + email templates.
 
-- [ ] `40` Lease PDF (A4 print) — `screen-leasepdf.jsx`. Verify `@media print` survives translation.
-- [ ] `41` Tax invoice (A4 print) — `screen-invoice.jsx`.
-- [ ] `42` Email templates — `screen-email.jsx`.
+- [x] `40` Lease PDF (A4 print) — `screen-leasepdf.jsx`. 794px-wide A4 page with watermark, header, sections, signature block, footer.
+- [x] `41` Tax invoice (A4 print) — `screen-invoice.jsx`. From/to grid + line-items table + totals + footer.
+- [x] `42` Email templates — `screen-email.jsx`. 4 email layouts (application / approved / new applicant / receipt) with shared Email wrapper.
 
 ---
 

@@ -63,6 +63,9 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   verification: lazy(() => import("@/screens/verification/Verification")),
   help: lazy(() => import("@/screens/help/Help")),
   admin: lazy(() => import("@/screens/admin/Admin")),
+  "lease-pdf": lazy(() => import("@/screens/lease-pdf/LeasePdf")),
+  invoice: lazy(() => import("@/screens/invoice/Invoice")),
+  emails: lazy(() => import("@/screens/emails/EmailTemplates")),
 };
 
 export default function App() {
