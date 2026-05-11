@@ -1,0 +1,122 @@
+/* Backroom — warm brand design tokens (ported from prototype) */
+:root {
+  /* Neutral whites with espresso ink */
+  --paper: #ffffff;
+  --paper-2: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f5f5f4;
+  --surface-3: #eaeae8;
+  --hairline: #e5e5e2;
+  --hairline-strong: #d0d0cc;
+  --ink: #1e0f06;
+  --ink-2: #321b0c;
+  --slate: #6b5340;
+  --slate-2: #8e7458;
+  --slate-3: #b39a7c;
+
+  /* Accent — Backroom orange */
+  --accent: #e97a1f;
+  --accent-hover: #d86913;
+  --accent-soft: #fbe6d0;
+  --accent-ring: rgba(233, 122, 31, 0.28);
+
+  /* Status */
+  --success: #5c7a2f;
+  --success-soft: #e8efd3;
+  --warn: #c77019;
+  --warn-soft: #f8e2c7;
+  --danger: #b5351b;
+  --danger-soft: #f5d7cc;
+
+  /* Radii */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+
+  /* Type — Anton (display, condensed all-caps) + Inter body */
+  --font-display: "Anton", "Bebas Neue", "Oswald", Impact, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(30, 15, 6, 0.06);
+  --shadow-md: 0 4px 14px rgba(30, 15, 6, 0.1), 0 1px 3px rgba(30, 15, 6, 0.06);
+  --shadow-lg: 0 24px 48px -12px rgba(30, 15, 6, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Inputs without spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Scrollbar — thin */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--hairline-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--slate-3);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* Dark = espresso (inverse of cream) */
+[data-theme="dark"] {
+  --paper: #1e0f06;
+  --paper-2: #2a1709;
+  --surface: #2a1709;
+  --surface-2: #321b0c;
+  --surface-3: #3d2412;
+  --hairline: #3d2412;
+  --hairline-strong: #553418;
+  --ink: #f7efe2;
+  --ink-2: #e1d3b7;
+  --slate: #b39a7c;
+  --slate-2: #8e7458;
+  --slate-3: #6b5340;
+  --accent-soft: rgba(233, 122, 31, 0.18);
+}

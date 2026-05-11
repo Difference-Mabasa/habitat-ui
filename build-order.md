@@ -1,0 +1,216 @@
+# Backroom UI — Build Order
+
+> **Source of truth**: `C:\Users\mabas\Downloads\Backroom Web-handoff\backroom-web\project\` — 43 React/JSX prototype artboards.
+>
+> **Product name**: Backroom (the repo is just named `habitat-ui` for separation from the legacy Angular `backroom-ui`).
+>
+> **API**: backroom-api on `localhost:8080/api/v1` (proxied via `/api` in dev).
+
+Tick items off as they ship. Each phase ends with **all of**: `npm run typecheck` green, `npm run lint` green, `npm run build` green, dev-server smoke test in browser, single commit with phase name in the message.
+
+---
+
+## Setup ✅ (project bootstrap)
+
+- [x] Vite + React 18 + TypeScript project initialised
+- [x] React Router 6 wired in `main.tsx`
+- [x] `/api` dev proxy → `http://localhost:8080`
+- [x] Design tokens ported to `src/styles/tokens.css`
+- [x] Utility classes ported to `src/styles/utilities.css`
+- [x] `src/lib/api.ts` — typed fetch wrapper with `ApiError`
+- [x] ESLint flat config, strict TS, `@/*` path alias
+- [x] `.env.example`, `.gitignore`
+- [x] `README.md` + this `build-order.md`
+
+---
+
+## Phase 0 — Component audit ✅
+
+> Goal: read all 43 prototype screens and catalogue every reusable pattern. No code; only the catalogue. **Anything appearing in 2+ screens must be built once and reused — no duplication.**
+
+- [x] Read every `screen-*.jsx` + `nav.jsx` + `primitives.jsx`.
+- [x] Cataloged ~58 reusable components into [`component-audit.md`](./component-audit.md).
+- [x] Assigned each a **build tier**:
+  - **Tier A** (15) — foundation primitives, built in Phase 1.
+  - **Tier B** (15) — layout/shell primitives, built in Phase 1.
+  - **Tier C** (15) — domain cards/rows, built when their first screen ships.
+  - **Tier D** (13) — screen-internal complex widgets, live in their owning screen folder.
+- [x] Logged convergence issues — patterns currently implemented multiple ways (PropertyCard 3 layouts, Stepper 2 orientations, Tabs vs chips, etc.) that must collapse to one component.
+- [x] Logged gaps — components not in the handoff but required (ToastHost, ConfirmDialog, Tooltip, Popover, Mobile sheet).
+
+**No screen work begins until Phase 1 is done.** This is the rule that prevents duplication.
+
+---
+
+## Phase 1 — Foundation + layout primitives (Tier A + Tier B)
+
+Goal: ship the 30 components in `component-audit.md` Tier A and Tier B. Every later phase consumes these — no screen should re-implement a button, a card, a page header, a stepper.
+
+### Tier A — foundation primitives (15)
+
+- [ ] `src/components/Icon.tsx` — typed wrapper, all ~50 outlines from `primitives.jsx`. `name: IconName` union.
+- [ ] `src/components/Photo.tsx` — cross-hatch placeholder (`.ph`). Props: `ratio`, `label`, `src`.
+- [ ] `src/components/Logo.tsx` — Backroom wordmark + faceted house. Variants: light, invert.
+- [ ] `src/components/Button.tsx` — variants: primary/accent/secondary/ghost; sizes: sm/md/lg; `iconOnly`, `leftIcon`, `rightIcon`, `loading`, `as`.
+- [ ] `src/components/IconButton.tsx` — shortcut for `<Button iconOnly>` with optional `badge` count.
+- [ ] `src/components/Chip.tsx` — filter pill with `active`, `leftIcon`, `count`, `onToggle`.
+- [ ] `src/components/Badge.tsx` — tones: neutral/success/warn/danger/accent. Helper `scoreTone(n)` exported alongside.
+- [ ] `src/components/Card.tsx` — `padding`, `interactive`, `as`.
+- [ ] `src/components/Input.tsx` + `Textarea.tsx` + `Select.tsx` — `label`, `helper`, `error`, `leftIcon`, `rightSlot`.
+- [ ] `src/components/Checkbox.tsx` + `Radio.tsx` + `Toggle.tsx`.
+- [ ] `src/components/FormField.tsx` — composite: label + control + helper + error. Forms always use this.
+- [ ] `src/components/Eyebrow.tsx` + `src/components/Hairline.tsx` — small atoms.
+- [ ] `src/components/Stepper.tsx` — `orientation: "vertical" | "horizontal"`, `steps`, `currentStep`, optional `aside`.
+- [ ] `src/components/ProgressBar.tsx` — `value`, `tone`, `height`.
+- [ ] `src/components/StarRating.tsx` — display or interactive, `value`, `count`, `size`.
+- [ ] `src/components/Avatar.tsx` — `src`, `name` (initials fallback), `size`, `tone`.
+- [ ] `src/components/PriceDisplay.tsx` — `amount`, `period`, `currency="R"`, `size`, `tone`.
+- [ ] `src/components/KeyValueRow.tsx` — `label`, `value`, `tone`, `divider`.
+
+### Tier B — layout/shell primitives (15)
+
+- [ ] `src/components/Nav.tsx` — port `nav.jsx:4-102`. Role variants (tenant/landlord/agent/admin), search, chat/notif buttons.
+- [ ] `src/components/DrawerShell.tsx` — top-right dropdown panel (NotifDrawer + ChatDrawer share this).
+- [ ] `src/components/NotificationDrawer.tsx` — uses NotificationRow rows (Tier C, built when first needed).
+- [ ] `src/components/ChatDrawer.tsx` — uses MessageBubble preview rows.
+- [ ] `src/components/PageShell.tsx` — Nav + optional Sidebar + content max-width 1440, padding 32.
+- [ ] `src/components/Sidebar.tsx` — 240px landlord/agency/admin nav with icon + label + count items.
+- [ ] `src/components/TwoColumnSplit.tsx` — main + sticky right rail.
+- [ ] `src/components/ThreeColumnLayout.tsx` — left rail + center + right rail.
+- [ ] `src/components/PageHeader.tsx` — eyebrow + title + subtitle + actions.
+- [ ] `src/components/SectionHeader.tsx` — smaller, in-content header with optional `<InlineLink>` action. (Merge `SectionActionHeader` — same thing.)
+- [ ] `src/components/Breadcrumbs.tsx` — chevron-separated path items.
+- [ ] `src/components/Tabs.tsx` — `variant: "pill" | "underline" | "segmented"`, `tabs`, `value`, `onChange`. Converges chip-tabs and button-group tabs.
+- [ ] `src/components/InlineLink.tsx` — text link with optional icon.
+- [ ] `src/components/EmptyState.tsx` — icon + title + description + CTA.
+- [ ] `src/components/Alert.tsx` — banner with tone (error/warn/info/success).
+- [ ] `src/components/LoadingSkeleton.tsx` — shimmer placeholder.
+- [ ] `src/components/Modal.tsx` + `src/components/ConfirmDialog.tsx` — overlay primitives.
+- [ ] `src/components/ToastHost.tsx` + `src/lib/toast.ts` — imperative `toast.success(msg)` / `toast.error(msg)`.
+- [ ] `src/components/Footer.tsx` — dark-bg footer (used by landing).
+
+### Infrastructure for Phase 1
+
+- [ ] `src/hooks/useTheme.ts` — set `data-theme` + `--accent` on `<html>`.
+- [ ] `src/routes.ts` — single source of truth for all 43 routes. `{ id, label, path, group }`. Drives `<Routes>` and the dev gallery index.
+- [ ] `src/App.tsx` — replace placeholder with `<Routes>` + lazy imports for every screen.
+- [ ] `src/screens/_gallery/` — dev-only landing page that lists every route in groups (mirrors the prototype's `DesignCanvas` sections).
+- [ ] `src/screens/_components/` — dev-only gallery of every Tier A + B primitive in every variant (manual Storybook substitute). Lets us QA primitives before screens consume them.
+
+**Exit criteria**:
+- All 30 Tier A + B components exist with TS types and at least one usage in `_components/` gallery.
+- Dev gallery at `/` lists 43 routes with placeholder pages.
+- `npm run typecheck && npm run lint && npm run build` green.
+- Light/dark theme toggle works.
+- Commit: `phase 1: foundation + layout primitives`.
+
+---
+
+## Phase 2 — Core flows (6 screens, artboards 01–06)
+
+Highest-load-bearing screens; the user-journey backbone. Tier C components get extracted as they're first needed (PropertyCard variants, PriceDisplay usage, KpiTile, ActionItem, NotificationRow, etc.).
+
+- [ ] `01` Landing (landlord acquisition) — `screen-landing.jsx` → `src/screens/landing/`. Extracts: `Hero` (D), `ValueGrid` (D), `StatTile` (C), `PropertyCard` grid variant (C).
+- [ ] `02` Landlord dashboard — `screen-landlord.jsx` → `src/screens/landlord-dashboard/`. Extracts: `KpiTile` (C), `ActionItem` (C), `PropertyTable` (D), `ApplicationPipeline` (D), `Sidebar` (B, already built).
+- [ ] `03` Browse + map (split) — `screen-browse.jsx` → `src/screens/browse/`. Extracts: `FilterBar` (C), `PropertyCard` row variant (C), `MapPin` (C).
+- [ ] `04` Property detail — `screen-property.jsx` → `src/screens/property-detail/`. Extracts: `PriceDisplay` already exists; `RatingDisplay` (C), `AgentCard` (C).
+- [ ] `05` Apply flow (step 3) — `screen-apply.jsx` → `src/screens/apply/`. Extracts: `DocumentStatusRow` (C), `FileUploadZone` (C). Uses `Stepper` vertical.
+- [ ] `06` Tenant portal (My Rental) — `screen-tenant.jsx` → `src/screens/tenant-portal/`.
+
+**Exit**: 6 routes render pixel-perfect with inline mock data. Responsive at 1440 fixed-width. `npm run lint/typecheck/build` green.
+
+---
+
+## Phase 3 — Landlord surfaces (10 screens, artboards 07–10, 21–26)
+
+- [ ] `07` List a property wizard (step 3) — `screen-wizard.jsx`. Uses Stepper horizontal, FileUploadZone.
+- [ ] `08` Applicant detail — `screen-applicant.jsx`. Extracts: `AffordabilityBreakdown` (D), `ApplicantCard` (C, may already exist from landlord-dashboard).
+- [ ] `09` Mandates & agents — `screen-mandates.jsx`. Extracts: `AgentCard` (already built).
+- [ ] `10` Viewings calendar — `screen-viewings.jsx`. Extracts: `ViewingCard` (C), `ViewingCalendarGrid` (D).
+- [ ] `21` Full map view — `screen-map.jsx`. Reuses FilterBar, MapPin, PropertyCard row.
+- [ ] `22` Inbox / messaging — `screen-inbox.jsx`. Extracts: `MessageBubble` (C), `InboxThreadList` (D).
+- [ ] `23` Statements & payouts — `screen-statements.jsx`. Extracts: `StatementsTable` (D), `MonthlyCollectionChart` (D), `KpiTile` (already).
+- [ ] `24` Property analytics — `screen-analytics.jsx`. Reuses KpiTile.
+- [ ] `25` Agency portfolio — `screen-agency.jsx`. Reuses Sidebar, PropertyTable.
+- [ ] `26` Notifications — `screen-notifications.jsx`. Extracts: `NotificationRow` (C) — also wired into nav DrawerShell.
+
+---
+
+## Phase 4 — Tenant surfaces (10 screens, artboards 11–20)
+
+- [ ] `11` My applications — `screen-my-apps.jsx`. Extracts: `ApplicationStatusTimeline` (D).
+- [ ] `12` Lease review & sign — `screen-lease.jsx`. Extracts: `LeaseDocument` (D).
+- [ ] `13` Payment receipt — `screen-payment.jsx`. Reuses KeyValueRow.
+- [ ] `14` Communities — `screen-communities.jsx`.
+- [ ] `15` Saved searches & wishlist — `screen-saved.jsx`. Extracts: `SavedSearchCard` (C). Reuses PropertyCard.
+- [ ] `16` Compare drawer — `screen-compare.jsx`. Extracts: `ComparisonTable` (D).
+- [ ] `17` Report maintenance — `screen-maintenance.jsx`. Reuses FormField, FileUploadZone.
+- [ ] `18` Deposit return — `screen-deposit.jsx`. Extracts: `DepositReturnChecklist` (D).
+- [ ] `19` Reviews — `screen-reviews.jsx`. Extracts: `RatingReviewForm` (D), reuses StarRating + Chip.
+- [ ] `20` Tenant onboarding (affordability) — `screen-onboarding.jsx`. Uses Stepper horizontal.
+
+---
+
+## Phase 5 — Account, system, mobile (5 screens, artboards 27–31)
+
+- [ ] `27` Sign in — `screen-auth.jsx`.
+- [ ] `28` Profile & verification — `screen-profile.jsx`.
+- [ ] `29` Settings & billing — `screen-settings.jsx`.
+- [ ] `30` Empty / loading / error states — `screen-states.jsx`. Becomes the gallery for `EmptyState`, `Alert`, `LoadingSkeleton` (which are already built in Phase 1; this screen just shows them all).
+- [ ] `31` Mobile (Browse · Property · Rental triad) — `screen-mobile.jsx`. Possibly extracts mobile sheet drawer.
+
+---
+
+## Phase 6 — Growth & discovery (5 screens, artboards 32–36)
+
+- [ ] `32` Landlord pricing & plans — `screen-pricing.jsx`.
+- [ ] `33` Refer & earn — `screen-referral.jsx`.
+- [ ] `34` Landlord onboarding — `screen-llonboarding.jsx`.
+- [ ] `35` Neighbourhood (Soweto) — `screen-neighbourhood.jsx`.
+- [ ] `36` Agent public profile — `screen-agent.jsx`. Reuses AgentCard, RatingDisplay.
+
+---
+
+## Phase 7 — Trust, safety & support (3 screens, artboards 37–39)
+
+- [ ] `37` FICA / POPIA verification — `screen-verification.jsx`. Uses Stepper vertical, FileUploadZone, Alert.
+- [ ] `38` Help & support center — `screen-help.jsx`.
+- [ ] `39` Admin / moderation queue — `screen-admin.jsx`. Reuses Sidebar.
+
+---
+
+## Phase 8 — Documents & notifications (3 screens, artboards 40–42)
+
+Print-optimised A4 layouts + email templates.
+
+- [ ] `40` Lease PDF (A4 print) — `screen-leasepdf.jsx`. Verify `@media print` survives translation.
+- [ ] `41` Tax invoice (A4 print) — `screen-invoice.jsx`.
+- [ ] `42` Email templates — `screen-email.jsx`.
+
+---
+
+## Phase 9 — Component gallery + API integration + polish
+
+- [ ] `43` Property card variations — `screen-cards.jsx` → `src/screens/cards/`. Component gallery using all PropertyCard variants + MapPin variants + EmptyState.
+- [ ] Auth flow wired to backroom-api: `POST /auth/login`, `POST /auth/register`, `POST /auth/refresh`, `GET /users/me`. Token in memory; refresh interceptor in `src/lib/api.ts`.
+- [ ] Paginated lists wired (`PageResponse<T>` shape — `{ content, page, size, totalPages, totalElements }`).
+- [ ] Global error boundary; toast on API errors via existing ToastHost.
+- [ ] Replace `Photo` placeholders with real image upload + display (build `<ImageUpload>` + `<ImageThumb>` if not already).
+- [ ] Promote any Tier C/D component to a higher tier if a second consumer appeared during build.
+- [ ] Browser smoke test of every screen, dark mode pass, accent variants pass.
+- [ ] `npm audit` triage, dependency bump round.
+- [ ] README final pass.
+
+---
+
+## Conventions during build-out
+
+- **TypeScript**: strict mode, no `any` unless commented. `interface` for object shapes, `type` for unions.
+- **Components**: function components with `export default`. Co-locate scoped CSS only when utility classes can't express it (`Component.module.css`).
+- **No duplication**: if you're writing JSX that looks like an existing pattern, stop and check `component-audit.md`. The audit is the single source of truth for what's reusable.
+- **Naming**: `kebab-case` for screen folders (`landlord-dashboard/`), `PascalCase` for component files.
+- **Routes**: every screen route lives in `src/routes.ts`; never hardcode a path in `<Link>`. Use route ID constants.
+- **API**: never call `fetch` directly from a component — go through `src/lib/api.ts` or a domain service in `src/lib/<domain>.ts`.
+- **Strings**: user-facing copy can live inline in screens (prototypes do too); extract to `src/copy/` only if duplication grows.
+- **Icons**: never inline SVG in a screen — always `<Icon name="…" />`.
+- **Commits**: one commit per checked phase, message format `phase N: <name>`.
