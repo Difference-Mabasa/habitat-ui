@@ -48,7 +48,7 @@ export const ROUTES: ScreenRoute[] = [
   { id: "inbox", label: "22 — Inbox / messaging", path: "/inbox", group: "landlord" },
   { id: "statements", label: "23 — Statements & payouts", path: "/statements", group: "landlord" },
   { id: "analytics", label: "24 — Property analytics", path: "/analytics", group: "landlord" },
-  { id: "agency", label: "25 — Agency portfolio", path: "/agency", group: "landlord" },
+  { id: "portfolio", label: "25 — Portfolio (agent)", path: "/portfolio", group: "landlord" },
   { id: "notifications", label: "26 — Notifications", path: "/notifications", group: "landlord" },
 
   // Tenant surfaces
@@ -140,6 +140,19 @@ export const ROUTES: ScreenRoute[] = [
   { id: "oauth-callback", label: "78 — OAuth callback", path: "/auth/oauth2/callback", group: "parity" },
   { id: "list-property", label: "79 — List a property (public landing)", path: "/list-property", group: "parity" },
   { id: "agent-browse", label: "80 — Browse agents", path: "/agent-browse", group: "parity" },
+  { id: "book-viewing", label: "81 — Book a viewing (tenant)", path: "/book-viewing", group: "parity" },
+  { id: "viewing-confirmed", label: "82 — Viewing requested · confirmation", path: "/viewing-confirmed", group: "parity" },
+  { id: "my-viewings", label: "83 — My viewings (tenant)", path: "/my-viewings", group: "parity" },
+  { id: "unit", label: "84 — Unit detail", path: "/unit", group: "parity" },
+  { id: "landlord-leases", label: "85 — Landlord leases", path: "/landlord-leases", group: "parity" },
+  { id: "agent-overview", label: "86 — Agent overview", path: "/agent-overview", group: "parity" },
+  { id: "landlord-properties", label: "87 — Landlord properties", path: "/landlord-properties", group: "parity" },
+  { id: "listing-submitted", label: "88 — Listing submitted · confirmation", path: "/listing-submitted", group: "parity" },
+  { id: "property-chat", label: "89 — Property chat (tenant)", path: "/property-chat", group: "parity" },
+  { id: "register", label: "90 — Register (role-aware signup)", path: "/register", group: "parity" },
+  { id: "forgot-password", label: "91 — Forgot password", path: "/forgot-password", group: "parity" },
+  { id: "user-profile", label: "92 — Public user profile", path: "/u/:userId", group: "parity" },
+  { id: "post-detail", label: "93 — Post permalink", path: "/post/:postId", group: "parity" },
 ];
 
 export const GROUP_LABEL: Record<RouteGroup, string> = {

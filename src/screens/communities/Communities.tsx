@@ -1,452 +1,341 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
-import IconButton from "@/components/IconButton";
 import Input from "@/components/Input";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import Badge from "@/components/Badge";
-import Avatar from "@/components/Avatar";
 import Tabs from "@/components/Tabs";
 import Chip from "@/components/Chip";
-import MessageBubble from "@/components/MessageBubble";
+import Photo from "@/components/Photo";
+import CommunityCard, { type CommunityCardData, type CommunityType } from "@/components/CommunityCard";
+import FeedPane from "./FeedPane";
+import PeoplePane from "./PeoplePane";
+import AreaMultiSelect from "./AreaMultiSelect";
 
-interface Community {
-  id: string;
-  name: string;
-  area: string;
-  members: number;
-  last: string;
-  unread: number;
-  joined: boolean;
-  myRole?: MemberRole;
-}
-
-type MemberRole = "admin" | "moderator" | "member";
-
-const COMMUNITIES: Community[] = [
-  { id: "c1", name: "Melville Mews", area: "Melville", members: 312, last: "2m ago", unread: 4, joined: true, myRole: "admin" },
-  { id: "c2", name: "Brixton Renters", area: "Brixton", members: 184, last: "23m ago", unread: 0, joined: true, myRole: "moderator" },
-  { id: "c3", name: "Caroline Cottages", area: "Caroline", members: 67, last: "1h ago", unread: 1, joined: true, myRole: "member" },
-  { id: "c4", name: "Yeoville Backrooms", area: "Yeoville", members: 421, last: "3h ago", unread: 0, joined: false },
-  { id: "c5", name: "Auckland Park Studios", area: "Auckland Park", members: 92, last: "Yesterday", unread: 0, joined: false },
+const COMMUNITIES: CommunityCardData[] = [
+  { id: "c1", name: "Melville Mews", area: "Melville", type: "Building", members: 312, lastActive: "2m ago", description: "Tenants of the Mews block at 14 Main Rd. Locksmiths, plumbers, lift updates, the occasional curry.", joined: true, unread: 4, autoJoined: true },
+  { id: "c2", name: "Brixton Renters", area: "Brixton", type: "Area", members: 184, lastActive: "23m ago", description: "Two-year-old neighbourhood network. Pet-sitting, second-hand furniture, loadshedding tips.", joined: true, featured: "Editor's pick" },
+  { id: "c3", name: "Caroline Cottages", area: "Brixton", type: "Building", members: 67, lastActive: "1h ago", description: "Three-property cottage cluster on Caroline St. Garden duties roster, shared braai bookings.", joined: true, unread: 1 },
+  { id: "c4", name: "Yeoville Backrooms", area: "Yeoville", type: "Area", members: 421, lastActive: "3h ago", description: "Backroom and bachelor flat tenants across Yeoville. Active classifieds, hood watch alerts.", joined: false, featured: "Trending" },
+  { id: "c5", name: "Auckland Park Studios", area: "Auckland Park", type: "Building", members: 92, lastActive: "Yesterday", description: "The Studios on Kingsway. Wits-adjacent — exam-period quiet hours actually enforced.", joined: false },
+  { id: "c6", name: "Sandton Renters Co-op", area: "Sandton", type: "Network", members: 1284, lastActive: "5m ago", description: "Largest Sandton tenant network. Insurance group buys, deposit-disputes legal helpline.", joined: false, featured: "New" },
+  { id: "c7", name: "Cape Town Townhouses", area: "Sea Point", type: "Network", members: 624, lastActive: "12m ago", description: "Sea Point + Green Point townhouse renters. Body-corporate gossip, levy chatter.", joined: false },
+  { id: "c8", name: "Joburg Pet-friendly tenants", area: "Joburg", type: "Interest", members: 488, lastActive: "1h ago", description: "If your lease lets you keep a dog/cat, you're welcome here. Vet recs + pet-sitting swaps.", joined: false },
+  { id: "c9", name: "Soweto Tenants Network", area: "Soweto", type: "Network", members: 1842, lastActive: "8m ago", description: "Pan-Soweto tenant collective. RHA advocacy, mandate audits, area-by-area channels.", joined: false },
+  { id: "c10", name: "Maboneng Lofts", area: "Maboneng", type: "Area", members: 215, lastActive: "Yesterday", description: "Inner-city loft conversions. Parking permits, building-access gossip, weekend market chatter.", joined: false },
+  { id: "c11", name: "Westdene Cottages", area: "Westdene", type: "Area", members: 142, lastActive: "30m ago", description: "Garden cottages along Caroline + Park Streets. Shared gardeners, brick swaps, pet finds.", joined: false },
+  { id: "c12", name: "Tembisa Working Renters", area: "Tembisa", type: "Network", members: 988, lastActive: "1h ago", description: "Working professionals across Tembisa renting backrooms and 1-bed flats.", joined: false },
 ];
 
-interface CommunityMessage {
-  id: string;
-  name: string;
-  body: string;
-  time: string;
-  own?: boolean;
-  landlord?: boolean;
-  pinned?: boolean;
-  /** Older messages are loaded via "Load older" link. */
-  older?: boolean;
-  hasMedia?: boolean;
-}
-
-const MESSAGES: CommunityMessage[] = [
-  { id: "m0", name: "Mxolisi K.", time: "Yesterday", body: "Bin collection moved to Wednesdays this week.", older: true },
-  { id: "m1", name: "Lerato P.", time: "9:42", body: "Loadshedding heads up — stage 4 from 18:00 tonight. Solar geyser for sale btw, R3500, almost new.", pinned: true, hasMedia: true },
-  { id: "m2", name: "You", time: "10:11", body: "Thanks Lerato. Anyone know a good locksmith on this side? Front door latch is sticking.", own: true },
-  { id: "m3", name: "Mandla K.", time: "10:14", body: "Use Sipho at Melville Hardware on 7th. Fast and fair." },
-  { id: "m4", name: "Thandi M.", time: "10:32", body: "Reminder: building inspection Thursday 10am. Will only need access to the geyser cupboard.", landlord: true },
+const ARTICLES: { id: string; tag: "Article" | "Guide"; title: string; teaser: string; date: string; readMin: number }[] = [
+  { id: "a1", tag: "Guide", title: "Your rights when the geyser bursts", teaser: "What the Rental Housing Act actually says about emergency repairs, and how to draft the text-message paper trail.", date: "Yesterday", readMin: 6 },
+  { id: "a2", tag: "Article", title: "Loadshedding-proof your spot in 5 steps", teaser: "Solar geysers, inverters, gas hobs, and what landlords legally have to allow you to install.", date: "3 days ago", readMin: 8 },
+  { id: "a3", tag: "Guide", title: "Negotiating a renewal: a 4-step script", teaser: "How to read the market, time the conversation, and counter a 12% escalation without burning the bridge.", date: "1 week ago", readMin: 5 },
+  { id: "a4", tag: "Article", title: "What FICA actually means for tenants", teaser: "Why landlords ask for your ID and bank statements — and which parts you can decline.", date: "2 weeks ago", readMin: 4 },
 ];
 
-interface JoinRequest {
-  name: string;
-  init: string;
-  area: string;
-  proof: string;
-  requested: string;
-}
-
-const JOIN_REQUESTS: JoinRequest[] = [
-  { name: "Sipho Dlamini", init: "SD", area: "Melville", proof: "Lease at 14 Main Rd", requested: "2h ago" },
-  { name: "Naledi Khumalo", init: "NK", area: "Melville", proof: "Address verified", requested: "Yesterday" },
+const AREAS = ["Brixton", "Melville", "Sandton", "Soweto", "Maboneng", "Yeoville", "Sea Point", "Auckland Park", "Westdene", "Tembisa"];
+const TYPES: (CommunityType | "All")[] = ["All", "Building", "Area", "Interest", "Network"];
+const SORTS = [
+  { id: "active", label: "Active" },
+  { id: "newest", label: "Newest" },
+  { id: "members", label: "Members" },
 ];
 
-interface Member {
-  init: string;
-  name: string;
-  role: MemberRole;
-}
-
-const MEMBERS: Member[] = [
-  { init: "LP", name: "Lerato P.", role: "admin" },
-  { init: "TM", name: "Thandi M.", role: "moderator" },
-  { init: "SD", name: "Sipho D.", role: "moderator" },
-  { init: "MK", name: "Mandla K.", role: "member" },
-  { init: "AB", name: "Aisha B.", role: "member" },
-  { init: "NJ", name: "Nthabi J.", role: "member" },
-  { init: "RT", name: "Ravi T.", role: "member" },
-  { init: "KZ", name: "Kabelo Z.", role: "member" },
-];
-
-const ROLE_TONE: Record<MemberRole, "danger" | "accent" | "neutral"> = {
-  admin: "danger",
-  moderator: "accent",
-  member: "neutral",
-};
-
-const DISCOVERY_FILTERS = [
-  { id: "all", label: "All", count: COMMUNITIES.length },
-  { id: "mine", label: "Joined", count: COMMUNITIES.filter((c) => c.joined).length },
-  { id: "discover", label: "Discover", count: COMMUNITIES.filter((c) => !c.joined).length },
-];
+type TabId = "feed" | "discover" | "people" | "articles";
 
 export default function Communities() {
-  const [activeId, setActiveId] = useState<string>("c1");
-  const [filter, setFilter] = useState("all");
-  const [areaFilter, setAreaFilter] = useState<string | null>(null);
-  const [hoveredMsg, setHoveredMsg] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabId>("feed");
+  const [query, setQuery] = useState("");
+  const [areas, setAreas] = useState<Set<string>>(new Set());
+  const [type, setType] = useState<CommunityType | "All">("All");
+  const [sort, setSort] = useState("active");
 
-  const active = COMMUNITIES.find((c) => c.id === activeId) ?? COMMUNITIES[0];
-  const showAdmin = active.myRole === "admin" || active.myRole === "moderator";
-
-  const listed = useMemo(() => {
+  const filtered = useMemo(() => {
     let rows = COMMUNITIES;
-    if (filter === "mine") rows = rows.filter((c) => c.joined);
-    if (filter === "discover") rows = rows.filter((c) => !c.joined);
-    if (areaFilter) rows = rows.filter((c) => c.area === areaFilter);
+    if (areas.size > 0) rows = rows.filter((c) => areas.has(c.area));
+    if (type !== "All") rows = rows.filter((c) => c.type === type);
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      rows = rows.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.area.toLowerCase().includes(q) ||
+          c.description.toLowerCase().includes(q),
+      );
+    }
+    if (sort === "members") rows = [...rows].sort((a, b) => b.members - a.members);
     return rows;
-  }, [filter, areaFilter]);
+  }, [areas, type, query, sort]);
 
-  const areas = Array.from(new Set(COMMUNITIES.map((c) => c.area)));
+  const featured = useMemo(() => COMMUNITIES.filter((c) => c.featured).slice(0, 3), []);
+  const joinedCount = useMemo(() => COMMUNITIES.filter((c) => c.joined).length, []);
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
       <Nav role="tenant" />
+
+      {/* Hero */}
       <div
         style={{
-          maxWidth: 1440,
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: "340px 1fr 340px",
-          minHeight: "calc(100vh - 64px)",
+          background:
+            "radial-gradient(120% 80% at 80% 20%, color-mix(in oklch, var(--accent) 8%, var(--surface)) 0%, var(--surface) 60%)",
+          borderBottom: "1px solid var(--hairline)",
         }}
       >
-        {/* Community list */}
-        <div style={{ borderRight: "1px solid var(--hairline)", display: "flex", flexDirection: "column" }}>
-          <div style={{ padding: "20px 20px 12px" }}>
-            <h1
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "48px 32px 32px" }}>
+          <Eyebrow>Communities</Eyebrow>
+          <h1 style={{ fontSize: 36, fontWeight: 500, letterSpacing: "-0.025em", margin: "8px 0 8px" }}>
+            Your hood, in one feed
+          </h1>
+          <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 16px", maxWidth: 620, lineHeight: 1.55 }}>
+            Public posts from tenants, landlords and agents you follow. Discover communities for chat groups,
+            articles for long reads. Community DMs still live in{" "}
+            <Link to="/inbox?filter=communities" style={{ color: "var(--accent)", fontWeight: 600 }}>
+              your inbox
+            </Link>
+            .
+          </p>
+
+          {tab === "discover" ? (
+            <div style={{ display: "flex", gap: 10, maxWidth: 760, alignItems: "center", marginTop: 8 }}>
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "0 14px",
+                  height: 48,
+                  background: "var(--surface)",
+                  border: "1px solid var(--hairline-strong)",
+                  borderRadius: 12,
+                  boxShadow: "var(--shadow-sm)",
+                }}
+              >
+                <Icon name="search" size={16} style={{ color: "var(--slate)" }} />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search communities, areas, topics…"
+                  style={{ flex: 1, border: 0, background: "transparent", height: 36, padding: 0 }}
+                />
+              </div>
+              <Button variant="accent" size="lg" leftIcon="plus">
+                Create community
+              </Button>
+            </div>
+          ) : null}
+
+          {/* Quick stats strip */}
+          <div style={{ display: "flex", gap: 24, marginTop: 18, fontSize: 13, color: "var(--slate)" }}>
+            <span>
+              <strong style={{ color: "var(--ink)" }}>{COMMUNITIES.length}+</strong> communities
+            </span>
+            <span>·</span>
+            <span>
+              <strong style={{ color: "var(--ink)" }}>{joinedCount}</strong> you've joined
+            </span>
+            <span>·</span>
+            <Link to="/inbox?filter=communities" style={{ color: "var(--accent)", fontWeight: 600 }}>
+              Open your chats →
+            </Link>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px" }}>
+          <Tabs
+            variant="underline"
+            tabs={[
+              { id: "feed", label: "Feed" },
+              { id: "discover", label: "Communities", count: COMMUNITIES.length },
+              { id: "people", label: "People" },
+              { id: "articles", label: "Articles", count: ARTICLES.length },
+            ]}
+            value={tab}
+            onChange={(id) => setTab(id as TabId)}
+          />
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
+        {tab === "feed" && <FeedPane />}
+
+        {tab === "people" && <PeoplePane />}
+
+        {tab === "discover" && (
+          <>
+            <div
               style={{
-                fontSize: 20,
-                fontWeight: 600,
-                letterSpacing: "-0.015em",
-                margin: "0 0 12px",
+                display: "flex",
+                gap: 12,
+                alignItems: "center",
+                marginBottom: 20,
+                flexWrap: "wrap",
               }}
             >
-              Communities
-            </h1>
-            <Input leftIcon="search" placeholder="Search hoods…" style={{ fontSize: 13, height: 34 }} />
-            <div style={{ marginTop: 12 }}>
-              <Tabs tabs={DISCOVERY_FILTERS} value={filter} onChange={setFilter} />
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flex: 1, minWidth: 0, alignItems: "center" }}>
+                <AreaMultiSelect options={AREAS} value={areas} onChange={setAreas} />
+                {areas.size > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setAreas(new Set())}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: "0 4px",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      fontSize: 12,
+                      color: "var(--slate)",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Clear areas
+                  </button>
+                ) : null}
+              </div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 4 }}>
+                  {TYPES.map((t) => (
+                    <Chip key={t} active={type === t} onClick={() => setType(t)}>
+                      {t}
+                    </Chip>
+                  ))}
+                </div>
+                <Tabs variant="segmented" tabs={SORTS} value={sort} onChange={setSort} />
+              </div>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-              {areas.map((a) => (
-                <Chip
-                  key={a}
-                  active={areaFilter === a}
-                  leftIcon="pin"
-                  onClick={() => setAreaFilter(areaFilter === a ? null : a)}
-                >
-                  {a}
-                </Chip>
-              ))}
+
+            {/* Featured strip */}
+            {featured.length > 0 && (areas.size === 0 && type === "All" && !query.trim()) ? (
+              <div style={{ marginBottom: 32 }}>
+                <Eyebrow style={{ marginBottom: 12 }}>Featured this week</Eyebrow>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                  {featured.map((c) => (
+                    <CommunityCard key={c.id} community={c} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <Eyebrow style={{ marginBottom: 12 }}>
+              {filtered.length} communit{filtered.length === 1 ? "y" : "ies"} match
+            </Eyebrow>
+            {filtered.length === 0 ? (
+              <Card padding={32} style={{ textAlign: "center" }}>
+                <Icon name="search" size={32} style={{ color: "var(--slate)", marginBottom: 12 }} />
+                <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>
+                  No communities match
+                </div>
+                <p style={{ fontSize: 13, color: "var(--slate)", margin: "0 auto 16px", maxWidth: 320 }}>
+                  Broaden your filters, or start your own community — takes about a minute.
+                </p>
+                <Button variant="accent" leftIcon="plus">Create community</Button>
+              </Card>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                {filtered.map((c) => (
+                  <CommunityCard key={c.id} community={c} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === "articles" && (
+          <>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 20,
+              }}
+            >
+              <div>
+                <Eyebrow style={{ marginBottom: 4 }}>From the Habitat blog</Eyebrow>
+                <div style={{ fontSize: 18, fontWeight: 600 }}>
+                  Tenant-side reads · {ARTICLES.length} new
+                </div>
+              </div>
+              <Link to="/blog" style={{ textDecoration: "none" }}>
+                <Button variant="ghost" rightIcon="arrR">Open the blog</Button>
+              </Link>
             </div>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto" }}>
-            {listed.map((c) => {
-              const isActive = c.id === activeId;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setActiveId(c.id)}
+
+            <Card padding={0} style={{ overflow: "hidden", marginBottom: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 1fr" }}>
+                <Photo ratio="auto" label="featured · geyser" style={{ borderRadius: 0, minHeight: 240 }} />
+                <div style={{ padding: 28, display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <Badge tone="success">{ARTICLES[0].tag}</Badge>
+                    <Badge tone="neutral">{ARTICLES[0].readMin} min read</Badge>
+                  </div>
+                  <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.015em", margin: 0 }}>
+                    {ARTICLES[0].title}
+                  </h2>
+                  <p style={{ fontSize: 14, color: "var(--slate)", margin: 0, lineHeight: 1.55 }}>
+                    {ARTICLES[0].teaser}
+                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "var(--slate)", marginTop: "auto" }}>
+                    <span>{ARTICLES[0].date}</span>
+                    <span>·</span>
+                    <Link to="/blog" style={{ color: "var(--accent)", fontWeight: 600 }}>
+                      Read article →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {ARTICLES.slice(1).map((a) => (
+                <Link
+                  key={a.id}
+                  to="/blog"
                   style={{
-                    width: "100%",
-                    padding: "14px 20px",
-                    borderBottom: "1px solid var(--hairline)",
-                    background: isActive ? "var(--surface-2)" : "transparent",
-                    borderLeft: `3px solid ${isActive ? "var(--accent)" : "transparent"}`,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    fontFamily: "inherit",
+                    display: "flex",
+                    gap: 14,
+                    padding: 16,
+                    background: "var(--surface)",
+                    border: "1px solid var(--hairline)",
+                    borderRadius: 10,
+                    textDecoration: "none",
                     color: "var(--ink)",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: 4,
-                      gap: 6,
-                    }}
-                  >
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</div>
-                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                      {c.myRole && c.myRole !== "member" ? (
-                        <Badge tone={ROLE_TONE[c.myRole]}>{c.myRole}</Badge>
-                      ) : null}
-                      {c.unread > 0 ? (
-                        <span
-                          style={{
-                            background: "var(--accent)",
-                            color: "var(--paper)",
-                            fontSize: 10,
-                            fontWeight: 600,
-                            padding: "1px 6px",
-                            borderRadius: 999,
-                          }}
-                        >
-                          {c.unread}
-                        </span>
-                      ) : null}
+                  <Photo
+                    ratio="1"
+                    label={a.tag.toLowerCase()}
+                    style={{ width: 88, height: 88, borderRadius: 8, flexShrink: 0 }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+                      <Badge tone={a.tag === "Guide" ? "success" : "accent"}>{a.tag}</Badge>
+                      <Badge tone="neutral">{a.readMin} min read</Badge>
                     </div>
+                    <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{a.title}</div>
+                    <div style={{ fontSize: 13, color: "var(--slate)", lineHeight: 1.5 }}>{a.teaser}</div>
+                    <div style={{ fontSize: 11, color: "var(--slate-2)", marginTop: 8 }}>{a.date}</div>
                   </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: "var(--slate)",
-                      display: "flex",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <span>
-                      {c.area} · {c.members} members
-                    </span>
-                    <span>{c.last}</span>
-                  </div>
-                  {!c.joined ? (
-                    <Button variant="ghost" size="sm" style={{ marginTop: 6, height: 24, fontSize: 11 }}>
-                      Request to join
-                    </Button>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Thread view */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div
-            style={{
-              padding: "16px 24px",
-              borderBottom: "1px solid var(--hairline)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ fontSize: 16, fontWeight: 600 }}>{active.name}</div>
-                {active.myRole === "admin" ? (
-                  <Badge tone="danger">You're admin</Badge>
-                ) : active.myRole === "moderator" ? (
-                  <Badge tone="accent">You're a moderator</Badge>
-                ) : null}
-              </div>
-              <div style={{ fontSize: 11, color: "var(--slate)" }}>
-                {active.members} members · 8 online
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <IconButton icon="bell" label="Notifications" size="sm" />
-              <IconButton icon="info" label="Community info" size="sm" />
-            </div>
-          </div>
-
-          <div
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "20px 24px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <Button variant="ghost" size="sm" leftIcon="chevU">
-                Load older messages
-              </Button>
-            </div>
-
-            {MESSAGES.map((m) => (
-              <div
-                key={m.id}
-                onMouseEnter={() => setHoveredMsg(m.id)}
-                onMouseLeave={() => setHoveredMsg(null)}
-                style={{ position: "relative" }}
-              >
-                {m.pinned ? (
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
-                    <Badge tone="neutral">📌 Pinned</Badge>
-                  </div>
-                ) : null}
-                {m.landlord ? (
-                  <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 6, gap: 8 }}>
-                    <Badge tone="accent">Landlord</Badge>
-                  </div>
-                ) : null}
-                <MessageBubble
-                  name={m.name}
-                  body={
-                    m.hasMedia ? (
-                      <>
-                        {m.body}
-                        <div
-                          style={{
-                            marginTop: 8,
-                            padding: "8px 10px",
-                            background: "var(--surface-2)",
-                            borderRadius: 6,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 8,
-                            fontSize: 11,
-                            color: "var(--slate)",
-                          }}
-                        >
-                          <Icon name="doc" size={12} /> solar-geyser.jpg · 612 KB
-                        </div>
-                      </>
-                    ) : (
-                      m.body
-                    )
-                  }
-                  time={m.time}
-                  own={m.own}
-                  avatarTone={m.landlord ? "ink" : "neutral"}
-                />
-                {hoveredMsg === m.id && (m.own || showAdmin) ? (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: -6,
-                      right: 8,
-                      display: "flex",
-                      gap: 4,
-                      padding: "4px 6px",
-                      background: "var(--surface)",
-                      border: "1px solid var(--hairline)",
-                      borderRadius: 6,
-                      boxShadow: "var(--shadow-sm)",
-                    }}
-                  >
-                    {showAdmin && !m.pinned ? (
-                      <IconButton icon="star" label="Pin" size="sm" />
-                    ) : null}
-                    <IconButton
-                      icon="trash"
-                      label={m.own ? "Delete (you)" : "Delete (moderator)"}
-                      size="sm"
-                    />
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-
-          <div
-            style={{
-              padding: "12px 24px",
-              borderTop: "1px solid var(--hairline)",
-              display: "flex",
-              gap: 8,
-              alignItems: "center",
-            }}
-          >
-            <IconButton icon="upload" label="Attach media" size="sm" />
-            <Input placeholder={`Message ${active.name}…`} style={{ flex: 1 }} />
-            <button type="button" aria-label="Send" className="btn btn--accent btn--icon">
-              <Icon name="arrR" size={16} />
-            </button>
-          </div>
-        </div>
-
-        {/* Right rail — admin panel + members */}
-        <aside
-          style={{ borderLeft: "1px solid var(--hairline)", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}
-        >
-          {showAdmin && JOIN_REQUESTS.length > 0 ? (
-            <Card padding={14}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 10,
-                }}
-              >
-                <Eyebrow>Join requests</Eyebrow>
-                <Badge tone="warn">{JOIN_REQUESTS.length}</Badge>
-              </div>
-              {JOIN_REQUESTS.map((r, i) => (
-                <div
-                  key={r.name}
-                  style={{
-                    paddingTop: i > 0 ? 10 : 0,
-                    paddingBottom: i < JOIN_REQUESTS.length - 1 ? 10 : 0,
-                    borderTop: i > 0 ? "1px solid var(--hairline)" : undefined,
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                    <Avatar name={r.init} size="sm" tone="neutral" />
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 500 }}>{r.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--slate)" }}>
-                        {r.area} · {r.proof}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                    <Button variant="accent" size="sm" style={{ flex: 1, justifyContent: "center" }}>
-                      Approve
-                    </Button>
-                    <Button variant="ghost" size="sm" style={{ flex: 1, justifyContent: "center" }}>
-                      Decline
-                    </Button>
-                  </div>
-                  <div style={{ fontSize: 10, color: "var(--slate-2)", marginTop: 4 }}>
-                    Requested {r.requested}
-                  </div>
-                </div>
+                </Link>
               ))}
-            </Card>
-          ) : null}
+            </div>
 
-          <Card padding={14}>
-            <Eyebrow style={{ marginBottom: 10 }}>House rules · pinned</Eyebrow>
-            <div className="mono" style={{ fontSize: 11, color: "var(--slate)", marginBottom: 6 }}>
-              HOUSE RULES
+            <div style={{ marginTop: 24, textAlign: "center" }}>
+              <Link to="/blog" style={{ textDecoration: "none" }}>
+                <Button variant="secondary" rightIcon="arrR">
+                  Read everything on the blog
+                </Button>
+              </Link>
             </div>
-            <div style={{ fontSize: 12, lineHeight: 1.5 }}>
-              Quiet hours 22:00–07:00 · No subletting · Bin day Tues
-            </div>
-          </Card>
-
-          <div>
-            <Eyebrow style={{ marginBottom: 12 }}>Members · {active.members}</Eyebrow>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {MEMBERS.map((m) => (
-                <div key={m.init} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Avatar name={m.init} size="sm" tone="neutral" />
-                  <span style={{ fontSize: 13, flex: 1 }}>{m.name}</span>
-                  {m.role !== "member" ? <Badge tone={ROLE_TONE[m.role]}>{m.role}</Badge> : null}
-                </div>
-              ))}
-              <Button variant="ghost" size="sm" rightIcon="chevR" style={{ alignSelf: "flex-start", marginTop: 4 }}>
-                View all members
-              </Button>
-            </div>
-          </div>
-        </aside>
+          </>
+        )}
       </div>
     </div>
   );
