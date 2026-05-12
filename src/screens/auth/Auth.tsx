@@ -1,9 +1,20 @@
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "@/components/Logo";
 import IconButton from "@/components/IconButton";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
+import { DEMO_USERS, useSession } from "@/lib/session";
 
 export default function Auth() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn } = useSession();
+  const from = (location.state as { from?: string } | null)?.from;
+
+  const completeSignIn = () => {
+    signIn(DEMO_USERS.tenant);
+    navigate(from ?? "/tenant-portal", { replace: true });
+  };
   return (
     <div
       style={{
@@ -115,13 +126,14 @@ export default function Auth() {
           </h2>
           <p style={{ fontSize: 14, color: "var(--slate)", margin: "0 0 28px" }}>
             No account?{" "}
-            <a href="#" style={{ color: "var(--accent)", fontWeight: 600 }}>
+            <Link to="/register" style={{ color: "var(--accent)", fontWeight: 600 }}>
               Create one free
-            </a>
+            </Link>
           </p>
 
           <Button
             variant="secondary"
+            onClick={() => navigate("/auth/oauth2/callback")}
             style={{
               width: "100%",
               height: 52,
@@ -161,9 +173,9 @@ export default function Auth() {
             <FormGroup
               label="Password"
               labelRight={
-                <a href="#" style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}>
+                <Link to="/forgot-password" style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}>
                   Forgot?
-                </a>
+                </Link>
               }
             >
               <div style={{ position: "relative" }}>
@@ -188,6 +200,7 @@ export default function Auth() {
             </FormGroup>
             <Button
               variant="accent"
+              onClick={completeSignIn}
               style={{
                 height: 56,
                 justifyContent: "center",

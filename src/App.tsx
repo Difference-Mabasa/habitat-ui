@@ -7,6 +7,38 @@ import RoutesGallery from "@/screens/_gallery/Routes";
 import ComponentGallery from "@/screens/_gallery/Components";
 import Placeholder from "@/screens/_placeholder/Placeholder";
 import ToastHost from "@/components/ToastHost";
+import RequireAuth from "@/lib/RequireAuth";
+import SessionProvider from "@/lib/SessionProvider";
+
+/**
+ * Routes that don't require a signed-in session — everything else is wrapped
+ * in <RequireAuth>. /landing, the auth funnel, dev surfaces, and a handful of
+ * customer-facing pages stay public.
+ */
+const PUBLIC_ROUTE_IDS = new Set<string>([
+  "landing",
+  "browse",
+  "property",
+  "unit",
+  "communities",
+  "agent-browse",
+  "agency-browse",
+  "blog",
+  "about",
+  "careers",
+  "case",
+  "list-property",
+  "help",
+  "tokens",
+  "i18n",
+  "a11y",
+  "cards",
+  "register",
+  "forgot-password",
+  "oauth-callback",
+  "user-profile",
+  "post-detail",
+]);
 
 const PHASE_FOR_GROUP: Record<string, string> = {
   core: "Phase 2",
@@ -45,7 +77,7 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   inbox: lazy(() => import("@/screens/inbox/Inbox")),
   statements: lazy(() => import("@/screens/statements/Statements")),
   analytics: lazy(() => import("@/screens/analytics/Analytics")),
-  agency: lazy(() => import("@/screens/agency/Agency")),
+  portfolio: lazy(() => import("@/screens/portfolio/Portfolio")),
   notifications: lazy(() => import("@/screens/notifications/Notifications")),
   "my-apps": lazy(() => import("@/screens/my-apps/MyApplications")),
   lease: lazy(() => import("@/screens/lease/Lease")),
@@ -111,6 +143,20 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   "oauth-callback": lazy(() => import("@/screens/oauth-callback/OauthCallback")),
   "list-property": lazy(() => import("@/screens/list-property/ListProperty")),
   "agent-browse": lazy(() => import("@/screens/agent-browse/AgentBrowse")),
+  "book-viewing": lazy(() => import("@/screens/book-viewing/BookViewing")),
+  "viewing-confirmed": lazy(() => import("@/screens/viewing-confirmed/ViewingConfirmed")),
+  "my-viewings": lazy(() => import("@/screens/my-viewings/MyViewings")),
+  unit: lazy(() => import("@/screens/unit/Unit")),
+  "landlord-leases": lazy(() => import("@/screens/landlord-leases/LandlordLeases")),
+  "agent-overview": lazy(() => import("@/screens/agent-overview/AgentOverview")),
+  "landlord-properties": lazy(() => import("@/screens/landlord-properties/LandlordProperties")),
+  "listing-submitted": lazy(() => import("@/screens/listing-submitted/ListingSubmitted")),
+  "property-chat": lazy(() => import("@/screens/property-chat/PropertyChat")),
+  "community-thread": lazy(() => import("@/screens/community-thread/CommunityThread")),
+  register: lazy(() => import("@/screens/register/Register")),
+  "forgot-password": lazy(() => import("@/screens/forgot-password/ForgotPassword")),
+  "user-profile": lazy(() => import("@/screens/user-profile/UserProfile")),
+  "post-detail": lazy(() => import("@/screens/post-detail/PostDetail")),
 };
 
 export default function App() {
@@ -118,7 +164,7 @@ export default function App() {
   useTheme();
 
   return (
-    <>
+    <SessionProvider>
       <Suspense fallback={<div style={{ padding: 40 }}>Loading…</div>}>
         <Routes>
           {/* Root redirects to the customer-facing landing page. The dev hub
@@ -130,19 +176,24 @@ export default function App() {
           {/* Legacy dev URLs — redirect so old bookmarks still work. */}
           <Route path="/_routes" element={<Navigate to="/dev/routes" replace />} />
           <Route path="/_components" element={<Navigate to="/dev/components" replace />} />
+          {/* Renamed /agency → /portfolio (Phase 10 cleanup). */}
+          <Route path="/agency" element={<Navigate to="/portfolio" replace />} />
+          {/* /community-thread merged into /communities WhatsApp-Web layout. */}
+          <Route path="/community-thread" element={<Navigate to="/communities" replace />} />
           {ROUTES.map((r) => {
             const Component = SCREEN_COMPONENTS[r.id];
+            // The /auth screen itself is public — and `auth` is its route id.
+            const isPublic = PUBLIC_ROUTE_IDS.has(r.id) || r.id === "auth";
+            const screen = Component ? (
+              <Component />
+            ) : (
+              <Placeholder label={r.label} phase={PHASE_FOR_GROUP[r.group] ?? "a future phase"} />
+            );
             return (
               <Route
                 key={r.id}
                 path={r.path}
-                element={
-                  Component ? (
-                    <Component />
-                  ) : (
-                    <Placeholder label={r.label} phase={PHASE_FOR_GROUP[r.group] ?? "a future phase"} />
-                  )
-                }
+                element={isPublic ? screen : <RequireAuth>{screen}</RequireAuth>}
               />
             );
           })}
@@ -150,6 +201,6 @@ export default function App() {
         </Routes>
       </Suspense>
       <ToastHost />
-    </>
+    </SessionProvider>
   );
 }

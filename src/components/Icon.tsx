@@ -7,7 +7,8 @@ export type IconName =
   | "star" | "eye" | "calendar" | "cash" | "trend" | "inbox" | "users" | "logout"
   | "burger" | "list" | "filter" | "info" | "shield" | "sparkle" | "paper" | "park"
   | "pet" | "wifi" | "flame" | "edit" | "download" | "clock" | "bolt" | "trash"
-  | "moon" | "sun" | "mic" | "video" | "wrench" | "arrL" | "refresh";
+  | "moon" | "sun" | "mic" | "video" | "wrench" | "arrL" | "refresh"
+  | "more" | "flag" | "bookmark";
 
 const PATHS: Record<IconName, JSX.Element> = {
   search: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></>,
@@ -67,6 +68,9 @@ const PATHS: Record<IconName, JSX.Element> = {
   wrench: <path d="M21.7 5.3l-3 3a3 3 0 01-4.2-4.2l3-3a5 5 0 00-6.5 6.5l-8 8a2 2 0 002.8 2.8l8-8a5 5 0 006.5-6.5z" />,
   arrL: <><line x1="19" y1="12" x2="5" y2="12" /><polyline points="11 6 5 12 11 18" /></>,
   refresh: <><polyline points="21 12 21 6 15 6" /><path d="M21 12a9 9 0 11-3-6.7L21 8" /></>,
+  more: <><circle cx="6" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="18" cy="12" r="1" /></>,
+  flag: <><path d="M4 21V4h11l-1 4h6v8H11l-1-4H4" /></>,
+  bookmark: <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />,
 };
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "name"> {

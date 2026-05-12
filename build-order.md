@@ -318,6 +318,63 @@ Each line was a screen Habitat already had, paired with the depth it was missing
 
 ---
 
+## Phase 11 — Production-readiness & social depth
+
+The app has the surface area for every flow; what's missing is the production-grade plumbing and the social space we just designed. Six tracks, two shipped this session, four queued.
+
+### 11a — Auth context + role gating ✅
+
+- [x] `SessionContext` exposing `{ user, signIn, signOut }`, persisted to localStorage.
+- [x] `RequireAuth` route wrapper — redirects unauthenticated visitors to `/auth` and re-routes them back on success.
+- [x] Nav workspace dropdown filters by the signed-in user's available roles; current role is highlighted; switching roles updates context.
+- [x] Sign-out clears the session and routes to `/landing`.
+- [x] Dev-only role-switcher inside the `/dev` hub so each workspace can be previewed without auth wiring.
+
+### 11d — Social: notifications + bookmark + report ✅
+
+- [x] Four new notification types added to the bell drawer: `NEW_FOLLOWER` (→ `/u/:id`), `POST_REPLY` (→ `/post/:id`), `POST_LIKE` (→ `/post/:id`), `POST_MENTION` (→ `/post/:id`).
+- [x] `PostCard` gains a bookmark icon (Save) — fills when active, toast on toggle.
+- [x] Kebab menu on `PostCard` with **Report post**, **Mute author**, **Block** — all fire toast feedback for now.
+
+### 11b — Mobile responsiveness pass (queued)
+
+A real reflow pass on the eight most-visited screens — Landing, Browse, Communities (Feed), Property detail, Unit, `/profile`, `/u/:userId`, Inbox. Single `useViewport()` hook exposes `sm` / `md` / `lg`. Other screens follow when needed.
+
+- [ ] `useViewport()` hook.
+- [ ] Landing, Browse, Communities, Property detail, Unit, Profile, Public profile, Inbox reflow to single-column under `md`.
+- [ ] Tab + drawer surfaces collapse correctly on `sm`.
+
+### 11c — Loading + error + empty states (queued)
+
+The codebase renders mock data instantly; real flows need this once API wiring lands. Starter set: Feed, Browse, Notifications, Statements.
+
+- [ ] `<LoadingState />` (skeleton card stack) + `<ErrorState />` (icon + retry) primitives.
+- [ ] Apply to the four data-heaviest screens behind a mock `isLoading` toggle.
+
+### 11e — Lease offboarding + cosigner + reviews (queued)
+
+End-of-lease workflow we don't model yet. Important for SA market.
+
+- [ ] Move-out inspection screen with photo upload + condition checklist.
+- [ ] Deposit refund decision — landlord-side approve/deduct flow.
+- [ ] Lease-end review (tenant rates landlord, vice versa) — connects to existing `/reviews` route.
+- [ ] Cosigner / guarantor section on `/apply` — add a second-applicant block with own FICA reference.
+
+### 11f — Discovery polish (queued)
+
+- [ ] Saved search → email/push alert opt-in on `/saved`.
+- [ ] Replace the CSS-mock map with MapLibre + real geocoded pins.
+- [ ] Post share modal: copy-link, native Web Share API, OG metadata in the HTML head.
+
+### 11 — Exit criteria
+
+- [x] Auth gate live; no workspace reachable without a signed-in role.
+- [x] Bell drawer shows social events (`POST_REPLY`, `NEW_FOLLOWER`, …) alongside property events.
+- [ ] Top 8 screens reflow cleanly at 375px width.
+- [ ] Data-heaviest screens never appear broken during load.
+
+---
+
 ## Conventions during build-out
 
 > **Design lock.** The Habitat design system is fixed: tokens, primitives, typography, color, and spacing. New components must compose existing primitives — they do not introduce new visual patterns. See [`CLAUDE.md`](./CLAUDE.md) for the full rule set (color tokens, typography classes, primitive registry, decision checklist for adding components or screens).

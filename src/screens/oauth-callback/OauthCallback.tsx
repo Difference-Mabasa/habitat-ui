@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
+import { DEMO_USERS, useSession } from "@/lib/session";
 import Card from "@/components/Card";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -12,6 +14,11 @@ type CallbackState = "exchanging" | "success" | "error";
 
 export default function OauthCallback() {
   const [state, setState] = useState<CallbackState>("success");
+  const { signIn, user } = useSession();
+
+  useEffect(() => {
+    if (state === "success" && !user) signIn(DEMO_USERS.tenant);
+  }, [state, user, signIn]);
 
   return (
     <div
@@ -81,9 +88,11 @@ export default function OauthCallback() {
             <p style={{ fontSize: 13, color: "var(--slate)", margin: "0 0 18px", lineHeight: 1.55 }}>
               Redirecting you to <span className="mono">/tenant-portal</span> now. If nothing happens, tap below.
             </p>
-            <Button variant="accent" rightIcon="arrR" style={{ width: "100%", justifyContent: "center" }}>
-              Continue to My Rental
-            </Button>
+            <Link to="/onboarding" style={{ textDecoration: "none" }}>
+              <Button variant="accent" rightIcon="arrR" style={{ width: "100%", justifyContent: "center" }}>
+                Continue setup
+              </Button>
+            </Link>
             <div className="mono" style={{ fontSize: 11, color: "var(--slate-2)", marginTop: 16 }}>
               session expires in 30 days
             </div>
@@ -123,12 +132,16 @@ export default function OauthCallback() {
               />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <Button variant="accent" leftIcon="refresh" style={{ width: "100%", justifyContent: "center" }}>
-                Try Google again
-              </Button>
-              <Button variant="secondary" style={{ width: "100%", justifyContent: "center" }}>
-                Sign in with email
-              </Button>
+              <Link to="/auth/oauth2/callback" style={{ textDecoration: "none" }}>
+                <Button variant="accent" leftIcon="refresh" style={{ width: "100%", justifyContent: "center" }}>
+                  Try Google again
+                </Button>
+              </Link>
+              <Link to="/auth" style={{ textDecoration: "none" }}>
+                <Button variant="secondary" style={{ width: "100%", justifyContent: "center" }}>
+                  Sign in with email
+                </Button>
+              </Link>
             </div>
           </>
         )}
