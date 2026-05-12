@@ -1,19 +1,27 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "@/components/Logo";
 import IconButton from "@/components/IconButton";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
-import { DEMO_USERS, useSession } from "@/lib/session";
+import { useSession } from "@/lib/session";
 
 export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn } = useSession();
+  const { login, error, status } = useSession();
   const from = (location.state as { from?: string } | null)?.from;
 
-  const completeSignIn = () => {
-    signIn(DEMO_USERS.tenant);
-    navigate(from ?? "/tenant-portal", { replace: true });
+  const [email, setEmail] = useState("sipho@example.co.za");
+  const [password, setPassword] = useState("habitat123");
+
+  const completeSignIn = async () => {
+    try {
+      await login({ email, password });
+      navigate(from ?? "/tenant-portal", { replace: true });
+    } catch {
+      // error is exposed via session.error — re-render handles UX.
+    }
   };
   return (
     <div
@@ -168,7 +176,14 @@ export default function Auth() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <FormGroup label="Email address">
-              <Input type="email" placeholder="you@example.com" style={{ height: 48 }} />
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                style={{ height: 48 }}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
             </FormGroup>
             <FormGroup
               label="Password"
@@ -181,8 +196,10 @@ export default function Auth() {
               <div style={{ position: "relative" }}>
                 <Input
                   type="password"
-                  defaultValue="••••••••"
                   style={{ height: 48, paddingRight: 44 }}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
                 />
                 <IconButton
                   icon="eye"
@@ -198,9 +215,15 @@ export default function Auth() {
                 />
               </div>
             </FormGroup>
+            {error ? (
+              <div role="alert" style={{ fontSize: 13, color: "var(--danger)" }}>
+                {error}
+              </div>
+            ) : null}
             <Button
               variant="accent"
-              onClick={completeSignIn}
+              onClick={() => void completeSignIn()}
+              disabled={status === "loading"}
               style={{
                 height: 56,
                 justifyContent: "center",
@@ -210,7 +233,7 @@ export default function Auth() {
                 fontWeight: 700,
               }}
             >
-              SIGN IN
+              {status === "loading" ? "SIGNING IN…" : "SIGN IN"}
             </Button>
           </div>
         </div>

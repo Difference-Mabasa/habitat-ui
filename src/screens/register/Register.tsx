@@ -8,7 +8,7 @@ import Checkbox from "@/components/Checkbox";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import Icon from "@/components/Icon";
-import { DEMO_USERS, useSession } from "@/lib/session";
+import { useSession } from "@/lib/session";
 
 type Role = "tenant" | "landlord" | "agent";
 
@@ -20,9 +20,12 @@ const ROLES: { id: Role; title: string; body: string; icon: "home" | "key" | "us
 
 export default function Register() {
   const navigate = useNavigate();
-  const { signIn } = useSession();
+  const { register, error, status } = useSession();
   const [role, setRole] = useState<Role>("tenant");
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
 
   const homeForRole: Record<Role, string> = {
     tenant: "/onboarding",
@@ -30,9 +33,13 @@ export default function Register() {
     agent: "/agent-overview",
   };
 
-  const completeRegister = () => {
-    signIn(DEMO_USERS[role]);
-    navigate(homeForRole[role]);
+  const completeRegister = async () => {
+    try {
+      await register({ email, password, displayName, role });
+      navigate(homeForRole[role]);
+    } catch {
+      // error is exposed via session.error.
+    }
   };
 
   return (
@@ -162,23 +169,40 @@ export default function Register() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <FormField label="First name" required>
-                <Input defaultValue="Sipho" style={{ height: 44 }} />
-              </FormField>
-              <FormField label="Last name" required>
-                <Input defaultValue="Dlamini" style={{ height: 44 }} />
-              </FormField>
-            </div>
+            <FormField label="Display name" required>
+              <Input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Sipho Dlamini"
+                style={{ height: 44 }}
+                autoComplete="name"
+              />
+            </FormField>
             <FormField label="Email" required helper="We'll send a one-tap verification link.">
-              <Input type="email" placeholder="you@example.co.za" style={{ height: 44 }} />
+              <Input
+                type="email"
+                placeholder="you@example.co.za"
+                style={{ height: 44 }}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
             </FormField>
-            <FormField label="Mobile" helper="SA format · used for OTP at lease signing.">
-              <Input placeholder="+27 82 000 0000" style={{ height: 44 }} />
+            <FormField label="Password" required helper="Min 8 chars.">
+              <Input
+                type="password"
+                placeholder="••••••••"
+                style={{ height: 44 }}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+              />
             </FormField>
-            <FormField label="Password" required helper="Min 8 chars, one number, one symbol.">
-              <Input type="password" placeholder="••••••••" style={{ height: 44 }} />
-            </FormField>
+            {error ? (
+              <div role="alert" style={{ fontSize: 13, color: "var(--danger)" }}>
+                {error}
+              </div>
+            ) : null}
 
             <Card padding={14} style={{ background: "var(--surface-2)" }}>
               <Checkbox
@@ -202,8 +226,8 @@ export default function Register() {
 
             <Button
               variant="accent"
-              disabled={!acceptTerms}
-              onClick={completeRegister}
+              disabled={!acceptTerms || status === "loading"}
+              onClick={() => void completeRegister()}
               style={{
                 height: 52,
                 justifyContent: "center",

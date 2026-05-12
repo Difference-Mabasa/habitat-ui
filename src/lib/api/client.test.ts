@@ -118,6 +118,52 @@ describe("api client", () => {
     expect(onFail).toHaveBeenCalledOnce();
   });
 
+  it("sends FormData without setting Content-Type or stringifying", async () => {
+    let seenContentType: string | null = null;
+    let seenBody = "";
+    server.use(
+      http.post("/api/v1/upload", async ({ request }) => {
+        seenContentType = request.headers.get("Content-Type");
+        seenBody = await request.text();
+        return HttpResponse.json({ ok: true });
+      }),
+    );
+    const client = createClient();
+    const fd = new FormData();
+    fd.append("name", "test.png");
+    await client.post("/upload", fd);
+    // Our client must not force application/json on multipart bodies.
+    expect(seenContentType).not.toBe("application/json");
+    expect(seenBody).toContain("test.png");
+  });
+
+  it("falls back to a synthetic ApiError when the error body is not JSON", async () => {
+    server.use(
+      http.get("/api/v1/text-err", () =>
+        new HttpResponse("internal boom", { status: 500, headers: { "Content-Type": "text/plain" } }),
+      ),
+    );
+    const client = createClient();
+    await expect(client.get("/text-err")).rejects.toMatchObject({
+      status: 500,
+      code: "UNKNOWN_ERROR",
+      message: "internal boom",
+    });
+  });
+
+  it("throws MALFORMED_JSON when a 2xx body isn't parseable JSON", async () => {
+    server.use(
+      http.get("/api/v1/garbage", () =>
+        new HttpResponse("not json", { status: 200, headers: { "Content-Type": "application/json" } }),
+      ),
+    );
+    const client = createClient();
+    await expect(client.get("/garbage")).rejects.toMatchObject({
+      status: 200,
+      code: "MALFORMED_JSON",
+    });
+  });
+
   it("skips refresh when skipAuthRefresh is true", async () => {
     server.use(
       http.get("/api/v1/no-refresh", () =>

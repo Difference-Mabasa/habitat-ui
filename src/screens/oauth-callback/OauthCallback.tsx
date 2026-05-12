@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
-import { DEMO_USERS, useSession } from "@/lib/session";
+import { DEMO_CREDENTIALS, useSession } from "@/lib/session";
 import Card from "@/components/Card";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -14,11 +14,17 @@ type CallbackState = "exchanging" | "success" | "error";
 
 export default function OauthCallback() {
   const [state, setState] = useState<CallbackState>("success");
-  const { signIn, user } = useSession();
+  const { login, user } = useSession();
 
+  // The real OAuth2 exchange endpoint (/auth/oauth2/exchange) lands in
+  // Phase 1c. Until then, the "Success" path falls back to logging the
+  // signed-in tenant demo user in via the standard credentials flow so
+  // the surface still feels real end-to-end.
   useEffect(() => {
-    if (state === "success" && !user) signIn(DEMO_USERS.tenant);
-  }, [state, user, signIn]);
+    if (state === "success" && !user) {
+      void login(DEMO_CREDENTIALS.tenant);
+    }
+  }, [state, user, login]);
 
   return (
     <div

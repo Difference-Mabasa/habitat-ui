@@ -229,7 +229,7 @@ export default function Nav({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = () => {
-    session.signOut();
+    void session.logout();
     setOpenMenu(false);
     navigate("/landing");
   };
@@ -463,7 +463,7 @@ export default function Nav({
                     to={w.to}
                     role="menuitem"
                     onClick={() => {
-                      session.switchRole(w.role);
+                      void session.switchActiveRole(w.role);
                       setOpenMenu(false);
                     }}
                     style={{

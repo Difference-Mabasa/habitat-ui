@@ -6,7 +6,7 @@ import Badge from "@/components/Badge";
 import Icon, { type IconName } from "@/components/Icon";
 import { ROUTES, GROUP_LABEL, type RouteGroup } from "@/routes";
 import { useTheme, ACCENT_OPTIONS } from "@/hooks/useTheme";
-import { DEMO_USERS, useSession, type Role } from "@/lib/session";
+import { DEMO_CREDENTIALS, useSession, type Role } from "@/lib/session";
 
 interface ShortcutTile {
   icon: IconName;
@@ -195,20 +195,21 @@ export default function DevHome() {
               <button
                 type="button"
                 className="btn btn--secondary btn--sm"
-                onClick={() => session.signOut()}
+                onClick={() => void session.logout()}
               >
                 Sign out
               </button>
             ) : null}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-            {(Object.keys(DEMO_USERS) as Role[]).map((r) => {
+            {(Object.keys(DEMO_CREDENTIALS) as Role[]).map((r) => {
               const active = session.user?.activeRole === r;
+              const creds = DEMO_CREDENTIALS[r];
               return (
                 <button
                   key={r}
                   type="button"
-                  onClick={() => session.signIn(DEMO_USERS[r])}
+                  onClick={() => void session.login({ email: creds.email, password: creds.password })}
                   style={{
                     padding: "10px 12px",
                     background: active ? "var(--accent)" : "var(--surface-2)",
@@ -230,7 +231,7 @@ export default function DevHome() {
                       marginTop: 2,
                     }}
                   >
-                    {DEMO_USERS[r].name}
+                    {creds.displayName}
                   </div>
                 </button>
               );
