@@ -241,6 +241,70 @@ The v2 handoff added 22 new screens across 6 new sections plus the unbuilt cards
 
 ---
 
+## Phase 10 — Parity with the legacy `backroom-ui` Angular app
+
+The handoff designs covered 65 prototype screens. The legacy Angular app at `~/IdeaProjects/backroom-ui` ships several features that aren't in any prototype — gaps surfaced by an audit of that codebase on 2026-05-12. Each item below is a real flow already implemented (and presumably wired to `backroom-api`) that the Habitat React rebuild does not yet cover.
+
+The agent who ran the audit summarised it cleanly:
+
+> Backroom-UI is a substantially more complete rental marketplace than habitat-ui's 65-screen list suggests. Core gaps: agent-tenant direct marketplace, mandate lifecycle, multi-org agency support, fine-grained verification, advanced viewing scheduling, financial depth (invoices/payouts), typed notification taxonomy, role-based agent economics.
+
+### 10a — New screens not in any prototype
+
+- [ ] **Room request job board** — agents browse tenant-posted "find me a room" briefs. Status lifecycle: OPEN → MATCHED → FILLED / EXPIRED / CANCELLED. Source: `pages/landlord-dashboard/job-board/`.
+- [ ] **Tenant room request creation** — tenant-side counterpart: tenant posts a brief that agents can match against. Source: `pages/tenant-portal/request-agent/`.
+- [ ] **Agent request management** — accept / decline / propose for incoming briefs. Source: `pages/landlord-dashboard/agent-requests/`.
+- [ ] **My agency setup & editing** — agency CRUD (a multi-agent organisation). Source: `pages/landlord-dashboard/my-agency/`.
+- [ ] **Public agency browse & profile** — discover and view agencies (distinct from `/agent` which is a single agent's public profile). Source: `pages/agency/agency-public-profile/`.
+- [ ] **Mandate approval dashboard** — landlord approves / rejects agent mandate requests. Source: `pages/landlord-dashboard/mandate-approvals/`.
+- [ ] **My mandates** — list of active / pending / completed mandates. Source: `pages/landlord-dashboard/my-mandates/`.
+- [ ] **Landlord tenants tab** — list of active tenants across the landlord's properties (distinct from "applicants"). Source: `pages/landlord-dashboard/tenants/`.
+- [ ] **Viewing availability scheduling** — weekly windows + per-date day overrides + alternative-time proposals. Source: `pages/viewings/viewing-availability/`.
+- [ ] **Payment result pages** — success / cancel / error landing pages after returning from a payment gateway. Source: `pages/payment/payment-result.component.ts`.
+- [ ] **Dashboard settings** — notification preferences, bank details, account-level toggles. Source: `pages/landlord-dashboard/settings/dashboard-settings.component.ts`.
+- [ ] **Identity verification sub-page** — separate from FICA/POPIA; this is the in-profile ID-document flow. Source: `pages/profile/identity-verification/`.
+- [ ] **Google OAuth callback handler** — `/auth/oauth2/callback` redirect handler. Source: `pages/auth/oauth2-callback/`.
+- [ ] **List property landing** — public, unauthenticated marketing CTA for property owners (distinct from `/wizard` which is the in-app builder). Source: `pages/list-property/`.
+- [ ] **Agent browse** — public directory of agents, distinct from a single `/agent` profile. Source: `pages/agent/agent-browse/`.
+
+### 10b — Domain capabilities (services without a screen equivalent today)
+
+These are services on the backend that habitat hasn't surfaced anywhere yet. Each implies new screens or extends existing ones.
+
+- [ ] **RoomRequestService** — tenant briefs ↔ agent matching marketplace.
+- [ ] **MandateService** — full lifecycle with three flows (agent-online, agent-offline, landlord-initiated), document upload, approval/rejection/revocation. Habitat's `/mandates` shows the table but doesn't drive these workflows.
+- [ ] **AgencyService** — agency CRUD + public browse.
+- [ ] **ConversationService** — one-to-one tenant↔landlord messaging scoped to a unit, separate from community chat. Habitat has `/inbox` but it's a single split-pane mock — needs to be wired to per-unit conversations.
+- [ ] **VerificationService** — tracks identity verification + consent records (used during signup + credit checks).
+- [ ] **UserService** — registered-user lookup by email (used during mandate creation when inviting a non-Habitat user).
+- [ ] **ChatDrawerService** — global signal-driven drawer so any component can open a conversation. Habitat's nav `<ChatDrawer>` is local state only.
+- [ ] **PropertyWizardStateService** — multi-step draft state with step gating, mandate pre-population, and persistence. Habitat's `/wizard` is a static 5-step mock.
+
+### 10c — Depth gaps (Habitat has the screen, Angular has substantially more flow)
+
+Each line is a screen Habitat already has, paired with the depth it's missing. These become enhancement passes on existing screens, not new ones.
+
+- [ ] **Lease (`/lease`, `/lease-pdf`)** — template selection, OTP-based dual-signature flow (tenant + landlord separately), lease decline path, PDF download for unsigned drafts. Habitat shows a paginated reader + signature avatars only.
+- [ ] **My applications (`/my-apps`)** — `CONDITIONALLY_APPROVED` status with document-request follow-up, employment status enum (`EMPLOYED / SELF_EMPLOYED / STUDENT / PENSIONER / UNEMPLOYED / OTHER`), `ON_HOLD` / `blockedAt`, invoice generation + payment-link + retry. Habitat shows the 4-stage timeline only.
+- [ ] **Apply (`/apply`)** — document type taxonomy: `SA_ID / PASSPORT / PAYSLIPS_3M / BANK_STATEMENTS_3M / EMPLOYMENT_LETTER / PROOF_OF_ADDRESS / CREDIT_CONSENT / LANDLORD_REFERENCE / OTHER`. Habitat shows 3 generic upload slots.
+- [ ] **Viewings (`/viewings`)** — request states: `APPROVED / DECLINED / ALTERNATIVE_PROPOSED / ALTERNATIVE_ACCEPTED / ALTERNATIVE_DECLINED / CANCELLED`. Habitat shows a calendar grid + simple pending list.
+- [ ] **Communities (`/communities`)** — join-request approval, member roles + permissions (admin, moderator), media upload on messages, message deletion (by author or admin), pagination + discovery filter. Habitat shows a static 3-column layout.
+- [ ] **Notifications (`/notifications`)** — 33+ typed categories (APPLICATION_APPROVED, LEASE_SIGNED, MANDATE_PENDING_APPROVAL, PAYMENT_RECEIVED, DOCUMENTS_REQUESTED, …) with unread-count tracking + delta updates + bell-shake on new + bulk mark-as-read. Habitat shows 3 hard-coded day groups.
+- [ ] **Property detail (`/property`)** + **Landlord dashboard (`/landlord-dashboard`)** — publish/unpublish workflow (DRAFT → LISTED → UNLISTED), listing source (`LISTED_BY_OWNER` vs by agent), mandate-status badge on listings, per-property payout account config, per-unit status (`AVAILABLE / OCCUPIED / UNDER_MAINTENANCE / UNLISTED`).
+- [ ] **Agent profile (`/agent`)** — fee structures (`FIXED` vs `PERCENT_OF_ANNUAL` for landlord; separate `tenantFee`), social links (TikTok / WhatsApp / Instagram), areas covered, agency association, verification flag.
+- [ ] **Payment (`/payment`)** + **Invoice (`/invoice`)** — full financial workflow: invoice lifecycle (`PENDING → PAID / EXPIRED`), expiry timer, payment link initiation, PDF download. Habitat shows confirmation + receipt screens but no invoice state machine.
+- [ ] **Verification (`/verification`)** — `CREDIT_CONSENT` doc type + TPN consent + per-doc-type verification status (FICA, ID, credit, employment, reference). Habitat has a 5-step rail with a single active step.
+
+### 10d — Exit criteria for Phase 10
+
+- [ ] All 15 new screens (10a) added to `routes.ts` with their owning groups.
+- [ ] All 8 services (10b) wired in `src/lib/<domain>.ts`, talking to backroom-api.
+- [ ] Each depth gap (10c) tracked individually; check off when its screen reaches feature parity with backroom-ui.
+- [ ] No regressions on the 65 existing screens.
+- [ ] Build + lint + typecheck green; full route smoke test passes.
+
+---
+
 ## Conventions during build-out
 
 - **TypeScript**: strict mode, no `any` unless commented. `interface` for object shapes, `type` for unions.
