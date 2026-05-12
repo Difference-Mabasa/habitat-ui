@@ -1,10 +1,12 @@
-# Backroom UI — Build Order
+# Habitat UI — Build Order
 
-> **Source of truth**: `C:\Users\mabas\Downloads\Backroom Web-handoff\backroom-web\project\` — 43 React/JSX prototype artboards.
+> **Design source**: `C:\Users\mabas\Downloads\Backroom Web-handoff 2\backroom-web\project\` — 65 React/JSX prototype artboards (the v1 43-screen bundle in the original `Backroom Web-handoff` folder is superseded).
 >
-> **Product name**: Backroom (the repo is just named `habitat-ui` for separation from the legacy Angular `backroom-ui`).
+> **Product name**: Habitat (rebranded 2026-05-12 from the original "Backroom" brand on the frontend only — backend is still `backroom-api`). Property-type "backroom" lowercase noun is preserved.
 >
 > **API**: backroom-api on `localhost:8080/api/v1` (proxied via `/api` in dev).
+>
+> **Status**: Phases 1–9 shipped (65 prototype screens). Phase 10a shipped 2026-05-12 (+15 parity screens, +1 shared component → 80 routes total). 10b services and 10c depth gaps are the active backlog.
 
 Tick items off as they ship. Each phase ends with **all of**: `npm run typecheck` green, `npm run lint` green, `npm run build` green, dev-server smoke test in browser, single commit with phase name in the message.
 
@@ -249,23 +251,25 @@ The agent who ran the audit summarised it cleanly:
 
 > Backroom-UI is a substantially more complete rental marketplace than habitat-ui's 65-screen list suggests. Core gaps: agent-tenant direct marketplace, mandate lifecycle, multi-org agency support, fine-grained verification, advanced viewing scheduling, financial depth (invoices/payouts), typed notification taxonomy, role-based agent economics.
 
-### 10a — New screens not in any prototype
+### 10a — New screens not in any prototype ✅ (all shipped 2026-05-12 — routes 66–80, group `parity`)
 
-- [ ] **Room request job board** — agents browse tenant-posted "find me a room" briefs. Status lifecycle: OPEN → MATCHED → FILLED / EXPIRED / CANCELLED. Source: `pages/landlord-dashboard/job-board/`.
-- [ ] **Tenant room request creation** — tenant-side counterpart: tenant posts a brief that agents can match against. Source: `pages/tenant-portal/request-agent/`.
-- [ ] **Agent request management** — accept / decline / propose for incoming briefs. Source: `pages/landlord-dashboard/agent-requests/`.
-- [ ] **My agency setup & editing** — agency CRUD (a multi-agent organisation). Source: `pages/landlord-dashboard/my-agency/`.
-- [ ] **Public agency browse & profile** — discover and view agencies (distinct from `/agent` which is a single agent's public profile). Source: `pages/agency/agency-public-profile/`.
-- [ ] **Mandate approval dashboard** — landlord approves / rejects agent mandate requests. Source: `pages/landlord-dashboard/mandate-approvals/`.
-- [ ] **My mandates** — list of active / pending / completed mandates. Source: `pages/landlord-dashboard/my-mandates/`.
-- [ ] **Landlord tenants tab** — list of active tenants across the landlord's properties (distinct from "applicants"). Source: `pages/landlord-dashboard/tenants/`.
-- [ ] **Viewing availability scheduling** — weekly windows + per-date day overrides + alternative-time proposals. Source: `pages/viewings/viewing-availability/`.
-- [ ] **Payment result pages** — success / cancel / error landing pages after returning from a payment gateway. Source: `pages/payment/payment-result.component.ts`.
-- [ ] **Dashboard settings** — notification preferences, bank details, account-level toggles. Source: `pages/landlord-dashboard/settings/dashboard-settings.component.ts`.
-- [ ] **Identity verification sub-page** — separate from FICA/POPIA; this is the in-profile ID-document flow. Source: `pages/profile/identity-verification/`.
-- [ ] **Google OAuth callback handler** — `/auth/oauth2/callback` redirect handler. Source: `pages/auth/oauth2-callback/`.
-- [ ] **List property landing** — public, unauthenticated marketing CTA for property owners (distinct from `/wizard` which is the in-app builder). Source: `pages/list-property/`.
-- [ ] **Agent browse** — public directory of agents, distinct from a single `/agent` profile. Source: `pages/agent/agent-browse/`.
+- [x] **66 Room request job board** (`/job-board`, role=agent) — `JobBoard.tsx`. Reuses: BriefCard (new Tier C), KpiTile×4, Tabs (status filter), EmptyState, PageHeader.
+- [x] **67 Tenant room request creation** (`/room-request`) — `RoomRequest.tsx`. Reuses: Chip×3 groups, FormField, Input, Textarea, Toggle, Card, Avatar, KeyValueRow, Alert.
+- [x] **68 Agent request management** (`/agent-requests`) — `AgentRequests.tsx`. Reuses: BriefCard with per-state action slots, KpiTile, Tabs.
+- [x] **69 My agency setup & editing** (`/my-agency`) — `MyAgency.tsx`. Reuses: FormField×8, Input, Textarea, Chip area picker, Card team table with Avatar + Badge per row, KpiTile.
+- [x] **70 Public agency browse & profile** (`/agency-browse`) — `AgencyBrowse.tsx`. Reuses: espresso hero (matches Auth & AgentProfile), Tabs filter, Card grid, RatingDisplay, Badge.
+- [x] **71 Mandate approvals** (`/mandate-approvals`) — `MandateApprovals.tsx`. Reuses: KpiTile, Tabs, Card + KeyValueRow per-request, Alert.
+- [x] **72 My mandates** (`/my-mandates`, role=agent) — `MyMandates.tsx`. Reuses: KpiTile, Tabs, Card-wrapped table with Badge state column + Avatar + tabular rent.
+- [x] **73 Landlord tenants** (`/landlord-tenants`) — `LandlordTenants.tsx`. Reuses: KpiTile, Tabs, Card-wrapped table with Avatar + Badge state column.
+- [x] **74 Viewing availability** (`/viewing-availability`) — `ViewingAvailability.tsx`. Reuses: Tabs (weekly / overrides / proposals), Toggle, Card, Alert, KeyValueRow rules card, Badge.
+- [x] **75 Payment result pages** (`/payment-result`) — `PaymentResult.tsx`. One screen with `Tabs variant="segmented"` flipping between success / cancel / error states. Reuses: Card, Icon, Eyebrow, KeyValueRow, Alert.
+- [x] **76 Dashboard settings** (`/dashboard-settings`, role=landlord) — `DashboardSettings.tsx`. Reuses: SubNav (6-section rail), Toggle matrix for notifications, FormField + Select for rent/bank, Card, Alert for danger zone.
+- [x] **77 Identity verification** (`/identity-verification`) — `IdentityVerification.tsx`. Reuses: vertical Stepper (4 steps), FormField + Select doc type, FileUploadZone, Alert, KeyValueRow, Card sidebar.
+- [x] **78 OAuth callback** (`/auth/oauth2/callback`) — `OauthCallback.tsx`. One screen with `Tabs variant="segmented"` flipping between exchanging / success / error. Reuses: Card, Icon, Eyebrow, Alert, KeyValueRow, Button.
+- [x] **79 List property landing** (`/list-property`) — `ListProperty.tsx`. Public marketing CTA distinct from `/wizard`. Reuses: espresso radial hero, Photo, Card overlay, social-proof strip, 4-step grid, 2×2 perks grid, Footer.
+- [x] **80 Agent browse** (`/agent-browse`) — `AgentBrowse.tsx`. Reuses: espresso hero, Tabs filter, `Tabs variant="segmented"` sort, Card grid with Avatar + RatingDisplay + 3-stat row.
+
+**Shared new component**: `src/components/BriefCard.tsx` — Tier C, used by Job board + Agent requests. Composes Card / Badge / Avatar / Icon / Eyebrow. Status taxonomy: OPEN / MATCHED / FILLED / EXPIRED / CANCELLED.
 
 ### 10b — Domain capabilities (services without a screen equivalent today)
 
@@ -297,11 +301,18 @@ Each line is a screen Habitat already has, paired with the depth it's missing. T
 
 ### 10d — Exit criteria for Phase 10
 
-- [ ] All 15 new screens (10a) added to `routes.ts` with their owning groups.
+- [x] All 15 new screens (10a) added to `routes.ts` with their owning groups. Group `parity`, routes 66–80. Shipped 2026-05-12.
 - [ ] All 8 services (10b) wired in `src/lib/<domain>.ts`, talking to backroom-api.
 - [ ] Each depth gap (10c) tracked individually; check off when its screen reaches feature parity with backroom-ui.
-- [ ] No regressions on the 65 existing screens.
-- [ ] Build + lint + typecheck green; full route smoke test passes.
+- [x] No regressions on the 65 existing screens — Phase 10a build round green, full route list still renders.
+- [x] Build + lint + typecheck green after Phase 10a — full smoke pass via `/dev/routes`.
+
+**Phase 10a shipped — checkpoint summary**
+
+- 15 new screens (routes 66–80 in group `parity`).
+- 1 new shared Tier C component: `BriefCard` (used by `/job-board` + `/agent-requests`).
+- `Components.tsx` gallery update is deferred — add `BriefCard` to `/dev/components` when convenient.
+- No new visual tokens, no new icons, no new fonts. Design lock holds.
 
 ---
 

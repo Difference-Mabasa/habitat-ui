@@ -23,6 +23,7 @@ const PHASE_FOR_GROUP: Record<string, string> = {
   comms: "Phase 9",
   power: "Phase 9",
   system: "Phase 9",
+  parity: "Phase 10",
 };
 
 /**
@@ -95,6 +96,21 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   i18n: lazy(() => import("@/screens/i18n/I18n")),
   tokens: lazy(() => import("@/screens/tokens/Tokens")),
   a11y: lazy(() => import("@/screens/a11y/A11y")),
+  "job-board": lazy(() => import("@/screens/job-board/JobBoard")),
+  "room-request": lazy(() => import("@/screens/room-request/RoomRequest")),
+  "agent-requests": lazy(() => import("@/screens/agent-requests/AgentRequests")),
+  "my-agency": lazy(() => import("@/screens/my-agency/MyAgency")),
+  "agency-browse": lazy(() => import("@/screens/agency-browse/AgencyBrowse")),
+  "mandate-approvals": lazy(() => import("@/screens/mandate-approvals/MandateApprovals")),
+  "my-mandates": lazy(() => import("@/screens/my-mandates/MyMandates")),
+  "landlord-tenants": lazy(() => import("@/screens/landlord-tenants/LandlordTenants")),
+  "viewing-availability": lazy(() => import("@/screens/viewing-availability/ViewingAvailability")),
+  "payment-result": lazy(() => import("@/screens/payment-result/PaymentResult")),
+  "dashboard-settings": lazy(() => import("@/screens/dashboard-settings/DashboardSettings")),
+  "identity-verification": lazy(() => import("@/screens/identity-verification/IdentityVerification")),
+  "oauth-callback": lazy(() => import("@/screens/oauth-callback/OauthCallback")),
+  "list-property": lazy(() => import("@/screens/list-property/ListProperty")),
+  "agent-browse": lazy(() => import("@/screens/agent-browse/AgentBrowse")),
 };
 
 export default function App() {

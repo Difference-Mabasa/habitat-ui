@@ -19,7 +19,8 @@ export type RouteGroup =
   | "content"
   | "comms"
   | "power"
-  | "system";
+  | "system"
+  | "parity";
 
 export interface ScreenRoute {
   id: string;
@@ -122,6 +123,23 @@ export const ROUTES: ScreenRoute[] = [
   { id: "i18n", label: "63 — Localisation (Zulu/Sesotho)", path: "/i18n", group: "system" },
   { id: "tokens", label: "64 — Design tokens spec", path: "/tokens", group: "system" },
   { id: "a11y", label: "65 — Accessibility audit", path: "/a11y", group: "system" },
+
+  // Phase 10a — parity with backroom-ui Angular app
+  { id: "job-board", label: "66 — Tenant brief job board", path: "/job-board", group: "parity" },
+  { id: "room-request", label: "67 — Post a room request", path: "/room-request", group: "parity" },
+  { id: "agent-requests", label: "68 — Agent request management", path: "/agent-requests", group: "parity" },
+  { id: "my-agency", label: "69 — My agency · setup & editing", path: "/my-agency", group: "parity" },
+  { id: "agency-browse", label: "70 — Browse agencies", path: "/agency-browse", group: "parity" },
+  { id: "mandate-approvals", label: "71 — Mandate approvals", path: "/mandate-approvals", group: "parity" },
+  { id: "my-mandates", label: "72 — My mandates", path: "/my-mandates", group: "parity" },
+  { id: "landlord-tenants", label: "73 — Landlord tenants", path: "/landlord-tenants", group: "parity" },
+  { id: "viewing-availability", label: "74 — Viewing availability", path: "/viewing-availability", group: "parity" },
+  { id: "payment-result", label: "75 — Payment result (success / cancel / error)", path: "/payment-result", group: "parity" },
+  { id: "dashboard-settings", label: "76 — Dashboard settings", path: "/dashboard-settings", group: "parity" },
+  { id: "identity-verification", label: "77 — Identity verification", path: "/identity-verification", group: "parity" },
+  { id: "oauth-callback", label: "78 — OAuth callback", path: "/auth/oauth2/callback", group: "parity" },
+  { id: "list-property", label: "79 — List a property (public landing)", path: "/list-property", group: "parity" },
+  { id: "agent-browse", label: "80 — Browse agents", path: "/agent-browse", group: "parity" },
 ];
 
 export const GROUP_LABEL: Record<RouteGroup, string> = {
@@ -139,4 +157,5 @@ export const GROUP_LABEL: Record<RouteGroup, string> = {
   comms: "Communication",
   power: "Mobile & power users",
   system: "System & inclusion",
+  parity: "Phase 10 · Backroom-UI parity",
 };
