@@ -1,0 +1,326 @@
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { type IconName } from "@/components/Icon";
+import Chip from "@/components/Chip";
+import Badge from "@/components/Badge";
+import Input from "@/components/Input";
+import FormField from "@/components/FormField";
+import Eyebrow from "@/components/Eyebrow";
+import Toggle from "@/components/Toggle";
+import Button from "@/components/Button";
+
+interface PopoverProps {
+  /** Visible chip text. */
+  label: ReactNode;
+  /** Optional accent badge — e.g. active filter count or value. */
+  badge?: ReactNode;
+  leftIcon?: IconName;
+  /** Active state — paints the chip in accent. */
+  active?: boolean;
+  /** Width of the dropdown panel. */
+  width?: number;
+  children: (close: () => void) => ReactNode;
+}
+
+function FilterPopover({ label, badge, leftIcon, active, width = 280, children }: PopoverProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <Chip
+        active={active || open}
+        leftIcon={leftIcon}
+        onClick={() => setOpen((v) => !v)}
+        style={{ height: 40 }}
+      >
+        {label}
+        {badge ? <span style={{ marginLeft: 4 }}><Badge tone="accent" className="mono">{badge}</Badge></span> : null}
+      </Chip>
+      {open ? (
+        <div
+          role="dialog"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            width,
+            background: "var(--surface)",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: 12,
+            boxShadow: "var(--shadow-lg)",
+            padding: 16,
+            zIndex: 20,
+          }}
+        >
+          {children(() => setOpen(false))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ─── Budget ────────────────────────────────────────────────────────────────
+
+const BUDGET_PRESETS: { label: string; min: number | null; max: number | null }[] = [
+  { label: "Under R 3k",  min: null, max: 3000 },
+  { label: "R 3k–5k",     min: 3000, max: 5000 },
+  { label: "R 5k–8k",     min: 5000, max: 8000 },
+  { label: "R 8k–12k",    min: 8000, max: 12000 },
+  { label: "R 12k+",      min: 12000, max: null },
+];
+
+export interface BudgetFilterProps {
+  minPrice: number | null;
+  maxPrice: number | null;
+  onChange: (next: { minPrice: number | null; maxPrice: number | null }) => void;
+}
+
+export function BudgetFilter({ minPrice, maxPrice, onChange }: BudgetFilterProps) {
+  const [draftMin, setDraftMin] = useState(minPrice?.toString() ?? "");
+  const [draftMax, setDraftMax] = useState(maxPrice?.toString() ?? "");
+
+  useEffect(() => setDraftMin(minPrice?.toString() ?? ""), [minPrice]);
+  useEffect(() => setDraftMax(maxPrice?.toString() ?? ""), [maxPrice]);
+
+  const isActive = minPrice != null || maxPrice != null;
+  const label =
+    minPrice != null && maxPrice != null
+      ? `R ${minPrice.toLocaleString("en-ZA")} – R ${maxPrice.toLocaleString("en-ZA")}`
+      : minPrice != null
+        ? `R ${minPrice.toLocaleString("en-ZA")}+`
+        : maxPrice != null
+          ? `Under R ${maxPrice.toLocaleString("en-ZA")}`
+          : "Any budget";
+
+  return (
+    <FilterPopover label={label} leftIcon="cash" active={isActive} width={300}>
+      {(close) => (
+        <>
+          <Eyebrow style={{ marginBottom: 10 }}>Monthly rent</Eyebrow>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+            <FormField label="Min">
+              <Input
+                inputMode="numeric"
+                value={draftMin}
+                onChange={(e) => setDraftMin(e.target.value.replace(/\D/g, ""))}
+                placeholder="Any"
+                className="mono"
+              />
+            </FormField>
+            <FormField label="Max">
+              <Input
+                inputMode="numeric"
+                value={draftMax}
+                onChange={(e) => setDraftMax(e.target.value.replace(/\D/g, ""))}
+                placeholder="Any"
+                className="mono"
+              />
+            </FormField>
+          </div>
+
+          <Eyebrow style={{ marginBottom: 8 }}>Or pick a range</Eyebrow>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+            {BUDGET_PRESETS.map((p) => {
+              const active = p.min === minPrice && p.max === maxPrice;
+              return (
+                <Chip
+                  key={p.label}
+                  active={active}
+                  onClick={() => {
+                    onChange({ minPrice: p.min, maxPrice: p.max });
+                    close();
+                  }}
+                  style={{ height: 28, fontSize: 12 }}
+                >
+                  {p.label}
+                </Chip>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                onChange({ minPrice: null, maxPrice: null });
+                close();
+              }}
+            >
+              Clear
+            </Button>
+            <Button
+              variant="accent"
+              size="sm"
+              onClick={() => {
+                onChange({
+                  minPrice: draftMin ? Number(draftMin) : null,
+                  maxPrice: draftMax ? Number(draftMax) : null,
+                });
+                close();
+              }}
+            >
+              Apply
+            </Button>
+          </div>
+        </>
+      )}
+    </FilterPopover>
+  );
+}
+
+// ─── Beds ──────────────────────────────────────────────────────────────────
+
+const BED_OPTIONS: { label: string; value: number | null }[] = [
+  { label: "Any",   value: null },
+  { label: "1+",    value: 1 },
+  { label: "2+",    value: 2 },
+  { label: "3+",    value: 3 },
+];
+
+export interface BedsFilterProps {
+  minBeds: number | null;
+  onChange: (next: number | null) => void;
+}
+
+export function BedsFilter({ minBeds, onChange }: BedsFilterProps) {
+  const label = minBeds == null ? "Any beds" : `${minBeds}+ beds`;
+  return (
+    <FilterPopover label={label} leftIcon="bed" active={minBeds != null} width={240}>
+      {(close) => (
+        <>
+          <Eyebrow style={{ marginBottom: 10 }}>Bedrooms</Eyebrow>
+          <div style={{ display: "flex", gap: 6 }}>
+            {BED_OPTIONS.map((b) => (
+              <Chip
+                key={b.label}
+                active={b.value === minBeds}
+                onClick={() => {
+                  onChange(b.value);
+                  close();
+                }}
+                style={{ height: 36, flex: 1, justifyContent: "center", fontSize: 13 }}
+              >
+                {b.label}
+              </Chip>
+            ))}
+          </div>
+        </>
+      )}
+    </FilterPopover>
+  );
+}
+
+// ─── More filters ──────────────────────────────────────────────────────────
+
+export interface MoreFilters {
+  verifiedOnly: boolean;
+  newOnly: boolean;
+  minSqm: number | null;
+}
+
+export interface MoreFiltersProps {
+  value: MoreFilters;
+  onChange: (next: MoreFilters) => void;
+}
+
+function activeMoreFiltersCount(v: MoreFilters): number {
+  let n = 0;
+  if (v.verifiedOnly) n++;
+  if (v.newOnly) n++;
+  if (v.minSqm != null) n++;
+  return n;
+}
+
+export function MoreFiltersControl({ value, onChange }: MoreFiltersProps) {
+  const [draftSqm, setDraftSqm] = useState(value.minSqm?.toString() ?? "");
+  useEffect(() => setDraftSqm(value.minSqm?.toString() ?? ""), [value.minSqm]);
+  const count = activeMoreFiltersCount(value);
+
+  return (
+    <FilterPopover label="More filters" leftIcon="sliders" badge={count > 0 ? count : undefined} active={count > 0} width={320}>
+      {(close) => (
+        <>
+          <Eyebrow style={{ marginBottom: 10 }}>Trust &amp; freshness</Eyebrow>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
+              <Toggle
+                checked={value.verifiedOnly}
+                onChange={(e) => onChange({ ...value, verifiedOnly: e.target.checked })}
+              />
+              <span>
+                <strong>Verified by Habitat</strong>
+                <span style={{ display: "block", fontSize: 11, color: "var(--slate)" }}>
+                  FICA + photos + landlord ID checked
+                </span>
+              </span>
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
+              <Toggle
+                checked={value.newOnly}
+                onChange={(e) => onChange({ ...value, newOnly: e.target.checked })}
+              />
+              <span>
+                <strong>New this week</strong>
+                <span style={{ display: "block", fontSize: 11, color: "var(--slate)" }}>
+                  Listed in the last 7 days
+                </span>
+              </span>
+            </label>
+          </div>
+
+          <Eyebrow style={{ marginBottom: 10 }}>Size</Eyebrow>
+          <FormField label="Minimum (m²)" helper="Whole numbers only.">
+            <Input
+              inputMode="numeric"
+              value={draftSqm}
+              onChange={(e) => setDraftSqm(e.target.value.replace(/\D/g, ""))}
+              placeholder="Any"
+              className="mono"
+            />
+          </FormField>
+
+          <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 12, marginTop: 12, borderTop: "1px solid var(--hairline)" }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                onChange({ verifiedOnly: false, newOnly: false, minSqm: null });
+                close();
+              }}
+            >
+              Clear
+            </Button>
+            <Button
+              variant="accent"
+              size="sm"
+              onClick={() => {
+                onChange({ ...value, minSqm: draftSqm ? Number(draftSqm) : null });
+                close();
+              }}
+            >
+              Apply
+            </Button>
+          </div>
+        </>
+      )}
+    </FilterPopover>
+  );
+}

@@ -3,12 +3,17 @@ import { useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Chip from "@/components/Chip";
-import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import { useViewport } from "@/hooks/useViewport";
+import {
+  BudgetFilter,
+  BedsFilter,
+  MoreFiltersControl,
+  type MoreFilters,
+} from "./FilterPopovers";
 import FilterBar, { FilterDivider, LocationFilter } from "@/components/FilterBar";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import MapPanel from "./MapPanel";
@@ -42,6 +47,18 @@ const VIEW_TOGGLES: { id: ViewMode; icon: "grid" | "list" | "map" }[] = [
   { id: "map", icon: "map" },
 ];
 
+function parseCsvSet(raw: string | null): Set<string> {
+  if (!raw) return new Set();
+  return new Set(raw.split(",").map((s) => s.trim()).filter(Boolean));
+}
+
+function readNumberParam(params: URLSearchParams, key: string): number | null {
+  const raw = params.get(key);
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 export default function Browse() {
   const [params, setParams] = useSearchParams();
   const { isSm, isMd } = useViewport();
@@ -50,56 +67,79 @@ export default function Browse() {
   const effectiveView: ViewMode = isSm ? "list" : view;
   const [active, setActive] = useState<string | null>("l2");
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set(["l0", "l4"]));
-  const [typeSet, setTypeSet] = useState<Set<string>>(new Set(["Backroom", "Cottage"]));
 
-  const areaSet = useMemo(() => {
-    const raw = params.get("location") ?? params.get("areas");
-    if (!raw) return new Set<string>();
-    return new Set(
-      raw
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    );
-  }, [params]);
+  // All filters are URL-driven so the state survives reload and is shareable.
+  const areaSet = useMemo(() => parseCsvSet(params.get("location") ?? params.get("areas")), [params]);
+  const typeSet = useMemo(() => parseCsvSet(params.get("type")), [params]);
+  const minPrice = readNumberParam(params, "minPrice");
+  const maxPrice = readNumberParam(params, "maxPrice");
+  const minBeds = readNumberParam(params, "minBeds");
+  const moreFilters: MoreFilters = {
+    verifiedOnly: params.get("verified") === "1",
+    newOnly: params.get("new") === "1",
+    minSqm: readNumberParam(params, "minSqm"),
+  };
 
-  const maxPrice = useMemo(() => {
-    const raw = params.get("maxPrice");
-    if (!raw) return null;
-    const n = Number(raw);
-    return Number.isFinite(n) && n > 0 ? n : null;
-  }, [params]);
+  const patchParams = (mutator: (next: URLSearchParams) => void) => {
+    const next = new URLSearchParams(params);
+    mutator(next);
+    setParams(next, { replace: true });
+  };
 
-  const heroType = params.get("type");
+  const toggleType = (t: string) => {
+    const next = new Set(typeSet);
+    if (next.has(t)) next.delete(t);
+    else next.add(t);
+    patchParams((p) => {
+      if (next.size === 0) p.delete("type");
+      else p.set("type", Array.from(next).join(","));
+    });
+  };
+
+  const setBudget = ({ minPrice: lo, maxPrice: hi }: { minPrice: number | null; maxPrice: number | null }) =>
+    patchParams((p) => {
+      if (lo == null) p.delete("minPrice");
+      else p.set("minPrice", String(lo));
+      if (hi == null) p.delete("maxPrice");
+      else p.set("maxPrice", String(hi));
+    });
+
+  const setMinBeds = (n: number | null) =>
+    patchParams((p) => {
+      if (n == null) p.delete("minBeds");
+      else p.set("minBeds", String(n));
+    });
+
+  const setMoreFilters = (next: MoreFilters) =>
+    patchParams((p) => {
+      if (next.verifiedOnly) p.set("verified", "1");
+      else p.delete("verified");
+      if (next.newOnly) p.set("new", "1");
+      else p.delete("new");
+      if (next.minSqm == null) p.delete("minSqm");
+      else p.set("minSqm", String(next.minSqm));
+    });
 
   const removeArea = (name: string) => {
     const next = new Set(areaSet);
     next.delete(name);
-    const nextParams = new URLSearchParams(params);
-    nextParams.delete("areas");
-    if (next.size === 0) nextParams.delete("location");
-    else nextParams.set("location", Array.from(next).join(","));
-    setParams(nextParams, { replace: true });
+    patchParams((p) => {
+      p.delete("areas");
+      if (next.size === 0) p.delete("location");
+      else p.set("location", Array.from(next).join(","));
+    });
   };
 
-  const clearAreas = () => {
-    const nextParams = new URLSearchParams(params);
-    nextParams.delete("areas");
-    nextParams.delete("location");
-    setParams(nextParams, { replace: true });
-  };
+  const clearAreas = () =>
+    patchParams((p) => {
+      p.delete("areas");
+      p.delete("location");
+    });
 
-  const resetAll = () => {
-    setParams(new URLSearchParams(), { replace: true });
-    setTypeSet(new Set());
-  };
+  const resetAll = () => setParams(new URLSearchParams(), { replace: true });
 
   const dataState = params.get("state") as "loading" | "error" | null;
-  const clearDataState = () => {
-    const next = new URLSearchParams(params);
-    next.delete("state");
-    setParams(next, { replace: true });
-  };
+  const clearDataState = () => patchParams((p) => p.delete("state"));
 
   const visibleListings = useMemo(() => {
     return LISTINGS.filter((l) => {
@@ -109,25 +149,21 @@ export default function Browse() {
         );
         if (!matchesArea) return false;
       }
-      if (heroType && l.type !== heroType) return false;
-      if (maxPrice !== null && l.price > maxPrice) return false;
+      if (typeSet.size > 0 && (!l.type || !typeSet.has(l.type))) return false;
+      if (minPrice != null && l.price < minPrice) return false;
+      if (maxPrice != null && l.price > maxPrice) return false;
+      if (minBeds != null && (l.beds ?? 0) < minBeds) return false;
+      if (moreFilters.verifiedOnly && l.tag !== "Verified") return false;
+      if (moreFilters.newOnly && l.tag !== "New") return false;
+      if (moreFilters.minSqm != null && (l.sqm ?? 0) < moreFilters.minSqm) return false;
       return true;
     });
-  }, [areaSet, heroType, maxPrice]);
+  }, [areaSet, typeSet, minPrice, maxPrice, minBeds, moreFilters.verifiedOnly, moreFilters.newOnly, moreFilters.minSqm]);
 
   const visiblePins = useMemo(
     () => PIN_POSITIONS.filter((p) => visibleListings.some((l) => l.id === p.id)),
     [visibleListings],
   );
-
-  const toggleType = (t: string) => {
-    setTypeSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(t)) next.delete(t);
-      else next.add(t);
-      return next;
-    });
-  };
 
   const toggleSave = (id: string) => {
     setSavedSet((prev) => {
@@ -189,16 +225,13 @@ export default function Browse() {
               ))}
             </div>
             <FilterDivider />
-            <Chip leftIcon="cash" style={{ height: 40 }}>
-              R 3,000 – R 8,000
-            </Chip>
-            <Chip leftIcon="bed" style={{ height: 40 }}>
-              1+ beds
-            </Chip>
-            <Chip leftIcon="sliders" style={{ height: 40 }}>
-              More filters
-              <Badge tone="accent" className="mono" >3</Badge>
-            </Chip>
+            <BudgetFilter
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              onChange={setBudget}
+            />
+            <BedsFilter minBeds={minBeds} onChange={setMinBeds} />
+            <MoreFiltersControl value={moreFilters} onChange={setMoreFilters} />
           </>
         }
         right={
@@ -261,7 +294,7 @@ export default function Browse() {
                 description={
                   areaSet.size > 0
                     ? `We couldn't find listings in ${Array.from(areaSet).join(", ")}${
-                        heroType ? ` for ${heroType.toLowerCase()}s` : ""
+                        typeSet.size > 0 ? ` for ${Array.from(typeSet).join(" / ").toLowerCase()}` : ""
                       }${maxPrice ? ` under R ${maxPrice.toLocaleString("en-ZA")}` : ""}. Widen your filters or clear them to see all listings.`
                     : "Widen your filters or clear them to see all listings."
                 }
