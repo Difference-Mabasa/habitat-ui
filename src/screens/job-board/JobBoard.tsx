@@ -1,6 +1,8 @@
 import { useState } from "react";
-import Nav from "@/components/Nav";
+import { useNavigate } from "react-router-dom";
+import AgentShell from "@/components/AgentShell";
 import Button from "@/components/Button";
+import { toast } from "@/lib/toast";
 import KpiTile from "@/components/KpiTile";
 import Tabs from "@/components/Tabs";
 import PageHeader from "@/components/PageHeader";
@@ -84,13 +86,18 @@ const FILTERS: { id: BriefStatus | "all"; label: string; count: number }[] = [
 ];
 
 export default function JobBoard() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<BriefStatus | "all">("OPEN");
   const rows = filter === "all" ? BRIEFS : BRIEFS.filter((b) => b.status === filter);
 
-  return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="agent" />
+  const propose = (b: BriefCardData) => {
+    toast.success(`Proposal sent to ${b.tenant} — tracking in /agent-requests.`);
+    navigate("/agent-requests?filter=proposed");
+  };
+  const message = (b: BriefCardData) => navigate(`/inbox?id=dm-${b.id}`);
 
+  return (
+    <AgentShell activeId="job-board">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Marketplace"
@@ -135,11 +142,22 @@ export default function JobBoard() {
                 actions={
                   b.status === "OPEN" ? (
                     <>
-                      <Button variant="accent" size="sm" leftIcon="check">Propose a match</Button>
-                      <Button variant="ghost" size="sm">Message tenant</Button>
+                      <Button variant="accent" size="sm" leftIcon="check" onClick={() => propose(b)}>
+                        Propose a match
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => message(b)}>
+                        Message tenant
+                      </Button>
                     </>
                   ) : (
-                    <Button variant="ghost" size="sm" rightIcon="chevR">View brief</Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      rightIcon="chevR"
+                      onClick={() => navigate("/agent-requests")}
+                    >
+                      View brief
+                    </Button>
                   )
                 }
               />
@@ -147,6 +165,6 @@ export default function JobBoard() {
           </div>
         )}
       </div>
-    </div>
+    </AgentShell>
   );
 }

@@ -1,6 +1,8 @@
 import { useState } from "react";
-import Nav from "@/components/Nav";
+import { useNavigate } from "react-router-dom";
+import AgentShell from "@/components/AgentShell";
 import Button from "@/components/Button";
+import { toast } from "@/lib/toast";
 import KpiTile from "@/components/KpiTile";
 import Tabs from "@/components/Tabs";
 import PageHeader from "@/components/PageHeader";
@@ -92,13 +94,21 @@ const FILTERS: { id: RequestState | "all"; label: string; count: number }[] = [
 ];
 
 export default function AgentRequests() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<RequestState | "all">("all");
   const rows = filter === "all" ? REQUESTS : REQUESTS.filter((r) => r.state === filter);
 
-  return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="agent" />
+  const propose = (r: AgentRequest) =>
+    navigate(`/portfolio?propose=${r.brief.id}`);
+  const messageTenant = (r: AgentRequest) =>
+    navigate(`/inbox?id=dm-${r.brief.id}`);
+  const decline = (r: AgentRequest) =>
+    toast.warn(`Declined brief from ${r.brief.tenant}.`);
+  const withdraw = (r: AgentRequest) =>
+    toast.warn(`Proposal withdrawn — ${r.proposedUnit ?? "unit"}.`);
 
+  return (
+    <AgentShell activeId="agent-requests">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Inbox · Marketplace"
@@ -129,23 +139,38 @@ export default function AgentRequests() {
                 actions={
                   r.state === "incoming" ? (
                     <>
-                      <Button variant="accent" size="sm" leftIcon="check">Propose unit</Button>
-                      <Button variant="secondary" size="sm">Message tenant</Button>
-                      <Button variant="ghost" size="sm">Decline</Button>
+                      <Button variant="accent" size="sm" leftIcon="check" onClick={() => propose(r)}>
+                        Propose unit
+                      </Button>
+                      <Button variant="secondary" size="sm" onClick={() => messageTenant(r)}>
+                        Message tenant
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => decline(r)}>
+                        Decline
+                      </Button>
                     </>
                   ) : r.state === "proposed" ? (
                     <>
                       <span style={{ fontSize: 13, color: "var(--slate)", marginRight: "auto" }}>
                         Proposed <strong style={{ color: "var(--ink)" }}>{r.proposedUnit}</strong> — tenant has 48h to reply.
                       </span>
-                      <Button variant="ghost" size="sm">Withdraw</Button>
+                      <Button variant="ghost" size="sm" onClick={() => withdraw(r)}>
+                        Withdraw
+                      </Button>
                     </>
                   ) : r.state === "accepted" ? (
                     <>
                       <span style={{ fontSize: 13, color: "var(--success)", marginRight: "auto", fontWeight: 600 }}>
                         Accepted — {r.proposedUnit}
                       </span>
-                      <Button variant="accent" size="sm" rightIcon="chevR">Open conversation</Button>
+                      <Button
+                        variant="accent"
+                        size="sm"
+                        rightIcon="chevR"
+                        onClick={() => messageTenant(r)}
+                      >
+                        Open conversation
+                      </Button>
                     </>
                   ) : (
                     <span style={{ fontSize: 13, color: "var(--slate)" }}>
@@ -164,6 +189,6 @@ export default function AgentRequests() {
           ))}
         </div>
       </div>
-    </div>
+    </AgentShell>
   );
 }
