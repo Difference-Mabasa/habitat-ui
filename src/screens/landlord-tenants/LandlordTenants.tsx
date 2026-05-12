@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import LandlordShell from "@/components/LandlordShell";
+import AgentShell from "@/components/AgentShell";
+import { useWorkspace } from "@/lib/useWorkspace";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
@@ -109,12 +111,14 @@ const STATE_BADGE: Record<PaymentState, { tone: "success" | "warn" | "danger" | 
 };
 
 export default function LandlordTenants() {
+  const ws = useWorkspace();
+  const Shell = ws === "agent" ? AgentShell : LandlordShell;
   const [filter, setFilter] = useState<PaymentState | "all">("all");
   const rows = filter === "all" ? ROWS : ROWS.filter((r) => r.state === filter);
   const monthlyRent = ROWS.reduce((s, r) => s + r.rent, 0);
 
   return (
-    <LandlordShell activeId="tenants">
+    <Shell activeId="tenants">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Active leases"
@@ -228,6 +232,6 @@ export default function LandlordTenants() {
           </table>
         </Card>
       </div>
-    </LandlordShell>
+    </Shell>
   );
 }

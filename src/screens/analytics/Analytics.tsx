@@ -1,4 +1,6 @@
 import LandlordShell from "@/components/LandlordShell";
+import AgentShell from "@/components/AgentShell";
+import { useWorkspace } from "@/lib/useWorkspace";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -45,8 +47,10 @@ const SUGGESTIONS: Suggestion[] = [
 ];
 
 export default function Analytics() {
+  const ws = useWorkspace();
+  const Shell = ws === "agent" ? AgentShell : LandlordShell;
   return (
-    <LandlordShell activeId="insights">
+    <Shell activeId="insights">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <div style={{ marginBottom: 12 }}>
           <InlineLink
@@ -172,7 +176,7 @@ export default function Analytics() {
           </div>
         </Card>
       </div>
-    </LandlordShell>
+    </Shell>
   );
 }
 

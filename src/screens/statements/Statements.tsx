@@ -1,5 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import LandlordShell from "@/components/LandlordShell";
+import AgentShell from "@/components/AgentShell";
+import { useWorkspace } from "@/lib/useWorkspace";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import KpiTile from "@/components/KpiTile";
@@ -35,6 +37,8 @@ const STATEMENT_ROWS: StatementRow[] = [
 
 export default function Statements() {
   const [params, setParams] = useSearchParams();
+  const ws = useWorkspace();
+  const Shell = ws === "agent" ? AgentShell : LandlordShell;
   const dataState = params.get("state") as "loading" | "error" | null;
   const clearDataState = () => {
     const next = new URLSearchParams(params);
@@ -43,7 +47,7 @@ export default function Statements() {
   };
 
   return (
-    <LandlordShell activeId="payments">
+    <Shell activeId="payments">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Money in, money out"
@@ -140,6 +144,6 @@ export default function Statements() {
           )}
         </Card>
       </div>
-    </LandlordShell>
+    </Shell>
   );
 }

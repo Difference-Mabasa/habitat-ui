@@ -1,5 +1,7 @@
 import { useState } from "react";
 import LandlordShell from "@/components/LandlordShell";
+import AgentShell from "@/components/AgentShell";
+import { useWorkspace } from "@/lib/useWorkspace";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
@@ -50,6 +52,8 @@ const ALT_PROPOSALS = [
 ];
 
 export default function ViewingAvailability() {
+  const ws = useWorkspace();
+  const Shell = ws === "agent" ? AgentShell : LandlordShell;
   const [tab, setTab] = useState<"weekly" | "overrides" | "proposals">("weekly");
   const [openDays, setOpenDays] = useState<Record<string, boolean>>(
     Object.fromEntries(DAYS.map((d) => [d.id, d.default.open])),
@@ -57,7 +61,7 @@ export default function ViewingAvailability() {
   const [bufferMin, setBufferMin] = useState(true);
 
   return (
-    <LandlordShell activeId="viewing-availability">
+    <Shell activeId="viewing-availability">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Viewings"
@@ -223,6 +227,6 @@ export default function ViewingAvailability() {
           </div>
         )}
       </div>
-    </LandlordShell>
+    </Shell>
   );
 }

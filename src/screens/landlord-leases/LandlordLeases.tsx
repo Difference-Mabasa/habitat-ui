@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import LandlordShell from "@/components/LandlordShell";
+import AgentShell from "@/components/AgentShell";
+import { useWorkspace } from "@/lib/useWorkspace";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge, { type BadgeTone } from "@/components/Badge";
@@ -195,6 +197,8 @@ const FILTERS: { id: LeaseState | "all"; label: string }[] = [
 ];
 
 export default function LandlordLeases() {
+  const ws = useWorkspace();
+  const Shell = ws === "agent" ? AgentShell : LandlordShell;
   const [filter, setFilter] = useState<LeaseState | "all">("all");
 
   const visible = useMemo(() => {
@@ -216,7 +220,7 @@ export default function LandlordLeases() {
   );
 
   return (
-    <LandlordShell activeId="leases">
+    <Shell activeId="leases">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Lease documents"
@@ -396,6 +400,6 @@ export default function LandlordLeases() {
           </Card>
         )}
       </div>
-    </LandlordShell>
+    </Shell>
   );
 }
