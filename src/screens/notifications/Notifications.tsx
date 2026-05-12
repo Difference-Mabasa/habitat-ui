@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
-import Nav from "@/components/Nav";
+import { Link } from "react-router-dom";
+import LandlordShell from "@/components/LandlordShell";
+import AgentShell from "@/components/AgentShell";
+import { useWorkspace } from "@/lib/useWorkspace";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
 import Card from "@/components/Card";
@@ -73,7 +76,37 @@ const CATEGORY_FILTERS: { id: NotificationCategory | "all"; label: string }[] = 
 
 const DAY_ORDER: NotificationItem["day"][] = ["Today", "Yesterday", "This week"];
 
+const TYPE_DESTINATION: Record<string, string> = {
+  PAYMENT_RECEIVED: "/statements",
+  PAYMENT_FAILED: "/payment",
+  PAYOUT_RELEASED: "/statements",
+  APPLICATION_RECEIVED: "/applicant",
+  APPLICATION_APPROVED: "/applicant",
+  DOCUMENTS_REQUESTED: "/my-apps",
+  APPLICATION_ON_HOLD: "/my-apps",
+  APPLICATION_DECLINED: "/my-apps",
+  LEASE_READY: "/lease",
+  LEASE_SIGNED: "/lease",
+  LEASE_DECLINED: "/lease",
+  MANDATE_PENDING_APPROVAL: "/mandate-approvals",
+  MANDATE_APPROVED: "/my-mandates",
+  MANDATE_REVOKED: "/my-mandates",
+  VIEWING_REQUESTED: "/viewings",
+  VIEWING_CONFIRMED: "/viewings",
+  VIEWING_ALTERNATIVE_PROPOSED: "/viewings",
+  MAINTENANCE_URGENT: "/maintenance",
+  MAINTENANCE_RESOLVED: "/maintenance",
+  VERIFICATION_APPROVED: "/verification",
+  CREDIT_CONSENT_GRANTED: "/profile",
+  MESSAGE_RECEIVED: "/inbox",
+  LISTING_TIP: "/landlord-properties",
+  SAVED_SEARCH_ALERT: "/browse",
+  REVIEW_REQUEST: "/reviews",
+};
+
 export default function Notifications() {
+  const ws = useWorkspace();
+  const Shell = ws === "agent" ? AgentShell : LandlordShell;
   const [filter, setFilter] = useState<NotificationCategory | "all">("all");
   const [bulkRead, setBulkRead] = useState(false);
   const [showBellShake, setShowBellShake] = useState(true);
@@ -98,9 +131,7 @@ export default function Notifications() {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="landlord" />
-
+    <Shell activeId="notifications">
       <div style={{ maxWidth: 880, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow={
@@ -155,28 +186,37 @@ export default function Notifications() {
           <section key={g.day} style={{ marginBottom: 32 }}>
             <Eyebrow style={{ marginBottom: 12 }}>{g.day} · {g.items.length}</Eyebrow>
             <Card padding={0} style={{ overflow: "hidden" }}>
-              {g.items.map((n, i) => (
-                <div
-                  key={n.id}
-                  style={{ borderTop: i > 0 ? "1px solid var(--hairline)" : "none" }}
-                >
-                  <NotificationRow
-                    variant="page"
-                    icon={n.icon}
-                    tone={n.tone}
-                    title={n.title}
-                    body={
-                      <span>
-                        {n.body}{" "}
-                        <span className="mono" style={{ fontSize: 10, color: "var(--slate-2)", marginLeft: 6 }}>
-                          {n.type}
+              {g.items.map((n, i) => {
+                const dest = TYPE_DESTINATION[n.type] ?? "/notifications";
+                return (
+                  <Link
+                    key={n.id}
+                    to={dest}
+                    style={{
+                      display: "block",
+                      textDecoration: "none",
+                      color: "inherit",
+                      borderTop: i > 0 ? "1px solid var(--hairline)" : "none",
+                    }}
+                  >
+                    <NotificationRow
+                      variant="page"
+                      icon={n.icon}
+                      tone={n.tone}
+                      title={n.title}
+                      body={
+                        <span>
+                          {n.body}{" "}
+                          <span className="mono" style={{ fontSize: 10, color: "var(--slate-2)", marginLeft: 6 }}>
+                            {n.type}
+                          </span>
                         </span>
-                      </span>
-                    }
-                    unread={n.unread && !bulkRead}
-                  />
-                </div>
-              ))}
+                      }
+                      unread={n.unread && !bulkRead}
+                    />
+                  </Link>
+                );
+              })}
             </Card>
           </section>
         ))}
@@ -189,6 +229,6 @@ export default function Notifications() {
           </Card>
         ) : null}
       </div>
-    </div>
+    </Shell>
   );
 }

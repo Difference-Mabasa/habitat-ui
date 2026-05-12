@@ -1,4 +1,5 @@
-import Nav from "@/components/Nav";
+import { Link } from "react-router-dom";
+import LandlordShell from "@/components/LandlordShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
@@ -33,18 +34,18 @@ const STATUS_BADGE: Record<Mandate["status"], { tone: "success" | "warn" | "neut
 
 export default function Mandates() {
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="landlord" />
-
+    <LandlordShell activeId="mandate-approvals">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Manage"
           title="Mandates & agents"
           subtitle="Delegate any property to a vetted agent — keep full visibility into rent, vacancy, and statements."
           actions={
-            <Button variant="accent" leftIcon="plus">
-              New mandate
-            </Button>
+            <Link to="/mandate-approvals" style={{ textDecoration: "none" }}>
+              <Button variant="accent" leftIcon="plus">
+                New mandate
+              </Button>
+            </Link>
           }
         />
 
@@ -74,9 +75,11 @@ export default function Mandates() {
               <Button variant="ghost" size="sm" leftIcon="filter">
                 Status
               </Button>
-              <Button variant="ghost" size="sm" leftIcon="download">
-                Statements
-              </Button>
+              <Link to="/statements" style={{ textDecoration: "none" }}>
+                <Button variant="ghost" size="sm" leftIcon="download">
+                  Statements
+                </Button>
+              </Link>
             </div>
           </div>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -132,9 +135,11 @@ export default function Mandates() {
                       <Badge tone={status.tone}>{status.label}</Badge>
                     </td>
                     <td style={{ padding: "16px 24px", textAlign: "right" }}>
-                      <Button variant="ghost" size="sm" rightIcon="chevR">
-                        Manage
-                      </Button>
+                      <Link to="/my-mandates" style={{ textDecoration: "none" }}>
+                        <Button variant="ghost" size="sm" rightIcon="chevR">
+                          Manage
+                        </Button>
+                      </Link>
                     </td>
                   </tr>
                 );
@@ -143,6 +148,6 @@ export default function Mandates() {
           </table>
         </Card>
       </div>
-    </div>
+    </LandlordShell>
   );
 }

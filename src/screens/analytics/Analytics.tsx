@@ -1,4 +1,4 @@
-import Nav from "@/components/Nav";
+import LandlordShell from "@/components/LandlordShell";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -46,9 +46,7 @@ const SUGGESTIONS: Suggestion[] = [
 
 export default function Analytics() {
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="landlord" />
-
+    <LandlordShell activeId="insights">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <div style={{ marginBottom: 12 }}>
           <InlineLink
@@ -174,7 +172,7 @@ export default function Analytics() {
           </div>
         </Card>
       </div>
-    </div>
+    </LandlordShell>
   );
 }
 

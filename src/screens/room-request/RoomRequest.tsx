@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Nav from "@/components/Nav";
+import TenantShell from "@/components/TenantShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
@@ -52,9 +52,7 @@ export default function RoomRequest() {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
 
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="tenant" />
-
+    <TenantShell activeId="request-agent">
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Post a brief"
@@ -166,7 +164,7 @@ export default function RoomRequest() {
             </div>
           </div>
 
-          <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 24, alignSelf: "start" }}>
+          <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 88, alignSelf: "start" }}>
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 12 }}>Live preview</Eyebrow>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -194,6 +192,6 @@ export default function RoomRequest() {
           </aside>
         </div>
       </div>
-    </div>
+    </TenantShell>
   );
 }

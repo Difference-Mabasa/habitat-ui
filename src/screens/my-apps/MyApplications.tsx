@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import Nav from "@/components/Nav";
+import TenantShell from "@/components/TenantShell";
 import Photo from "@/components/Photo";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -131,9 +131,7 @@ const APPS: ApplicationRow[] = [
 
 export default function MyApplications() {
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="tenant" />
-
+    <TenantShell activeId="applications">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <Eyebrow>You</Eyebrow>
         <h1
@@ -243,7 +241,7 @@ export default function MyApplications() {
                     </>
                   ) : a.variant === "conditional" ? (
                     <>
-                      <Link to="/apply" style={{ textDecoration: "none" }}>
+                      <Link to="/apply?step=2" style={{ textDecoration: "none" }}>
                         <Button variant="accent" size="sm" leftIcon="upload" style={{ width: "100%", justifyContent: "center" }}>Upload statements</Button>
                       </Link>
                       <Link to="/inbox" style={{ textDecoration: "none" }}>
@@ -293,6 +291,6 @@ export default function MyApplications() {
           ))}
         </div>
       </div>
-    </div>
+    </TenantShell>
   );
 }

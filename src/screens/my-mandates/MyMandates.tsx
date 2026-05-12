@@ -1,5 +1,6 @@
 import { useState } from "react";
-import Nav from "@/components/Nav";
+import { Link } from "react-router-dom";
+import AgentShell from "@/components/AgentShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
@@ -116,9 +117,7 @@ export default function MyMandates() {
   const monthlyRent = rows.filter((r) => r.state === "active").reduce((s, r) => s + r.rent, 0);
 
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="agent" />
-
+    <AgentShell activeId="mandates">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Pipeline"
@@ -127,8 +126,12 @@ export default function MyMandates() {
           actions={
             <>
               <Button variant="ghost" size="sm" leftIcon="filter">Filter</Button>
-              <Button variant="ghost" size="sm" leftIcon="download">Export</Button>
-              <Button variant="accent" leftIcon="plus">New mandate</Button>
+              <Link to="/statements" style={{ textDecoration: "none" }}>
+                <Button variant="ghost" size="sm" leftIcon="download">Export</Button>
+              </Link>
+              <Link to="/mandate-approvals" style={{ textDecoration: "none" }}>
+                <Button variant="accent" leftIcon="plus">New mandate</Button>
+              </Link>
             </>
           }
         />
@@ -203,7 +206,9 @@ export default function MyMandates() {
                       <Badge tone={badge.tone}>{badge.label}</Badge>
                     </td>
                     <td style={{ padding: "16px 20px", textAlign: "right" }}>
-                      <Button variant="ghost" size="sm" rightIcon="chevR">Open</Button>
+                      <Link to="/mandate-approvals" style={{ textDecoration: "none" }}>
+                        <Button variant="ghost" size="sm" rightIcon="chevR">Open</Button>
+                      </Link>
                     </td>
                   </tr>
                 );
@@ -212,6 +217,6 @@ export default function MyMandates() {
           </table>
         </Card>
       </div>
-    </div>
+    </AgentShell>
   );
 }

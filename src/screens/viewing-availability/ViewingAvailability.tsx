@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Nav from "@/components/Nav";
+import LandlordShell from "@/components/LandlordShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
@@ -57,9 +57,7 @@ export default function ViewingAvailability() {
   const [bufferMin, setBufferMin] = useState(true);
 
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="landlord" />
-
+    <LandlordShell activeId="viewing-availability">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Viewings"
@@ -225,6 +223,6 @@ export default function ViewingAvailability() {
           </div>
         )}
       </div>
-    </div>
+    </LandlordShell>
   );
 }

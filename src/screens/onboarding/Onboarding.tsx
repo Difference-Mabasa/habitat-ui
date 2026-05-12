@@ -183,12 +183,12 @@ export default function Onboarding() {
               Back
             </Button>
             <div style={{ display: "flex", gap: 8 }}>
-              <Link to="/verification" style={{ textDecoration: "none" }}>
+              <Link to="/identity-verification" style={{ textDecoration: "none" }}>
                 <Button variant="ghost">Skip this step</Button>
               </Link>
-              <Link to="/verification" style={{ textDecoration: "none" }}>
+              <Link to="/identity-verification" style={{ textDecoration: "none" }}>
                 <Button variant="accent" rightIcon="arrR">
-                  Continue
+                  Continue to ID
                 </Button>
               </Link>
             </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Nav from "@/components/Nav";
+import TenantShell from "@/components/TenantShell";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -97,8 +97,7 @@ export default function Lease() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="tenant" />
+    <TenantShell activeId="lease">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <div
           style={{
@@ -290,7 +289,7 @@ export default function Lease() {
                     leftIcon="check"
                     disabled={otp.length < 6}
                     style={{ width: "100%", justifyContent: "center", marginTop: 12 }}
-                    onClick={() => navigate("/payment-result")}
+                    onClick={() => navigate("/tenant-portal")}
                   >
                     Confirm signature
                   </Button>
@@ -339,6 +338,6 @@ export default function Lease() {
           </aside>
         </div>
       </div>
-    </div>
+    </TenantShell>
   );
 }

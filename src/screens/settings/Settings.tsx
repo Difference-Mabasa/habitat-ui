@@ -45,7 +45,9 @@ export default function Settings() {
         </h1>
 
         <div style={{ display: "grid", gridTemplateColumns: "240px minmax(0,1fr)", gap: 48 }}>
-          <SubNav items={ITEMS} activeId={section} onChange={setSection} />
+          <div style={{ position: "sticky", top: 88, alignSelf: "start" }}>
+            <SubNav items={ITEMS} activeId={section} onChange={setSection} />
+          </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Plan */}

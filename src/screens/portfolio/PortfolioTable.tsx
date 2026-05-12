@@ -2,14 +2,14 @@ import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
 
-export type AgencyStatus = "Let" | "Vacant" | "Listing";
+export type PortfolioStatus = "Let" | "Vacant" | "Listing";
 
-export interface AgencyRow {
+export interface PortfolioRow {
   id: string;
   property: string;
   landlord: string;
   rent: number;
-  status: AgencyStatus;
+  status: PortfolioStatus;
   vacantSince?: string;
   paid: boolean | null;
   daysLate?: number;
@@ -17,14 +17,15 @@ export interface AgencyRow {
   apps30d: number;
 }
 
-export interface AgencyTableProps {
-  rows: AgencyRow[];
+export interface PortfolioTableProps {
+  rows: PortfolioRow[];
   onOpen?: (id: string) => void;
+  onEdit?: (id: string) => void;
 }
 
 const HEADERS = ["", "Property", "Owner", "Rent", "Status", "Apr rent", "Apps · 30d", "Maint.", ""];
 
-export default function AgencyTable({ rows, onOpen }: AgencyTableProps) {
+export default function PortfolioTable({ rows, onOpen, onEdit }: PortfolioTableProps) {
   return (
     <table style={{ width: "100%", borderCollapse: "collapse" }}>
       <thead>
@@ -88,7 +89,10 @@ export default function AgencyTable({ rows, onOpen }: AgencyTableProps) {
                 <span style={{ fontSize: 12, color: "var(--slate)" }}>—</span>
               )}
             </td>
-            <td style={{ padding: "12px 16px", textAlign: "right" }}>
+            <td style={{ padding: "12px 16px", textAlign: "right", whiteSpace: "nowrap" }}>
+              <Button variant="ghost" size="sm" leftIcon="edit" onClick={() => onEdit?.(r.id)}>
+                Edit
+              </Button>
               <Button variant="ghost" size="sm" rightIcon="chevR" onClick={() => onOpen?.(r.id)}>
                 Open
               </Button>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Nav from "@/components/Nav";
+import TenantShell from "@/components/TenantShell";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -48,8 +48,7 @@ export default function Maintenance() {
   const [urgency, setUrgency] = useState<Urgency>("Urgent");
 
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="tenant" />
+    <TenantShell activeId="maintenance">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Your spot"
@@ -251,6 +250,6 @@ export default function Maintenance() {
           </Card>
         </div>
       </div>
-    </div>
+    </TenantShell>
   );
 }

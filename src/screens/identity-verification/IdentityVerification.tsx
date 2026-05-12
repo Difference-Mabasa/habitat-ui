@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -195,13 +196,15 @@ export default function IdentityVerification() {
                 </div>
                 <div style={{ display: "flex", gap: 8, justifyContent: "space-between", marginTop: 16 }}>
                   <Button variant="ghost" leftIcon="arrL" onClick={() => setStep(2)}>Back</Button>
-                  <Button variant="accent" leftIcon="check">Submit for verification</Button>
+                  <Link to="/verification" style={{ textDecoration: "none" }}>
+                    <Button variant="accent" leftIcon="check">Submit &amp; continue to FICA</Button>
+                  </Link>
                 </div>
               </Card>
             )}
           </div>
 
-          <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 24, alignSelf: "start" }}>
+          <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 88, alignSelf: "start" }}>
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 12 }}>What we check</Eyebrow>
               {[

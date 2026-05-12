@@ -1,4 +1,4 @@
-import Nav from "@/components/Nav";
+import TenantShell from "@/components/TenantShell";
 import Photo from "@/components/Photo";
 import Icon from "@/components/Icon";
 import IconButton from "@/components/IconButton";
@@ -52,8 +52,7 @@ const NOTE_STYLE: Record<NoteTone, { bg: string; color: string }> = {
 
 export default function Saved() {
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="tenant" />
+    <TenantShell activeId="saved">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <Eyebrow>Your shortlist</Eyebrow>
         <h1
@@ -185,6 +184,6 @@ export default function Saved() {
           </div>
         </section>
       </div>
-    </div>
+    </TenantShell>
   );
 }

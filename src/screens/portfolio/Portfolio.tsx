@@ -1,13 +1,14 @@
 import { useState } from "react";
-import Nav from "@/components/Nav";
+import { useNavigate } from "react-router-dom";
+import AgentShell from "@/components/AgentShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import KpiTile from "@/components/KpiTile";
 import Tabs from "@/components/Tabs";
 import PageHeader from "@/components/PageHeader";
-import AgencyTable, { type AgencyRow } from "./AgencyTable";
+import PortfolioTable, { type PortfolioRow } from "./PortfolioTable";
 
-const ROWS: AgencyRow[] = [
+const ROWS: PortfolioRow[] = [
   { id: "ag1", property: "Studio · Melville", landlord: "Thandi M.", rent: 5400, paid: true, maintenance: 1, apps30d: 12, status: "Let" },
   { id: "ag2", property: "Cottage · Caroline", landlord: "Pieter K.", rent: 4400, paid: true, maintenance: 0, apps30d: 8, status: "Let" },
   { id: "ag3", property: "Flatlet · Brixton", landlord: "Nomsa Z.", rent: 5200, paid: false, daysLate: 4, maintenance: 2, apps30d: 6, status: "Let" },
@@ -28,21 +29,23 @@ const FILTERS = [
   { id: "issues", label: "Issues", count: 1 },
 ];
 
-export default function Agency() {
+export default function Portfolio() {
   const [filter, setFilter] = useState("all");
+  const navigate = useNavigate();
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="agent" />
-
+    <AgentShell activeId="portfolio">
       <div style={{ maxWidth: 1600, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
-          eyebrow="Lebo Properties · Joburg"
+          eyebrow="Properties under your mandates"
           title="Portfolio · 24 mandates"
+          subtitle="Day-to-day operations across every property you (or your agency) manage. Use Mandates for the contract view."
           actions={
             <>
               <Button variant="ghost" size="sm" leftIcon="filter">Filter</Button>
               <Button variant="ghost" size="sm" leftIcon="download">Export</Button>
-              <Button variant="accent" leftIcon="plus">New mandate</Button>
+              <Button variant="accent" leftIcon="plus" onClick={() => navigate("/mandate-approvals")}>
+                New mandate
+              </Button>
             </>
           }
         />
@@ -65,9 +68,13 @@ export default function Agency() {
         </div>
 
         <Card padding={0} style={{ overflow: "hidden" }}>
-          <AgencyTable rows={ROWS} />
+          <PortfolioTable
+            rows={ROWS}
+            onOpen={(id) => navigate(`/property?ctx=agent&id=${id}`)}
+            onEdit={(id) => navigate(`/wizard?ctx=agent&edit=${id}`)}
+          />
         </Card>
       </div>
-    </div>
+    </AgentShell>
   );
 }

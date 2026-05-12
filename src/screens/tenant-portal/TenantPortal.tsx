@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import Nav from "@/components/Nav";
 import Photo from "@/components/Photo";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
@@ -8,6 +7,8 @@ import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import PriceDisplay from "@/components/PriceDisplay";
 import AgentCard from "@/components/AgentCard";
+import KpiTile from "@/components/KpiTile";
+import TenantShell from "@/components/TenantShell";
 
 interface PaymentRow {
   date: string;
@@ -37,23 +38,28 @@ const MAINTENANCE: MaintenanceRow[] = [
 
 export default function TenantPortal() {
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="tenant" />
+    <TenantShell activeId="overview">
+      <div style={{ padding: "32px 32px 64px" }}>
+          <header style={{ marginBottom: 24 }}>
+            <Eyebrow>Overview</Eyebrow>
+            <h1
+              style={{
+                fontSize: 32,
+                fontWeight: 500,
+                letterSpacing: "-0.025em",
+                margin: "8px 0 0",
+              }}
+            >
+              Welcome home, Naledi
+            </h1>
+          </header>
 
-      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px" }}>
-        <header style={{ marginBottom: 32 }}>
-          <Eyebrow>My rental</Eyebrow>
-          <h1
-            style={{
-              fontSize: 32,
-              fontWeight: 500,
-              letterSpacing: "-0.025em",
-              margin: "8px 0 0",
-            }}
-          >
-            Welcome home, Naledi
-          </h1>
-        </header>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+            <KpiTile label="Active lease" value="Garden Cottage" subText="ends 29 Feb 2027" />
+            <KpiTile label="Next rent due" value="R 6,800" subText="in 4 days · 1 May" valueTone="accent" />
+            <KpiTile label="Open maintenance" value="2" subText="1 urgent" subTone="warn" />
+            <KpiTile label="Upcoming viewings" value="2" subText="Sat 24 · Wed 21" />
+          </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 24 }}>
           {/* Home card */}
@@ -168,7 +174,7 @@ export default function TenantPortal() {
                       Message
                     </Button>
                   </Link>
-                  <Link to="/viewings" style={{ flex: 1, textDecoration: "none" }}>
+                  <Link to="/book-viewing" style={{ flex: 1, textDecoration: "none" }}>
                     <Button variant="secondary" size="sm" leftIcon="calendar" style={{ width: "100%", justifyContent: "center" }}>
                       Schedule
                     </Button>
@@ -179,7 +185,7 @@ export default function TenantPortal() {
           </Card>
         </div>
       </div>
-    </div>
+    </TenantShell>
   );
 }
 

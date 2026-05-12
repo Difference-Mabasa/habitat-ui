@@ -1,5 +1,6 @@
 import { useState } from "react";
-import Nav from "@/components/Nav";
+import { Link } from "react-router-dom";
+import LandlordShell from "@/components/LandlordShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
@@ -100,9 +101,7 @@ export default function MandateApprovals() {
   const rows = filter === "all" ? REQUESTS : REQUESTS.filter((r) => r.state === filter);
 
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="landlord" />
-
+    <LandlordShell activeId="mandate-approvals">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Approvals"
@@ -183,18 +182,26 @@ export default function MandateApprovals() {
 
                 {r.state === "pending" ? (
                   <div style={{ display: "flex", gap: 8, marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--hairline)" }}>
-                    <Button variant="accent" leftIcon="check">Approve mandate</Button>
-                    <Button variant="secondary">Counter-offer</Button>
+                    <Link to="/my-mandates" style={{ textDecoration: "none" }}>
+                      <Button variant="accent" leftIcon="check">Approve mandate</Button>
+                    </Link>
+                    <Link to="/inbox" style={{ textDecoration: "none" }}>
+                      <Button variant="secondary">Counter-offer</Button>
+                    </Link>
                     <Button variant="ghost">Reject</Button>
-                    <Button variant="ghost" style={{ marginLeft: "auto" }} rightIcon="chevR">
-                      View agency profile
-                    </Button>
+                    <Link to="/agency-browse" style={{ textDecoration: "none", marginLeft: "auto" }}>
+                      <Button variant="ghost" rightIcon="chevR">
+                        View agency profile
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
                   <div style={{ display: "flex", marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--hairline)" }}>
-                    <Button variant="ghost" rightIcon="chevR" style={{ marginLeft: "auto" }}>
-                      View full mandate
-                    </Button>
+                    <Link to="/my-mandates" style={{ textDecoration: "none", marginLeft: "auto" }}>
+                      <Button variant="ghost" rightIcon="chevR">
+                        View full mandate
+                      </Button>
+                    </Link>
                   </div>
                 )}
               </Card>
@@ -202,6 +209,6 @@ export default function MandateApprovals() {
           })}
         </div>
       </div>
-    </div>
+    </LandlordShell>
   );
 }

@@ -5,6 +5,7 @@ import Card from "@/components/Card";
 import Badge, { type BadgeTone } from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import Tabs from "@/components/Tabs";
+import { toast } from "@/lib/toast";
 
 type FlagPriority = "high" | "med" | "low";
 type FlagState = "open" | "in-review" | "resolved";
@@ -124,10 +125,10 @@ export default function Admin() {
         >
           <Tabs tabs={FILTER_TABS} value={filter} onChange={setFilter} />
           <div style={{ flex: 1 }} />
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => toast.info("Batch assigned to next available moderator.")}>
             Assign batch
           </Button>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => toast.success("Exporting CSV…")}>
             Export CSV
           </Button>
         </div>
@@ -175,9 +176,28 @@ export default function Admin() {
                     <Badge tone={STATE_TONE[r.state]}>{r.state.replace("-", " ").toUpperCase()}</Badge>
                   </td>
                   <td style={{ padding: "14px 16px", textAlign: "right" }}>
-                    <Button variant="ghost" size="sm" rightIcon="arrR">
-                      Review
-                    </Button>
+                    <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon="check"
+                        onClick={() => toast.success(`${r.id} approved · subject cleared.`)}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon="x"
+                        onClick={() => toast.warn(`${r.id} rejected · removed from listing.`)}
+                        style={{ color: "var(--danger)" }}
+                      >
+                        Reject
+                      </Button>
+                      <Button variant="ghost" size="sm" rightIcon="arrR" onClick={() => toast.info(`${r.id} opened for review.`)}>
+                        Open
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

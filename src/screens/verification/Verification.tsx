@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
@@ -165,9 +166,11 @@ export default function Verification() {
                 <Button variant="ghost" leftIcon="chevL">
                   Back
                 </Button>
-                <Button variant="accent" rightIcon="arrR">
-                  Continue to bank
-                </Button>
+                <Link to="/browse" style={{ textDecoration: "none" }}>
+                  <Button variant="accent" rightIcon="arrR">
+                    Finish &amp; browse
+                  </Button>
+                </Link>
               </div>
             </Card>
 

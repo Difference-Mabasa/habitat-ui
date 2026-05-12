@@ -1,4 +1,7 @@
-import Nav from "@/components/Nav";
+import { Link } from "react-router-dom";
+import LandlordShell from "@/components/LandlordShell";
+import AgentShell from "@/components/AgentShell";
+import { useWorkspace } from "@/lib/useWorkspace";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
 import Card from "@/components/Card";
@@ -63,10 +66,10 @@ const PENDING: PendingRequest[] = [
 ];
 
 export default function Viewings() {
+  const ws = useWorkspace();
+  const Shell = ws === "agent" ? AgentShell : LandlordShell;
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="landlord" />
-
+    <Shell activeId="viewings">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="This week"
@@ -76,7 +79,9 @@ export default function Viewings() {
               <Button variant="ghost" size="sm">Today</Button>
               <IconButton icon="chevL" label="Previous week" size="sm" />
               <IconButton icon="chevR" label="Next week" size="sm" />
-              <Button variant="accent" leftIcon="plus">Add slot</Button>
+              <Link to="/viewing-availability" style={{ textDecoration: "none" }}>
+                <Button variant="accent" leftIcon="plus">Add slot</Button>
+              </Link>
             </>
           }
         />
@@ -146,6 +151,6 @@ export default function Viewings() {
           </aside>
         </div>
       </div>
-    </div>
+    </Shell>
   );
 }

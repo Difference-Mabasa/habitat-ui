@@ -1,4 +1,5 @@
 import { useState } from "react";
+import TenantShell from "@/components/TenantShell";
 import Logo from "@/components/Logo";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -39,7 +40,8 @@ export default function Invoice() {
   const header = STATE_HEADER[state];
 
   return (
-    <div style={{ background: "var(--surface-2)", padding: 32, minHeight: "100vh" }}>
+    <TenantShell activeId="payments" background="var(--surface-2)">
+      <div style={{ padding: 32 }}>
       <div style={{ maxWidth: 794, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
         {/* Demo state switcher */}
         <div style={{ display: "flex", justifyContent: "center" }}>
@@ -284,6 +286,7 @@ export default function Invoice() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </TenantShell>
   );
 }

@@ -1,4 +1,4 @@
-import Nav from "@/components/Nav";
+import AgentShell from "@/components/AgentShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
@@ -31,9 +31,7 @@ const AREAS = [
 
 export default function MyAgency() {
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="agent" />
-
+    <AgentShell activeId="agency">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="My agency"
@@ -149,7 +147,7 @@ export default function MyAgency() {
             </Card>
           </div>
 
-          <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 24, alignSelf: "start" }}>
+          <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 88, alignSelf: "start" }}>
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 10 }}>Logo</Eyebrow>
               <div
@@ -193,6 +191,6 @@ export default function MyAgency() {
           </aside>
         </div>
       </div>
-    </div>
+    </AgentShell>
   );
 }

@@ -1,4 +1,7 @@
-import Nav from "@/components/Nav";
+import { Link } from "react-router-dom";
+import LandlordShell from "@/components/LandlordShell";
+import AgentShell from "@/components/AgentShell";
+import { useWorkspace } from "@/lib/useWorkspace";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
@@ -26,10 +29,10 @@ const DOCUMENTS: { name: string; file: string; ok: boolean; note?: string }[] = 
 ];
 
 export default function ApplicantDetail() {
+  const ws = useWorkspace();
+  const Shell = ws === "agent" ? AgentShell : LandlordShell;
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="landlord" />
-
+    <Shell activeId="applications">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "24px 32px 64px" }}>
         <div style={{ marginBottom: 16 }}>
           <InlineLink
@@ -67,15 +70,21 @@ export default function ApplicantDetail() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <Button variant="secondary" leftIcon="x">
-                  Decline
-                </Button>
-                <Button variant="secondary" leftIcon="chat">
-                  Message
-                </Button>
-                <Button variant="accent" leftIcon="check">
-                  Approve to lease
-                </Button>
+                <Link to="/landlord-dashboard" style={{ textDecoration: "none" }}>
+                  <Button variant="secondary" leftIcon="x">
+                    Decline
+                  </Button>
+                </Link>
+                <Link to="/inbox" style={{ textDecoration: "none" }}>
+                  <Button variant="secondary" leftIcon="chat">
+                    Message
+                  </Button>
+                </Link>
+                <Link to="/lease" style={{ textDecoration: "none" }}>
+                  <Button variant="accent" leftIcon="check">
+                    Approve to lease
+                  </Button>
+                </Link>
               </div>
             </div>
 
@@ -134,19 +143,21 @@ export default function ApplicantDetail() {
                 "Hi Thandi — I'm looking for a quiet spot near work. I've been at my current place 4 years,
                 leaving because of relocation. Happy to do a video call if helpful."
               </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                leftIcon="chat"
-                style={{ width: "100%", marginTop: 16, justifyContent: "center" }}
-              >
-                Reply
-              </Button>
+              <Link to="/inbox" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon="chat"
+                  style={{ width: "100%", marginTop: 16, justifyContent: "center" }}
+                >
+                  Reply
+                </Button>
+              </Link>
             </Card>
           </aside>
         </div>
       </div>
-    </div>
+    </Shell>
   );
 }
 

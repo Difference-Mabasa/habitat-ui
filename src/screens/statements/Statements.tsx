@@ -1,4 +1,4 @@
-import Nav from "@/components/Nav";
+import LandlordShell from "@/components/LandlordShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import KpiTile from "@/components/KpiTile";
@@ -32,9 +32,7 @@ const STATEMENT_ROWS: StatementRow[] = [
 
 export default function Statements() {
   return (
-    <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
-      <Nav role="landlord" />
-
+    <LandlordShell activeId="payments">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Money in, money out"
@@ -111,6 +109,6 @@ export default function Statements() {
           <StatementsTable rows={STATEMENT_ROWS} />
         </Card>
       </div>
-    </div>
+    </LandlordShell>
   );
 }

@@ -94,10 +94,19 @@ export default function Payment() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 24 }}>
-              <Link to="/invoice" style={{ textDecoration: "none" }}>
+              <Link to="/lease" style={{ textDecoration: "none" }}>
                 <Button
                   variant="accent"
                   size="lg"
+                  rightIcon="arrR"
+                  style={{ width: "100%", justifyContent: "center" }}
+                >
+                  Sign your lease
+                </Button>
+              </Link>
+              <Link to="/invoice" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="secondary"
                   leftIcon="download"
                   style={{ width: "100%", justifyContent: "center" }}
                 >
@@ -106,7 +115,7 @@ export default function Payment() {
               </Link>
               <Link to="/tenant-portal" style={{ textDecoration: "none" }}>
                 <Button
-                  variant="secondary"
+                  variant="ghost"
                   leftIcon="home"
                   style={{ width: "100%", justifyContent: "center" }}
                 >

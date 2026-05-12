@@ -32,7 +32,36 @@ import Alert from "@/components/Alert";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Modal from "@/components/Modal";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import BriefCard, { type BriefCardData } from "@/components/BriefCard";
 import { toast } from "@/lib/toast";
+
+const BRIEF_OPEN: BriefCardData = {
+  id: "brief-open",
+  tenant: "Sipho Dlamini",
+  tenantInit: "SD",
+  budgetMin: 3000,
+  budgetMax: 4200,
+  areas: ["Orlando West", "Diepkloof"],
+  moveIn: "by 1 Jun",
+  status: "OPEN",
+  body: "Working professional. Need a backroom or bachelor flat with own entrance and prepaid electricity. Quiet area preferred.",
+  posted: "18m",
+  proposals: 2,
+};
+
+const BRIEF_MATCHED: BriefCardData = {
+  id: "brief-matched",
+  tenant: "Aisha Mahlangu",
+  tenantInit: "AM",
+  budgetMin: 6500,
+  budgetMax: 9000,
+  areas: ["Maboneng", "Newtown"],
+  moveIn: "ASAP",
+  status: "MATCHED",
+  body: "Matched with Loft at Maboneng — keeping brief open as backup until lease is signed.",
+  posted: "Yesterday",
+  proposals: 6,
+};
 
 export default function ComponentGallery() {
   const [tab, setTab] = useState("all");
@@ -357,6 +386,29 @@ export default function ComponentGallery() {
                 <Alert tone="warn" title="Document quality">Your selfie is too dark — please retake in better lighting.</Alert>
                 <Alert tone="danger" onDismiss={() => toast.info("Dismissed")}>Payment didn't go through. No funds were moved.</Alert>
               </div>
+            </div>
+          </Section>
+
+          <Section title="Phase 10 additions">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <BriefCard
+                brief={BRIEF_OPEN}
+                actions={
+                  <>
+                    <Button variant="accent" size="sm" leftIcon="check">Propose a match</Button>
+                    <Button variant="ghost" size="sm">Message tenant</Button>
+                  </>
+                }
+              />
+              <BriefCard
+                brief={BRIEF_MATCHED}
+                actions={<Button variant="ghost" size="sm" rightIcon="chevR">View brief</Button>}
+              />
+            </div>
+            <div style={{ fontSize: 12, color: "var(--slate)" }}>
+              <strong>BriefCard</strong> · Tier C · used by <code className="mono">/job-board</code> and{" "}
+              <code className="mono">/agent-requests</code>. Composes Card + Avatar + Badge + Eyebrow + Icon.
+              Status taxonomy: OPEN / MATCHED / FILLED / EXPIRED / CANCELLED.
             </div>
           </Section>
 
