@@ -6,6 +6,8 @@ import Chip from "@/components/Chip";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import EmptyState from "@/components/EmptyState";
+import LoadingState from "@/components/LoadingState";
+import ErrorState from "@/components/ErrorState";
 import FilterBar, { FilterDivider, LocationFilter } from "@/components/FilterBar";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import MapPanel from "./MapPanel";
@@ -85,6 +87,13 @@ export default function Browse() {
   const resetAll = () => {
     setParams(new URLSearchParams(), { replace: true });
     setTypeSet(new Set());
+  };
+
+  const dataState = params.get("state") as "loading" | "error" | null;
+  const clearDataState = () => {
+    const next = new URLSearchParams(params);
+    next.delete("state");
+    setParams(next, { replace: true });
   };
 
   const visibleListings = useMemo(() => {
@@ -231,7 +240,15 @@ export default function Browse() {
               padding: "24px 32px",
             }}
           >
-            {visibleListings.length === 0 ? (
+            {dataState === "loading" ? (
+              <LoadingState rows={6} />
+            ) : dataState === "error" ? (
+              <ErrorState
+                title="Couldn't load listings"
+                description="The browse feed didn't respond. Retry, or open the saved searches to load cached results."
+                onRetry={clearDataState}
+              />
+            ) : visibleListings.length === 0 ? (
               <EmptyState
                 icon="search"
                 size="lg"

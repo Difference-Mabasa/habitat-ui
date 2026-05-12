@@ -344,12 +344,13 @@ A real reflow pass on the eight most-visited screens — Landing, Browse, Commun
 - [ ] Landing, Browse, Communities, Property detail, Unit, Profile, Public profile, Inbox reflow to single-column under `md`.
 - [ ] Tab + drawer surfaces collapse correctly on `sm`.
 
-### 11c — Loading + error + empty states (queued)
+### 11c — Loading + error + empty states ✅
 
 The codebase renders mock data instantly; real flows need this once API wiring lands. Starter set: Feed, Browse, Notifications, Statements.
 
-- [ ] `<LoadingState />` (skeleton card stack) + `<ErrorState />` (icon + retry) primitives.
-- [ ] Apply to the four data-heaviest screens behind a mock `isLoading` toggle.
+- [x] `<LoadingState />` (skeleton card stack — `card` or `list` variant, optional avatar lead) + `<ErrorState />` (danger-tinted icon + title + body + Retry CTA) primitives.
+- [x] Applied to the four data-heaviest screens behind a `?state=loading|error` URL param. Cleared via the Retry button or by removing the param.
+- [x] Dev hub gains a "Preview data states" card with 8 deep links so each state can be inspected at a glance.
 
 ### 11e — Lease offboarding + cosigner + reviews (queued)
 
@@ -371,7 +372,7 @@ End-of-lease workflow we don't model yet. Important for SA market.
 - [x] Auth gate live; no workspace reachable without a signed-in role.
 - [x] Bell drawer shows social events (`POST_REPLY`, `NEW_FOLLOWER`, …) alongside property events.
 - [ ] Top 8 screens reflow cleanly at 375px width.
-- [ ] Data-heaviest screens never appear broken during load.
+- [x] Data-heaviest screens have a loading + error fallback (preview via `?state=`).
 
 ---
 

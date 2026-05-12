@@ -1,8 +1,11 @@
+import { useSearchParams } from "react-router-dom";
 import LandlordShell from "@/components/LandlordShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import KpiTile from "@/components/KpiTile";
 import PageHeader from "@/components/PageHeader";
+import LoadingState from "@/components/LoadingState";
+import ErrorState from "@/components/ErrorState";
 import MonthlyCollectionChart, { type MonthBar } from "./MonthlyCollectionChart";
 import StatementsTable, { type StatementRow } from "./StatementsTable";
 
@@ -31,6 +34,14 @@ const STATEMENT_ROWS: StatementRow[] = [
 ];
 
 export default function Statements() {
+  const [params, setParams] = useSearchParams();
+  const dataState = params.get("state") as "loading" | "error" | null;
+  const clearDataState = () => {
+    const next = new URLSearchParams(params);
+    next.delete("state");
+    setParams(next, { replace: true });
+  };
+
   return (
     <LandlordShell activeId="payments">
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px 64px" }}>
@@ -91,7 +102,17 @@ export default function Statements() {
               </span>
             </div>
           </div>
-          <MonthlyCollectionChart months={MONTH_BARS} max={25} />
+          {dataState === "loading" ? (
+            <LoadingState rows={4} variant="list" style={{ marginTop: 16 }} />
+          ) : dataState === "error" ? (
+            <ErrorState
+              title="Couldn't load the chart"
+              description="The collection history didn't come back. Retry or open a specific month from the table below."
+              onRetry={clearDataState}
+            />
+          ) : (
+            <MonthlyCollectionChart months={MONTH_BARS} max={25} />
+          )}
         </Card>
 
         <Card padding={0} style={{ overflow: "hidden" }}>
@@ -106,7 +127,17 @@ export default function Statements() {
             <div style={{ fontSize: 14, fontWeight: 600 }}>Monthly statements</div>
             <Button variant="ghost" size="sm" leftIcon="filter">All properties</Button>
           </div>
-          <StatementsTable rows={STATEMENT_ROWS} />
+          {dataState === "loading" ? (
+            <LoadingState rows={5} variant="list" />
+          ) : dataState === "error" ? (
+            <ErrorState
+              title="Couldn't load statements"
+              description="The statements service didn't respond. Try again — your downloads are still available."
+              onRetry={clearDataState}
+            />
+          ) : (
+            <StatementsTable rows={STATEMENT_ROWS} />
+          )}
         </Card>
       </div>
     </LandlordShell>

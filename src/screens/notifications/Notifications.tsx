@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import LandlordShell from "@/components/LandlordShell";
 import AgentShell from "@/components/AgentShell";
 import { useWorkspace } from "@/lib/useWorkspace";
@@ -12,6 +12,8 @@ import PageHeader from "@/components/PageHeader";
 import Alert from "@/components/Alert";
 import Badge from "@/components/Badge";
 import NotificationRow, { type NotificationTone } from "@/components/NotificationRow";
+import LoadingState from "@/components/LoadingState";
+import ErrorState from "@/components/ErrorState";
 import type { IconName } from "@/components/Icon";
 
 type NotificationCategory = "money" | "applications" | "lease" | "mandate" | "viewings" | "maintenance" | "system";
@@ -110,6 +112,13 @@ export default function Notifications() {
   const [filter, setFilter] = useState<NotificationCategory | "all">("all");
   const [bulkRead, setBulkRead] = useState(false);
   const [showBellShake, setShowBellShake] = useState(true);
+  const [params, setParams] = useSearchParams();
+  const dataState = params.get("state") as "loading" | "error" | null;
+  const clearDataState = () => {
+    const next = new URLSearchParams(params);
+    next.delete("state");
+    setParams(next, { replace: true });
+  };
 
   const visible = useMemo(
     () => (filter === "all" ? ITEMS : ITEMS.filter((n) => n.category === filter)),
@@ -182,7 +191,19 @@ export default function Notifications() {
           />
         </div>
 
-        {grouped.map((g) => (
+        {dataState === "loading" ? (
+          <Card padding={0} style={{ overflow: "hidden" }}>
+            <LoadingState rows={5} variant="list" withAvatar />
+          </Card>
+        ) : dataState === "error" ? (
+          <ErrorState
+            title="Couldn't load notifications"
+            description="We couldn't reach the notifications service. Retry, or check the bell drawer for cached items."
+            onRetry={clearDataState}
+          />
+        ) : null}
+
+        {dataState ? null : grouped.map((g) => (
           <section key={g.day} style={{ marginBottom: 32 }}>
             <Eyebrow style={{ marginBottom: 12 }}>{g.day} · {g.items.length}</Eyebrow>
             <Card padding={0} style={{ overflow: "hidden" }}>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Avatar from "@/components/Avatar";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -7,6 +7,8 @@ import Eyebrow from "@/components/Eyebrow";
 import Tabs from "@/components/Tabs";
 import Icon from "@/components/Icon";
 import FollowButton from "@/components/FollowButton";
+import LoadingState from "@/components/LoadingState";
+import ErrorState from "@/components/ErrorState";
 import PostCard from "./PostCard";
 import ComposePostDialog from "./ComposePostDialog";
 import { POSTS, USERS, userById, type FeedPost } from "./feedData";
@@ -16,8 +18,15 @@ type FeedSubTab = "for_you" | "following" | "local";
 const DEFAULT_USER_AREA = "Brixton";
 
 export default function FeedPane() {
+  const [params, setParams] = useSearchParams();
   const [sub, setSub] = useState<FeedSubTab>("for_you");
   const [composeOpen, setComposeOpen] = useState(false);
+  const dataState = params.get("state") as "loading" | "error" | null;
+  const clearState = () => {
+    const next = new URLSearchParams(params);
+    next.delete("state");
+    setParams(next, { replace: true });
+  };
 
   const visible = useMemo<FeedPost[]>(() => {
     if (sub === "following") return POSTS.filter((p) => p.authorFollowed);
@@ -72,7 +81,15 @@ export default function FeedPane() {
             />
           </div>
 
-          {visible.length === 0 ? (
+          {dataState === "loading" ? (
+            <LoadingState rows={4} withAvatar />
+          ) : dataState === "error" ? (
+            <ErrorState
+              title="Couldn't load your feed"
+              description="We couldn't reach Habitat just now. Check your connection and retry — posts are cached and will catch up automatically."
+              onRetry={clearState}
+            />
+          ) : visible.length === 0 ? (
             <Card padding={32} style={{ textAlign: "center" }}>
               <Icon name="bell" size={32} style={{ color: "var(--slate)", marginBottom: 12, opacity: 0.5 }} />
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>

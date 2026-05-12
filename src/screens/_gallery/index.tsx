@@ -36,6 +36,17 @@ const DEV_SURFACES: ShortcutTile[] = [
   { icon: "bolt",    label: "⌘K",         to: "/cmdk",           desc: "Command palette" },
 ];
 
+const DATA_STATE_PREVIEWS: { label: string; href: string; desc: string }[] = [
+  { label: "Feed · loading",          href: "/communities?state=loading",   desc: "Skeleton card stack" },
+  { label: "Feed · error",            href: "/communities?state=error",     desc: "Retry CTA" },
+  { label: "Browse · loading",        href: "/browse?state=loading",        desc: "6-row skeleton" },
+  { label: "Browse · error",          href: "/browse?state=error",          desc: "Retry CTA" },
+  { label: "Notifications · loading", href: "/notifications?state=loading", desc: "List skeleton" },
+  { label: "Notifications · error",   href: "/notifications?state=error",   desc: "Retry CTA" },
+  { label: "Statements · loading",    href: "/statements?state=loading",    desc: "Chart + table" },
+  { label: "Statements · error",      href: "/statements?state=error",      desc: "Retry CTA" },
+];
+
 // Recently added screens — sorted by the leading "NN — " number in their label, desc.
 const RECENT = [...ROUTES]
   .filter((r) => /^\d+/.test(r.label))
@@ -224,6 +235,24 @@ export default function DevHome() {
                 </button>
               );
             })}
+          </div>
+        </Card>
+
+        <Card padding={20}>
+          <Eyebrow style={{ marginBottom: 4 }}>Preview data states</Eyebrow>
+          <div style={{ fontSize: 13, color: "var(--slate)", marginBottom: 12 }}>
+            Append <span className="mono">?state=loading</span> or <span className="mono">?state=error</span>{" "}
+            to any of the data-heavy screens to see the loading/error fallback in place.
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+            {DATA_STATE_PREVIEWS.map((p) => (
+              <Link key={p.label} to={p.href} style={{ textDecoration: "none" }}>
+                <Card padding={12} interactive style={{ height: "100%" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600 }}>{p.label}</div>
+                  <div style={{ fontSize: 11, color: "var(--slate)", marginTop: 2 }}>{p.desc}</div>
+                </Card>
+              </Link>
+            ))}
           </div>
         </Card>
 
