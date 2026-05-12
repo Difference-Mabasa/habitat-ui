@@ -25,6 +25,7 @@ export interface PropertyTableRowData {
 export interface PropertyTableProps {
   rows: PropertyTableRowData[];
   onOpen?: (id: string) => void;
+  onEdit?: (id: string) => void;
 }
 
 const HEADERS = ["Property", "State", "Source", "Mandate", "Occupancy", "Monthly", "Apps", ""];
@@ -35,7 +36,7 @@ const STATE_TONE: Record<PropertyListingState, BadgeTone> = {
   UNLISTED: "neutral",
 };
 
-export default function PropertyTable({ rows, onOpen }: PropertyTableProps) {
+export default function PropertyTable({ rows, onOpen, onEdit }: PropertyTableProps) {
   return (
     <table style={{ width: "100%", borderCollapse: "collapse" }}>
       <thead>
@@ -125,7 +126,10 @@ export default function PropertyTable({ rows, onOpen }: PropertyTableProps) {
                   <span style={{ fontSize: 12, color: "var(--slate)" }}>—</span>
                 )}
               </td>
-              <td style={{ padding: 16, textAlign: "right" }}>
+              <td style={{ padding: 16, textAlign: "right", whiteSpace: "nowrap" }}>
+                <Button variant="ghost" size="sm" leftIcon="edit" onClick={() => onEdit?.(row.id)}>
+                  Edit
+                </Button>
                 <Button variant="ghost" size="sm" rightIcon="chevR" onClick={() => onOpen?.(row.id)}>
                   Open
                 </Button>

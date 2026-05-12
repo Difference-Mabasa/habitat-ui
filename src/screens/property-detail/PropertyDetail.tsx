@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Photo from "@/components/Photo";
 import Icon, { type IconName } from "@/components/Icon";
@@ -10,14 +9,15 @@ import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PriceDisplay from "@/components/PriceDisplay";
-import KeyValueRow from "@/components/KeyValueRow";
 import RatingDisplay from "@/components/RatingDisplay";
 import AgentCard from "@/components/AgentCard";
+import NearbyPlaces from "./NearbyPlaces";
 
 type UnitStatus = "AVAILABLE" | "OCCUPIED" | "UNDER_MAINTENANCE" | "UNLISTED";
 
 interface Unit {
-  id: number;
+  /** Slug used in /unit?id=… */
+  id: string;
   name: string;
   price: number;
   beds: number;
@@ -28,11 +28,11 @@ interface Unit {
 }
 
 const UNITS: Unit[] = [
-  { id: 0, name: "Backroom A", price: 4200, beds: 1, baths: 1, sqm: 22, unitStatus: "OCCUPIED", available: null },
-  { id: 1, name: "Backroom B", price: 4400, beds: 1, baths: 1, sqm: 24, unitStatus: "AVAILABLE", available: "Available now" },
-  { id: 2, name: "Garden Cottage", price: 6800, beds: 2, baths: 1, sqm: 48, unitStatus: "AVAILABLE", available: "Available 1 May" },
-  { id: 3, name: "Backroom C", price: 4400, beds: 1, baths: 1, sqm: 22, unitStatus: "UNDER_MAINTENANCE", available: "Available from 1 Jul (geyser replacement)" },
-  { id: 4, name: "Studio Loft", price: 6200, beds: 1, baths: 1, sqm: 32, unitStatus: "UNLISTED", available: null },
+  { id: "u1", name: "Backroom A", price: 4200, beds: 1, baths: 1, sqm: 22, unitStatus: "OCCUPIED", available: null },
+  { id: "u2", name: "Backroom B", price: 4400, beds: 1, baths: 1, sqm: 24, unitStatus: "AVAILABLE", available: "Available now" },
+  { id: "u3", name: "Garden Cottage", price: 6800, beds: 2, baths: 1, sqm: 48, unitStatus: "AVAILABLE", available: "Available 1 May" },
+  { id: "u4", name: "Backroom C", price: 4400, beds: 1, baths: 1, sqm: 22, unitStatus: "UNDER_MAINTENANCE", available: "Available from 1 Jul (geyser replacement)" },
+  { id: "u5", name: "Studio Loft", price: 6200, beds: 1, baths: 1, sqm: 32, unitStatus: "UNLISTED", available: null },
 ];
 
 const UNIT_BADGE: Record<UnitStatus, { tone: "success" | "neutral" | "warn"; label: string }> = {
@@ -58,17 +58,15 @@ const QUICK_STATS: { i: IconName; l: string; v: string }[] = [
   { i: "shield", l: "Verified by", v: "Habitat · Mar 2026" },
 ];
 
-const NEIGHBOURHOOD_STATS = [
-  { l: "Walk to 7th Ave cafés", v: "3 min" },
-  { l: "Drive to Wits", v: "8 min" },
-  { l: "Helen Joseph Hospital", v: "12 min" },
-];
-
 type ListingState = "DRAFT" | "LISTED" | "UNLISTED";
 
 export default function PropertyDetail() {
-  const [unitId, setUnitId] = useState(1);
-  const activeUnit = UNITS.find((u) => u.id === unitId) ?? UNITS[1];
+  const [params] = useSearchParams();
+  const ctx = params.get("ctx");
+  const propertyId = params.get("id") ?? "p1";
+  const canEdit = ctx === "landlord" || ctx === "agent";
+  const editHref = `/wizard?edit=${propertyId}${ctx === "agent" ? "&ctx=agent" : ""}`;
+  const availableUnits = UNITS.filter((u) => u.unitStatus === "AVAILABLE");
   const listingState: ListingState = "LISTED";
   const listingSource: "LISTED_BY_OWNER" | "BY_AGENT" = "BY_AGENT";
   const listingAgent = "Naledi M. · Vilakazi Property Co.";
@@ -166,6 +164,13 @@ export default function PropertyDetail() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
+              {canEdit ? (
+                <Link to={editHref} style={{ textDecoration: "none" }}>
+                  <Button variant="accent" size="sm" leftIcon="edit">
+                    Edit listing
+                  </Button>
+                </Link>
+              ) : null}
               <Button variant="secondary" size="sm" leftIcon="heart">
                 Save
               </Button>
@@ -222,16 +227,11 @@ export default function PropertyDetail() {
 
           <DetailSection
             title="Units"
-            subtitle={`${UNITS.filter((u) => u.unitStatus === "AVAILABLE").length} of ${UNITS.length} available · status per unit`}
+            subtitle={`${availableUnits.length} of ${UNITS.length} available · click a unit for photos &amp; apply`}
           >
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {UNITS.map((u) => (
-                <UnitRow
-                  key={u.id}
-                  unit={u}
-                  active={unitId === u.id}
-                  onClick={() => u.unitStatus === "AVAILABLE" && setUnitId(u.id)}
-                />
+                <UnitRow key={u.id} unit={u} />
               ))}
             </div>
           </DetailSection>
@@ -250,100 +250,57 @@ export default function PropertyDetail() {
             </div>
           </DetailSection>
 
-          <DetailSection title="Neighbourhood">
-            <div
-              style={{
-                height: 220,
-                borderRadius: 12,
-                overflow: "hidden",
-                marginBottom: 16,
-                position: "relative",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: `
-                    repeating-linear-gradient(0deg, transparent 0 56px, rgba(11,13,18,0.04) 56px 57px),
-                    repeating-linear-gradient(90deg, transparent 0 56px, rgba(11,13,18,0.04) 56px 57px),
-                    var(--surface-2)
-                  `,
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "50%",
-                  top: "50%",
-                  transform: "translate(-50%, -100%)",
-                  background: "var(--ink)",
-                  color: "var(--paper)",
-                  padding: "6px 12px",
-                  borderRadius: 999,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  boxShadow: "var(--shadow-md)",
-                }}
-              >
-                R 4.4k
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-              {NEIGHBOURHOOD_STATS.map((x) => (
-                <div key={x.l} style={{ padding: 14, border: "1px solid var(--hairline)", borderRadius: 8 }}>
-                  <div style={{ fontSize: 12, color: "var(--slate)" }}>{x.l}</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>{x.v}</div>
-                </div>
-              ))}
-            </div>
+          <DetailSection title="Neighbourhood" subtitle="Nearby places · 12">
+            <NearbyPlaces />
           </DetailSection>
         </main>
 
-        {/* Sticky apply panel */}
+        {/* Sticky property-info panel */}
         <aside>
-          <Card padding={24} style={{ position: "sticky", top: 24 }}>
-            <Eyebrow style={{ marginBottom: 8 }}>{activeUnit.name}</Eyebrow>
-            <PriceDisplay amount={activeUnit.price} period="/ month" size="xl" />
-            <div style={{ fontSize: 13, color: "var(--slate)", marginTop: 4, marginBottom: 20 }}>
-              {activeUnit.available}
+          <Card padding={24} style={{ position: "sticky", top: 88 }}>
+            <Eyebrow style={{ marginBottom: 8 }}>About this property</Eyebrow>
+            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
+              Sunlit Property on Caroline
+            </div>
+            <div style={{ fontSize: 13, color: "var(--slate)", marginBottom: 16 }}>
+              {UNITS.length} units · {availableUnits.length} available
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: 16,
-                padding: "12px 0",
-                borderTop: "1px solid var(--hairline)",
-                borderBottom: "1px solid var(--hairline)",
-                marginBottom: 16,
-              }}
-            >
-              <Tag icon="bed" label={`${activeUnit.beds} bed`} />
-              <Tag icon="bath" label={`${activeUnit.baths} bath`} />
-              <Tag icon="sqm" label={`${activeUnit.sqm} m²`} />
+            <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12 }}>
+              {availableUnits.length > 0 ? (
+                <>
+                  <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 10 }}>
+                    Pick a unit to see its photos and apply
+                  </div>
+                  {availableUnits.map((u) => (
+                    <Link
+                      key={u.id}
+                      to={`/unit?id=${u.id}`}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "10px 0",
+                        borderTop: "1px solid var(--hairline)",
+                        textDecoration: "none",
+                        color: "var(--ink)",
+                        fontSize: 13,
+                      }}
+                    >
+                      <span style={{ fontWeight: 500 }}>{u.name}</span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        <PriceDisplay amount={u.price} period="/mo" size="sm" />
+                        <Icon name="chevR" size={14} style={{ color: "var(--slate)" }} />
+                      </span>
+                    </Link>
+                  ))}
+                </>
+              ) : (
+                <div style={{ fontSize: 13, color: "var(--slate)" }}>
+                  All units are currently let. Set a saved search to be notified when one opens.
+                </div>
+              )}
             </div>
-
-            <p style={{ fontSize: 12, color: "var(--slate)", marginBottom: 16, lineHeight: 1.5 }}>
-              You can apply in 4 minutes. We'll verify your FICA and affordability before sharing with the
-              landlord.
-            </p>
-
-            <Link to="/apply" style={{ textDecoration: "none" }}>
-              <Button variant="accent" size="lg" style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
-                Apply for this unit
-              </Button>
-            </Link>
-            <Link to="/viewings" style={{ textDecoration: "none" }}>
-              <Button
-                variant="secondary"
-                size="lg"
-                leftIcon="calendar"
-                style={{ width: "100%", justifyContent: "center" }}
-              >
-                Book a viewing
-              </Button>
-            </Link>
 
             <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 20, paddingTop: 20 }}>
               <AgentCard
@@ -391,39 +348,25 @@ function DetailSection({
   );
 }
 
-function Tag({ icon, label }: { icon: IconName; label: string }) {
-  return (
-    <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--slate)" }}>
-      <Icon name={icon} size={14} /> {label}
-    </span>
-  );
-}
-
-function UnitRow({
-  unit,
-  active,
-  onClick,
-}: {
-  unit: Unit;
-  active: boolean;
-  onClick: () => void;
-}) {
+function UnitRow({ unit }: { unit: Unit }) {
   const closed = unit.unitStatus !== "AVAILABLE";
   const badge = UNIT_BADGE[unit.unitStatus];
   return (
-    <div
-      onClick={onClick}
+    <Link
+      to={`/unit?id=${unit.id}`}
       style={{
+        textDecoration: "none",
+        color: "inherit",
         display: "grid",
-        gridTemplateColumns: "100px 1fr auto auto",
+        gridTemplateColumns: "100px 1fr auto auto auto",
         gap: 16,
         alignItems: "center",
         padding: 12,
-        border: `1px solid ${active ? "var(--ink)" : "var(--hairline)"}`,
+        border: "1px solid var(--hairline)",
         borderRadius: 12,
-        background: active ? "var(--surface-2)" : "var(--surface)",
-        opacity: closed ? 0.55 : 1,
-        cursor: closed ? "default" : "pointer",
+        background: "var(--surface)",
+        opacity: closed ? 0.7 : 1,
+        cursor: "pointer",
         transition: "border-color 150ms, background 150ms",
       }}
     >
@@ -436,18 +379,14 @@ function UnitRow({
           <span><Icon name="sqm" size={12} /> {unit.sqm} m²</span>
         </div>
       </div>
-      <KeyValueRow
-        label=""
-        value={
-          <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-            <PriceDisplay amount={unit.price} period="" size="md" />
-            <span style={{ fontSize: 11, color: "var(--slate)", fontWeight: 400 }}>
-              {unit.available ?? "Currently occupied"}
-            </span>
-          </span>
-        }
-      />
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+        <PriceDisplay amount={unit.price} period="" size="md" />
+        <span style={{ fontSize: 11, color: "var(--slate)" }}>
+          {unit.available ?? "Currently occupied"}
+        </span>
+      </span>
       <Badge tone={badge.tone}>{badge.label}</Badge>
-    </div>
+      <Icon name="chevR" size={16} style={{ color: "var(--slate)" }} />
+    </Link>
   );
 }
