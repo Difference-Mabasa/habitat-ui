@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Chip from "@/components/Chip";
 import Badge from "@/components/Badge";
+import Button from "@/components/Button";
+import EmptyState from "@/components/EmptyState";
 import FilterBar, { FilterDivider, LocationFilter } from "@/components/FilterBar";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import MapPanel from "./MapPanel";
@@ -36,10 +39,72 @@ const VIEW_TOGGLES: { id: ViewMode; icon: "grid" | "list" | "map" }[] = [
 ];
 
 export default function Browse() {
+  const [params, setParams] = useSearchParams();
   const [view, setView] = useState<ViewMode>("split");
   const [active, setActive] = useState<string | null>("l2");
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set(["l0", "l4"]));
   const [typeSet, setTypeSet] = useState<Set<string>>(new Set(["Backroom", "Cottage"]));
+
+  const areaSet = useMemo(() => {
+    const raw = params.get("location") ?? params.get("areas");
+    if (!raw) return new Set<string>();
+    return new Set(
+      raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    );
+  }, [params]);
+
+  const maxPrice = useMemo(() => {
+    const raw = params.get("maxPrice");
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [params]);
+
+  const heroType = params.get("type");
+
+  const removeArea = (name: string) => {
+    const next = new Set(areaSet);
+    next.delete(name);
+    const nextParams = new URLSearchParams(params);
+    nextParams.delete("areas");
+    if (next.size === 0) nextParams.delete("location");
+    else nextParams.set("location", Array.from(next).join(","));
+    setParams(nextParams, { replace: true });
+  };
+
+  const clearAreas = () => {
+    const nextParams = new URLSearchParams(params);
+    nextParams.delete("areas");
+    nextParams.delete("location");
+    setParams(nextParams, { replace: true });
+  };
+
+  const resetAll = () => {
+    setParams(new URLSearchParams(), { replace: true });
+    setTypeSet(new Set());
+  };
+
+  const visibleListings = useMemo(() => {
+    return LISTINGS.filter((l) => {
+      if (areaSet.size > 0) {
+        const matchesArea = Array.from(areaSet).some((area) =>
+          l.area.toLowerCase().startsWith(area.toLowerCase()),
+        );
+        if (!matchesArea) return false;
+      }
+      if (heroType && l.type !== heroType) return false;
+      if (maxPrice !== null && l.price > maxPrice) return false;
+      return true;
+    });
+  }, [areaSet, heroType, maxPrice]);
+
+  const visiblePins = useMemo(
+    () => PIN_POSITIONS.filter((p) => visibleListings.some((l) => l.id === p.id)),
+    [visibleListings],
+  );
 
   const toggleType = (t: string) => {
     setTypeSet((prev) => {
@@ -64,9 +129,44 @@ export default function Browse() {
       <Nav role="tenant" />
 
       <FilterBar
-        left={<LocationFilter city="Johannesburg" extraAreas={2} />}
+        left={<LocationFilter city="Johannesburg" extraAreas={areaSet.size} />}
         filters={
           <>
+            {areaSet.size > 0 ? (
+              <>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {Array.from(areaSet).map((a) => (
+                    <Chip
+                      key={a}
+                      active
+                      leftIcon="pin"
+                      onClick={() => removeArea(a)}
+                      aria-label={`Remove ${a}`}
+                    >
+                      {a}
+                      <Icon name="x" size={11} style={{ marginLeft: 4 }} />
+                    </Chip>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={clearAreas}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: "0 4px",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      fontSize: 12,
+                      color: "var(--slate)",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Clear areas
+                  </button>
+                </div>
+                <FilterDivider />
+              </>
+            ) : null}
             <div style={{ display: "flex", gap: 6 }}>
               {TYPES.map((t) => (
                 <Chip key={t} active={typeSet.has(t)} onClick={() => toggleType(t)}>
@@ -90,7 +190,7 @@ export default function Browse() {
         right={
           <>
             <span style={{ fontSize: 13, color: "var(--slate)" }} className="tabular">
-              <span style={{ fontWeight: 600, color: "var(--ink)" }}>248</span> homes
+              <span style={{ fontWeight: 600, color: "var(--ink)" }}>{visibleListings.length}</span> homes
             </span>
             <div
               style={{
@@ -131,33 +231,60 @@ export default function Browse() {
               padding: "24px 32px",
             }}
           >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: view === "list" ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
-                gap: 16,
-              }}
-            >
-              {LISTINGS.map((l) => (
-                <PropertyCard
-                  key={l.id}
-                  data={l}
-                  variant="grid"
-                  active={active === l.id}
-                  saved={savedSet.has(l.id)}
-                  onHover={setActive}
-                  onToggleSave={toggleSave}
-                />
-              ))}
-            </div>
+            {visibleListings.length === 0 ? (
+              <EmptyState
+                icon="search"
+                size="lg"
+                title="No spots match these filters"
+                description={
+                  areaSet.size > 0
+                    ? `We couldn't find listings in ${Array.from(areaSet).join(", ")}${
+                        heroType ? ` for ${heroType.toLowerCase()}s` : ""
+                      }${maxPrice ? ` under R ${maxPrice.toLocaleString("en-ZA")}` : ""}. Widen your filters or clear them to see all listings.`
+                    : "Widen your filters or clear them to see all listings."
+                }
+                actions={
+                  <>
+                    {areaSet.size > 0 ? (
+                      <Button variant="ghost" onClick={clearAreas}>
+                        Clear areas
+                      </Button>
+                    ) : null}
+                    <Button variant="accent" onClick={resetAll}>
+                      Reset all filters
+                    </Button>
+                  </>
+                }
+              />
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: view === "list" ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
+                  gap: 16,
+                }}
+              >
+                {visibleListings.map((l) => (
+                  <PropertyCard
+                    key={l.id}
+                    data={l}
+                    variant="grid"
+                    active={active === l.id}
+                    saved={savedSet.has(l.id)}
+                    onHover={setActive}
+                    onToggleSave={toggleSave}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         ) : null}
 
         {view !== "list" ? (
           <div style={{ flex: 1, position: "relative", borderLeft: "1px solid var(--hairline)" }}>
             <MapPanel
-              listings={LISTINGS}
-              pinPositions={PIN_POSITIONS}
+              listings={visibleListings}
+              pinPositions={visiblePins}
               active={active}
               setActive={setActive}
             />

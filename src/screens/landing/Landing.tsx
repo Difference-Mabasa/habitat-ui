@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Photo from "@/components/Photo";
@@ -9,6 +10,8 @@ import Eyebrow from "@/components/Eyebrow";
 import StatTile from "@/components/StatTile";
 import AreaCard from "@/components/AreaCard";
 import Footer from "@/components/Footer";
+import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
+import HeroSearch from "./HeroSearch";
 
 const FOOTER_COLUMNS = [
   { title: "Landlords", links: [
@@ -41,8 +44,10 @@ export default function Landing() {
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
       <Nav role="landlord" />
+      <SearchHero />
       <Hero />
       <TrustBar />
+      <TopRatedNearYou />
       <ValueGrid />
       <HowItWorks />
       <FeaturedAreas />
@@ -52,6 +57,253 @@ export default function Landing() {
         copyright="© 2026 Habitat · Your Spot. Your Hood."
       />
     </div>
+  );
+}
+
+interface TopRatedItem {
+  data: PropertyCardData;
+  rating: number;
+  reviews: number;
+  distanceKm: number;
+}
+
+const TOP_RATED: TopRatedItem[] = [
+  {
+    data: {
+      id: "tr1",
+      title: "Sunlit Backroom · Vilakazi",
+      area: "Orlando West, Soweto",
+      price: 3450,
+      beds: 1,
+      baths: 1,
+      sqm: 22,
+      type: "Backroom",
+      photoLabel: "backroom · vilakazi st",
+    },
+    rating: 4.9,
+    reviews: 41,
+    distanceKm: 1.2,
+  },
+  {
+    data: {
+      id: "tr2",
+      title: "Garden Cottage · Westdene",
+      area: "Westdene, JHB",
+      price: 5800,
+      beds: 2,
+      baths: 1,
+      sqm: 48,
+      type: "Cottage",
+      photoLabel: "garden cottage · westdene",
+    },
+    rating: 4.8,
+    reviews: 32,
+    distanceKm: 2.4,
+  },
+  {
+    data: {
+      id: "tr3",
+      title: "Studio Flatlet · Melville",
+      area: "Melville, JHB",
+      price: 5400,
+      beds: 1,
+      baths: 1,
+      sqm: 32,
+      type: "Flatlet",
+      photoLabel: "studio · melville",
+    },
+    rating: 4.8,
+    reviews: 28,
+    distanceKm: 3.1,
+  },
+  {
+    data: {
+      id: "tr4",
+      title: "Bachelor flat · Pimville",
+      area: "Pimville, Soweto",
+      price: 3950,
+      beds: 1,
+      baths: 1,
+      sqm: 28,
+      type: "Bachelor",
+      photoLabel: "bachelor · pimville",
+    },
+    rating: 4.7,
+    reviews: 19,
+    distanceKm: 4.6,
+  },
+];
+
+type LocationState = "ask" | "granted" | "denied";
+
+function TopRatedNearYou() {
+  const [location, setLocation] = useState<LocationState>("ask");
+
+  return (
+    <section style={{ borderBottom: "1px solid var(--hairline)" }}>
+      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "72px 32px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 24,
+            marginBottom: 28,
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <Eyebrow style={{ marginBottom: 12 }}>Based on ratings &amp; your location</Eyebrow>
+            <h2
+              style={{
+                fontSize: 40,
+                letterSpacing: "-0.025em",
+                lineHeight: 1.1,
+                fontWeight: 500,
+                margin: 0,
+              }}
+            >
+              Top rated <span style={{ color: "var(--accent)" }}>near you</span>
+            </h2>
+          </div>
+
+          {location === "granted" ? (
+            <Badge tone="success" leftIcon="pin">Sorted by distance from you</Badge>
+          ) : location === "denied" ? (
+            <Badge tone="neutral">Showing top-rated · location off</Badge>
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon="pin"
+              onClick={() => setLocation("granted")}
+            >
+              Allow location for nearest results
+            </Button>
+          )}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+          {TOP_RATED.map((item) => (
+            <TopRatedCard key={item.data.id} item={item} showDistance={location === "granted"} />
+          ))}
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
+          <Link to="/browse" style={{ textDecoration: "none" }}>
+            <Button variant="ghost" rightIcon="arrR">
+              Browse all listings
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TopRatedCard({
+  item,
+  showDistance,
+}: {
+  item: TopRatedItem;
+  showDistance: boolean;
+}) {
+  return (
+    <div style={{ position: "relative" }}>
+      <PropertyCard
+        data={{
+          ...item.data,
+          tag: `★ ${item.rating.toFixed(1)} · ${item.reviews} reviews`,
+        }}
+        variant="grid"
+      />
+      {showDistance ? (
+        <div
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 12 + 32 + 8, // dodge the save heart on the card
+            background: "var(--ink)",
+            color: "var(--paper)",
+            padding: "4px 8px",
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: 600,
+            fontVariantNumeric: "tabular-nums",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            boxShadow: "var(--shadow-sm)",
+            pointerEvents: "none",
+          }}
+        >
+          <Icon name="pin" size={11} /> {item.distanceKm.toFixed(1)} km
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SearchHero() {
+  return (
+    <section
+      style={{
+        borderBottom: "1px solid var(--hairline)",
+        background:
+          "radial-gradient(circle at 80% 20%, color-mix(in oklch, var(--accent) 18%, transparent), transparent 55%), var(--paper-2)",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 980,
+          margin: "0 auto",
+          padding: "80px 32px 64px",
+          textAlign: "center",
+        }}
+      >
+        <Eyebrow style={{ marginBottom: 14, justifyContent: "center", display: "inline-flex" }}>
+          Find your spot
+        </Eyebrow>
+        <h1
+          style={{
+            fontSize: 64,
+            lineHeight: 1.02,
+            letterSpacing: "-0.035em",
+            fontWeight: 500,
+            margin: "8px 0 16px",
+          }}
+        >
+          Your hood. <span style={{ color: "var(--accent)" }}>Your spot.</span>
+        </h1>
+        <p
+          style={{
+            fontSize: 17,
+            lineHeight: 1.55,
+            color: "var(--slate)",
+            margin: "0 auto 32px",
+            maxWidth: 580,
+          }}
+        >
+          Verified backrooms, cottages and flatlets across South Africa. Pick a suburb, set your budget,
+          go.
+        </p>
+        <HeroSearch />
+        <div style={{ marginTop: 20, fontSize: 12, color: "var(--slate)" }}>
+          Popular:{" "}
+          {["Brixton", "Melville", "Soweto", "Yeoville"].map((s, i, arr) => (
+            <span key={s}>
+              <Link
+                to={`/browse?location=${encodeURIComponent(s)}`}
+                style={{ color: "var(--ink)", fontWeight: 500, textDecoration: "none" }}
+              >
+                {s}
+              </Link>
+              {i < arr.length - 1 ? " · " : null}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
