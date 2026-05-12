@@ -9,6 +9,7 @@ import Badge from "./Badge";
 import NotificationDrawer, { type NotificationItem } from "./NotificationDrawer";
 import type { ChatDirectMessage } from "./ChatDrawer";
 import { useSession } from "@/lib/session";
+import { useViewport } from "@/hooks/useViewport";
 
 export type NavRole = "tenant" | "landlord" | "agent" | "admin";
 
@@ -208,6 +209,8 @@ export default function Nav({
   dms = SAMPLE_DMS,
 }: NavProps) {
   const session = useSession();
+  const { isSm, isMd } = useViewport();
+  const isMobile = isSm || isMd;
   // Effective role + display name: caller's explicit prop wins, else session user, else tenant fallback.
   const sessionRole = (session.user?.activeRole ?? "tenant") as NavRole;
   const effectiveRole: NavRole = role ?? sessionRole;
@@ -265,16 +268,17 @@ export default function Nav({
           height: "100%",
           maxWidth: 1440,
           margin: "0 auto",
-          padding: "0 32px",
+          padding: isSm ? "0 16px" : "0 32px",
           display: "flex",
           alignItems: "center",
-          gap: 24,
+          gap: isSm ? 12 : 24,
         }}
       >
         <Link to="/" aria-label="Habitat home">
           <Logo size={20} />
         </Link>
 
+        {isMobile ? null : (
         <nav style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 16 }}>
           {PRIMARY_LINKS.map((link) => {
             const active = location.pathname === link.to;
@@ -309,9 +313,11 @@ export default function Nav({
             );
           })}
         </nav>
+        )}
 
         <div style={{ flex: 1 }} />
 
+        {isMobile ? null : (
         <Link
           to="/cmdk"
           style={{
@@ -344,6 +350,17 @@ export default function Nav({
             ⌘K
           </span>
         </Link>
+        )}
+
+        {isMobile ? (
+          <Link
+            to="/cmdk"
+            aria-label="Open search"
+            style={{ display: "inline-flex" }}
+          >
+            <IconButton icon="search" label="Search" />
+          </Link>
+        ) : null}
 
         <Link to="/inbox" aria-label="Open inbox" style={{ display: "inline-flex" }}>
           <IconButton

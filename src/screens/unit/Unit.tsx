@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
+import { useViewport } from "@/hooks/useViewport";
 import Photo from "@/components/Photo";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
@@ -148,6 +149,8 @@ const UNIT_BADGE: Record<UnitStatus, { tone: BadgeTone; label: string }> = {
 
 export default function Unit() {
   const [params] = useSearchParams();
+  const { isSm, isMd } = useViewport();
+  const isMobile = isSm || isMd;
   const id = params.get("id") ?? "u2";
   const unit = UNITS[id] ?? UNITS.u2;
   const badge = UNIT_BADGE[unit.status];
@@ -178,7 +181,7 @@ export default function Unit() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "2fr 1fr 1fr",
+            gridTemplateColumns: isSm ? "1fr" : "2fr 1fr 1fr",
             gridTemplateRows: "1fr 1fr",
             gap: 8,
             height: 480,
@@ -213,7 +216,7 @@ export default function Unit() {
           margin: "0 auto",
           padding: "16px 32px 80px",
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) 380px",
+          gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 380px",
           gap: 64,
         }}
       >
@@ -250,7 +253,7 @@ export default function Unit() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
+              gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
               border: "1px solid var(--hairline)",
               borderRadius: 12,
               marginBottom: 32,

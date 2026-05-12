@@ -11,6 +11,7 @@ import StatTile from "@/components/StatTile";
 import AreaCard from "@/components/AreaCard";
 import Footer from "@/components/Footer";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
+import { useViewport } from "@/hooks/useViewport";
 import HeroSearch from "./HeroSearch";
 
 const FOOTER_COLUMNS = [
@@ -138,10 +139,12 @@ type LocationState = "ask" | "granted" | "denied";
 
 function TopRatedNearYou() {
   const [location, setLocation] = useState<LocationState>("ask");
+  const { isSm, isMd } = useViewport();
+  const topRatedCols = isSm ? "1fr" : isMd ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
 
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)" }}>
-      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "72px 32px" }}>
+      <div style={{ maxWidth: 1440, margin: "0 auto", padding: isSm ? "48px 20px" : "72px 32px" }}>
         <div
           style={{
             display: "flex",
@@ -183,7 +186,7 @@ function TopRatedNearYou() {
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: topRatedCols, gap: 16 }}>
           {TOP_RATED.map((item) => (
             <TopRatedCard key={item.data.id} item={item} showDistance={location === "granted"} />
           ))}
@@ -308,16 +311,18 @@ function SearchHero() {
 }
 
 function Hero() {
+  const { isSm, isMd } = useViewport();
+  const isMobile = isSm || isMd;
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)" }}>
       <div
         style={{
           maxWidth: 1440,
           margin: "0 auto",
-          padding: "80px 32px 64px",
+          padding: isSm ? "48px 20px 40px" : "80px 32px 64px",
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1.05fr) minmax(0, 1fr)",
-          gap: 80,
+          gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1.05fr) minmax(0, 1fr)",
+          gap: isSm ? 32 : isMd ? 48 : 80,
           alignItems: "center",
         }}
       >
@@ -480,9 +485,11 @@ const VALUE_ITEMS: { icon: import("@/components/Icon").IconName; t: string; b: s
 ];
 
 function ValueGrid() {
+  const { isSm, isMd } = useViewport();
+  const cols = isSm ? "1fr" : isMd ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)" }}>
-      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "80px 32px" }}>
+      <div style={{ maxWidth: 1440, margin: "0 auto", padding: isSm ? "56px 20px" : "80px 32px" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 48 }}>
           <div>
             <Eyebrow style={{ marginBottom: 12 }}>Why landlords choose Habitat</Eyebrow>
@@ -509,7 +516,7 @@ function ValueGrid() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: cols,
             gap: 1,
             background: "var(--hairline)",
             border: "1px solid var(--hairline)",
@@ -546,6 +553,8 @@ function ValueGrid() {
 }
 
 function HowItWorks() {
+  const { isSm, isMd } = useViewport();
+  const isMobile = isSm || isMd;
   const steps = [
     { n: "01", t: "Add your property", b: "Photos, address, rent. About 6 minutes from start to live." },
     { n: "02", t: "Receive applications", b: "We verify, vet, and score. You see only people who can actually afford it." },
@@ -553,8 +562,8 @@ function HowItWorks() {
   ];
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)", background: "var(--surface-2)" }}>
-      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "80px 32px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 64 }}>
+      <div style={{ maxWidth: 1440, margin: "0 auto", padding: isSm ? "56px 20px" : "80px 32px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 2fr", gap: isSm ? 32 : 64 }}>
           <div>
             <Eyebrow style={{ marginBottom: 12 }}>How it works</Eyebrow>
             <h2 style={{ fontSize: 36, letterSpacing: "-0.025em", lineHeight: 1.15, fontWeight: 500, margin: 0 }}>
@@ -602,6 +611,8 @@ function HowItWorks() {
 }
 
 function FeaturedAreas() {
+  const { isSm, isMd } = useViewport();
+  const cols = isSm ? "1fr" : isMd ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
   const areas = [
     { name: "Brixton", count: 142, priceFrom: "R 4,200" },
     { name: "Melville", count: 88, priceFrom: "R 5,800" },
@@ -610,7 +621,7 @@ function FeaturedAreas() {
   ];
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)" }}>
-      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "80px 32px" }}>
+      <div style={{ maxWidth: 1440, margin: "0 auto", padding: isSm ? "56px 20px" : "80px 32px" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 32 }}>
           <div>
             <Eyebrow style={{ marginBottom: 12 }}>Popular this week</Eyebrow>
@@ -625,7 +636,7 @@ function FeaturedAreas() {
             View all areas <Icon name="arrUR" size={14} />
           </a>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: cols, gap: 16 }}>
           {areas.map((a) => (
             <AreaCard
               key={a.name}

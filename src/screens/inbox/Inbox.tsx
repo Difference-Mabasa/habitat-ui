@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useViewport } from "@/hooks/useViewport";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -130,6 +131,7 @@ type FilterId = "all" | "direct" | "communities" | "unread";
 
 export default function Inbox() {
   const [params, setParams] = useSearchParams();
+  const { isSm } = useViewport();
   const rawFilter = params.get("filter");
   const filter: FilterId =
     rawFilter === "direct" || rawFilter === "communities" || rawFilter === "unread"
@@ -140,6 +142,10 @@ export default function Inbox() {
 
   const [search, setSearch] = useState("");
   const [hovered, setHovered] = useState<string | null>(null);
+
+  // On phone: show either the list OR the thread, never both.
+  const showListOnly = isSm && !activeId;
+  const showThreadOnly = isSm && !!activeId;
 
   const setFilter = (next: FilterId) => {
     const p = new URLSearchParams(params);
@@ -202,11 +208,12 @@ export default function Inbox() {
 
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
         {/* === Left rail: chat list === */}
+        {showThreadOnly ? null : (
         <aside
           style={{
-            width: 360,
+            width: isSm ? "100%" : 360,
             flexShrink: 0,
-            borderRight: "1px solid var(--hairline)",
+            borderRight: isSm ? undefined : "1px solid var(--hairline)",
             background: "var(--surface)",
             display: "flex",
             flexDirection: "column",
@@ -330,8 +337,10 @@ export default function Inbox() {
             </Link>
           </div>
         </aside>
+        )}
 
         {/* === Right pane === */}
+        {showListOnly ? null : (
         <div style={{ flex: 1, display: "flex", minWidth: 0, minHeight: 0 }}>
           {active ? (
             <ThreadPane
@@ -345,6 +354,7 @@ export default function Inbox() {
             <WelcomePane />
           )}
         </div>
+        )}
       </div>
     </div>
   );

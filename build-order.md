@@ -336,13 +336,20 @@ The app has the surface area for every flow; what's missing is the production-gr
 - [x] `PostCard` gains a bookmark icon (Save) — fills when active, toast on toggle.
 - [x] Kebab menu on `PostCard` with **Report post**, **Mute author**, **Block** — all fire toast feedback for now.
 
-### 11b — Mobile responsiveness pass (queued)
+### 11b — Mobile responsiveness pass ✅
 
-A real reflow pass on the eight most-visited screens — Landing, Browse, Communities (Feed), Property detail, Unit, `/profile`, `/u/:userId`, Inbox. Single `useViewport()` hook exposes `sm` / `md` / `lg`. Other screens follow when needed.
+A real reflow pass on the eight most-visited screens. Single `useViewport()` hook exposes `sm` / `md` / `lg`. Other screens follow when needed.
 
-- [ ] `useViewport()` hook.
-- [ ] Landing, Browse, Communities, Property detail, Unit, Profile, Public profile, Inbox reflow to single-column under `md`.
-- [ ] Tab + drawer surfaces collapse correctly on `sm`.
+- [x] `useViewport()` hook (sm < 720, md < 1080, lg ≥ 1080) with rAF-throttled resize listener.
+- [x] **Landing** — Hero, HeroSearch, TopRatedNearYou, ValueGrid, HowItWorks, FeaturedAreas all flip to 1- or 2-col under `md`.
+- [x] **Browse** — three-view toggle forced to list under `sm`; split view narrows on `md`; grid collapses to 1 / 2 / 3 cols by viewport.
+- [x] **Communities (Feed)** — right rail collapses on `sm` + `md`, feed spans full width.
+- [x] **Property detail** — gallery flattens to a single hero shot, body grid stacks, quick-stats 4-col → 2-col, amenities 3-col → 2-col on `sm`.
+- [x] **Unit** — same gallery / body / quick-stats reflow as Property.
+- [x] **Profile** — form 2-col → 1-col on `sm` via a shared `formCols` token.
+- [x] **/u/:userId** — header flips to column-stack on `sm`; listings grid 3-col → 1-col.
+- [x] **Inbox** — list-or-thread (never both) on phone, with the back-arrow in the existing thread header.
+- [x] **Nav** — primary links + search field hide on mobile; a Search IconButton replaces the bar.
 
 ### 11c — Loading + error + empty states ✅
 
@@ -371,7 +378,7 @@ End-of-lease workflow we don't model yet. Important for SA market.
 
 - [x] Auth gate live; no workspace reachable without a signed-in role.
 - [x] Bell drawer shows social events (`POST_REPLY`, `NEW_FOLLOWER`, …) alongside property events.
-- [ ] Top 8 screens reflow cleanly at 375px width.
+- [x] Top 8 screens reflow cleanly at 375px width.
 - [x] Data-heaviest screens have a loading + error fallback (preview via `?state=`).
 
 ---

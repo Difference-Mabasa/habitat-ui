@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
+import { useViewport } from "@/hooks/useViewport";
 import Photo from "@/components/Photo";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
@@ -62,6 +63,8 @@ type ListingState = "DRAFT" | "LISTED" | "UNLISTED";
 
 export default function PropertyDetail() {
   const [params] = useSearchParams();
+  const { isSm, isMd } = useViewport();
+  const isMobile = isSm || isMd;
   const ctx = params.get("ctx");
   const propertyId = params.get("id") ?? "p1";
   const canEdit = ctx === "landlord" || ctx === "agent";
@@ -89,14 +92,14 @@ export default function PropertyDetail() {
       </div>
 
       {/* Gallery */}
-      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "24px 32px" }}>
+      <div style={{ maxWidth: 1440, margin: "0 auto", padding: isSm ? "16px 16px" : "24px 32px" }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "2fr 1fr 1fr",
-            gridTemplateRows: "1fr 1fr",
+            gridTemplateColumns: isSm ? "1fr" : "2fr 1fr 1fr",
+            gridTemplateRows: isSm ? "320px" : "1fr 1fr",
             gap: 8,
-            height: 480,
+            height: isSm ? 320 : 480,
             position: "relative",
             borderRadius: 12,
             overflow: "hidden",
@@ -123,9 +126,9 @@ export default function PropertyDetail() {
         style={{
           maxWidth: 1440,
           margin: "0 auto",
-          padding: "32px 32px 80px",
+          padding: isSm ? "24px 16px 64px" : "32px 32px 80px",
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) 380px",
+          gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 380px",
           gap: 64,
         }}
       >
@@ -184,7 +187,7 @@ export default function PropertyDetail() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
+              gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
               border: "1px solid var(--hairline)",
               borderRadius: 12,
               marginBottom: 32,
@@ -237,7 +240,7 @@ export default function PropertyDetail() {
           </DetailSection>
 
           <DetailSection title="Amenities">
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 14 }}>
               {AMENITIES.map((a) => (
                 <div
                   key={a.t}

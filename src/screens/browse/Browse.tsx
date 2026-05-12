@@ -8,6 +8,7 @@ import Button from "@/components/Button";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
+import { useViewport } from "@/hooks/useViewport";
 import FilterBar, { FilterDivider, LocationFilter } from "@/components/FilterBar";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import MapPanel from "./MapPanel";
@@ -42,7 +43,10 @@ const VIEW_TOGGLES: { id: ViewMode; icon: "grid" | "list" | "map" }[] = [
 
 export default function Browse() {
   const [params, setParams] = useSearchParams();
+  const { isSm, isMd } = useViewport();
+  // On phone, force list view; on tablet, force split-with-narrower-map.
   const [view, setView] = useState<ViewMode>("split");
+  const effectiveView: ViewMode = isSm ? "list" : view;
   const [active, setActive] = useState<string | null>("l2");
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set(["l0", "l4"]));
   const [typeSet, setTypeSet] = useState<Set<string>>(new Set(["Backroom", "Cottage"]));
@@ -232,12 +236,12 @@ export default function Browse() {
       />
 
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-        {view !== "map" ? (
+        {effectiveView !== "map" ? (
           <div
             style={{
-              flex: view === "split" ? "0 0 60%" : 1,
+              flex: effectiveView === "split" ? (isMd ? "0 0 55%" : "0 0 60%") : 1,
               overflowY: "auto",
-              padding: "24px 32px",
+              padding: isSm ? "16px 16px" : "24px 32px",
             }}
           >
             {dataState === "loading" ? (
@@ -277,7 +281,13 @@ export default function Browse() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: view === "list" ? "repeat(3, 1fr)" : "repeat(2, 1fr)",
+                  gridTemplateColumns: isSm
+                    ? "1fr"
+                    : isMd
+                      ? "repeat(2, 1fr)"
+                      : effectiveView === "list"
+                        ? "repeat(3, 1fr)"
+                        : "repeat(2, 1fr)",
                   gap: 16,
                 }}
               >
@@ -297,7 +307,7 @@ export default function Browse() {
           </div>
         ) : null}
 
-        {view !== "list" ? (
+        {effectiveView !== "list" ? (
           <div style={{ flex: 1, position: "relative", borderLeft: "1px solid var(--hairline)" }}>
             <MapPanel
               listings={visibleListings}

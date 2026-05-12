@@ -13,6 +13,7 @@ import EmptyState from "@/components/EmptyState";
 import FollowButton from "@/components/FollowButton";
 import PostCard from "@/screens/communities/PostCard";
 import { POSTS, USERS, userById, type FeedUser } from "@/screens/communities/feedData";
+import { useViewport } from "@/hooks/useViewport";
 
 type ProfileTab = "posts" | "listings" | "about";
 
@@ -25,6 +26,7 @@ const ROLE_BADGE: Record<FeedUser["role"], { label: string; tone: "neutral" | "a
 
 export default function UserProfile() {
   const { userId = "" } = useParams();
+  const { isSm } = useViewport();
   const user = userById(userId) ?? USERS[0];
   const [tab, setTab] = useState<ProfileTab>("posts");
 
@@ -50,9 +52,18 @@ export default function UserProfile() {
         }}
       />
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px 64px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: isSm ? "0 16px 48px" : "0 32px 64px" }}>
         {/* Header overlapping cover */}
-        <div style={{ marginTop: -52, marginBottom: 24, display: "flex", alignItems: "flex-end", gap: 20 }}>
+        <div
+          style={{
+            marginTop: isSm ? -40 : -52,
+            marginBottom: 24,
+            display: "flex",
+            alignItems: isSm ? "flex-start" : "flex-end",
+            gap: isSm ? 14 : 20,
+            flexDirection: isSm ? "column" : "row",
+          }}
+        >
           <div
             style={{
               width: 120,
@@ -128,7 +139,7 @@ export default function UserProfile() {
             ))}
 
           {tab === "listings" && showListings ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isSm ? "1fr" : "repeat(3, 1fr)", gap: 16 }}>
               {[1, 2, 3].map((i) => (
                 <Card key={i} padding={0} style={{ overflow: "hidden" }}>
                   <Photo ratio="3/2" label={`${user.area} listing ${i}`} />

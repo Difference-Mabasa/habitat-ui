@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/Icon";
+import { useViewport } from "@/hooks/useViewport";
 
 const SA_AREAS = [
   "Brixton", "Melville", "Westdene", "Yeoville", "Auckland Park",
@@ -11,6 +12,8 @@ const SA_AREAS = [
 
 export default function HeroSearch() {
   const navigate = useNavigate();
+  const { isSm, isMd } = useViewport();
+  const isMobile = isSm || isMd;
   const [location, setLocation] = useState("");
   const [type, setType] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -43,7 +46,11 @@ export default function HeroSearch() {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "minmax(0, 1.6fr) 160px 160px auto",
+        gridTemplateColumns: isSm
+          ? "1fr"
+          : isMd
+            ? "minmax(0, 1fr) minmax(0, 1fr)"
+            : "minmax(0, 1.6fr) 160px 160px auto",
         gap: 8,
         padding: 10,
         background: "var(--surface)",
@@ -170,7 +177,12 @@ export default function HeroSearch() {
         type="button"
         onClick={onSearch}
         className="btn btn--primary"
-        style={{ height: "auto", padding: "0 20px", borderRadius: 10 }}
+        style={{
+          height: isMobile ? 52 : "auto",
+          padding: "0 20px",
+          borderRadius: 10,
+          gridColumn: isSm ? "1" : isMd ? "1 / span 2" : undefined,
+        }}
       >
         <Icon name="search" size={15} />
         <span style={{ marginLeft: 6 }}>Search</span>

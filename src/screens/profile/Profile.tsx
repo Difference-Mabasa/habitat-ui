@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
+import { useViewport } from "@/hooks/useViewport";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Avatar from "@/components/Avatar";
@@ -135,6 +136,8 @@ const CONSENTS: ConsentRow[] = [
 const SOWETO_AREAS = ["Orlando West", "Diepkloof", "Pimville", "Mofolo", "Klipspruit"];
 
 export default function Profile() {
+  const { isSm } = useViewport();
+  const formCols = isSm ? "1fr" : "1fr 1fr";
   const [section, setSection] = useState<SectionId>("profile");
   const [interests, setInterests] = useState<string[]>(["Coffee lover", "Hiking", "Working professional", "Cooking"]);
   const [bio, setBio] = useState(
@@ -194,7 +197,7 @@ export default function Profile() {
               <>
                 <Card padding={24}>
                   <Eyebrow style={{ marginBottom: 14 }}>Basic information</Eyebrow>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
                     <FormField label="First name" required>
                       <Input defaultValue="Sipho" />
                     </FormField>
@@ -251,7 +254,7 @@ export default function Profile() {
 
                 <Card padding={24}>
                   <Eyebrow style={{ marginBottom: 14 }}>Work &amp; education</Eyebrow>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
                     <FormField label="Job title">
                       <Input defaultValue="Senior software engineer" />
                     </FormField>
@@ -288,7 +291,7 @@ export default function Profile() {
                   <p style={{ fontSize: 13, color: "var(--slate)", marginBottom: 16 }}>
                     Helps landlords understand your commute. Used only with your consent.
                   </p>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
                     <FormField label="Street address">
                       <Input defaultValue="42 Marshall St" />
                     </FormField>
@@ -465,7 +468,7 @@ export default function Profile() {
 
                 <Card padding={24}>
                   <Eyebrow style={{ marginBottom: 14 }}>Social &amp; contact</Eyebrow>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
                     <FormField label="WhatsApp business">
                       <Input placeholder="+27 71 000 0000" />
                     </FormField>
@@ -483,7 +486,7 @@ export default function Profile() {
 
                 <Card padding={24}>
                   <Eyebrow style={{ marginBottom: 14 }}>Fee structure</Eyebrow>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 20 }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
                         Tenant fee <span style={{ color: "var(--slate)", fontWeight: 400 }}>· charged when a tenant asks you to find them a place</span>
@@ -594,7 +597,7 @@ export default function Profile() {
 
                 <Card padding={24}>
                   <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 14 }}>Quiet hours</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
                     <FormField label="From">
                       <Input defaultValue="21:00" className="mono" />
                     </FormField>

@@ -9,6 +9,7 @@ import Icon from "@/components/Icon";
 import FollowButton from "@/components/FollowButton";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
+import { useViewport } from "@/hooks/useViewport";
 import PostCard from "./PostCard";
 import ComposePostDialog from "./ComposePostDialog";
 import { POSTS, USERS, userById, type FeedPost } from "./feedData";
@@ -19,6 +20,8 @@ const DEFAULT_USER_AREA = "Brixton";
 
 export default function FeedPane() {
   const [params, setParams] = useSearchParams();
+  const { isSm, isMd } = useViewport();
+  const hideRail = isSm || isMd;
   const [sub, setSub] = useState<FeedSubTab>("for_you");
   const [composeOpen, setComposeOpen] = useState(false);
   const dataState = params.get("state") as "loading" | "error" | null;
@@ -39,7 +42,13 @@ export default function FeedPane() {
 
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 32 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: hideRail ? "1fr" : "minmax(0, 1fr) 320px",
+          gap: isSm ? 16 : 32,
+        }}
+      >
         <main>
           {/* Compose strip */}
           <Card padding={16} style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
@@ -117,7 +126,8 @@ export default function FeedPane() {
           )}
         </main>
 
-        {/* Right rail */}
+        {/* Right rail — desktop only */}
+        {hideRail ? null : (
         <aside style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 88, alignSelf: "start" }}>
           <Card padding={16}>
             <Eyebrow style={{ marginBottom: 12 }}>Suggested for you</Eyebrow>
@@ -185,6 +195,7 @@ export default function FeedPane() {
             </Link>
           </Card>
         </aside>
+        )}
       </div>
 
       <ComposePostDialog
