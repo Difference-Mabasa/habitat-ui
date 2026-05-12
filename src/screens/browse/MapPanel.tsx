@@ -1,108 +1,125 @@
+import { useEffect, useRef } from "react";
+import maplibregl, { Map as MlMap, Marker } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import Photo from "@/components/Photo";
 import Icon from "@/components/Icon";
-import Button from "@/components/Button";
-import IconButton from "@/components/IconButton";
 import PriceDisplay from "@/components/PriceDisplay";
-import MapPin from "@/components/MapPin";
 import type { PropertyCardData } from "@/components/PropertyCard";
+
+export interface PinPosition {
+  id: string;
+  lat: number;
+  lng: number;
+  /** Legacy x/y percent for fallback when lat/lng is unknown — unused once data is migrated. */
+  xPct?: number;
+  yPct?: number;
+}
 
 export interface MapPanelProps {
   listings: PropertyCardData[];
-  pinPositions: { id: string; xPct: number; yPct: number }[];
+  pinPositions: PinPosition[];
   active: string | null;
   setActive: (id: string) => void;
+  /** Initial center if no pins. Defaults to central Joburg. */
+  center?: [number, number];
+  zoom?: number;
 }
 
-export default function MapPanel({ listings, pinPositions, active, setActive }: MapPanelProps) {
+// OpenFreeMap public style — OSM tiles, no API key.
+const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
+
+function formatPrice(n: number): string {
+  if (n >= 1_000_000) return `R ${(n / 1_000_000).toFixed(1)}m`;
+  if (n >= 1_000) return `R ${(n / 1_000).toFixed(1)}k`;
+  return `R ${n}`;
+}
+
+export default function MapPanel({
+  listings,
+  pinPositions,
+  active,
+  setActive,
+  center = [28.01, -26.19],
+  zoom = 12,
+}: MapPanelProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<MlMap | null>(null);
+  const markersRef = useRef<Map<string, Marker>>(new Map());
+
   const activeListing = listings.find((l) => l.id === active);
 
+  // Initialise once.
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+    const map = new maplibregl.Map({
+      container: containerRef.current,
+      style: STYLE_URL,
+      center,
+      zoom,
+      attributionControl: { compact: true },
+    });
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    mapRef.current = map;
+    const markers = markersRef.current;
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      markers.clear();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync markers when pins or active change.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const seen = new Set<string>();
+    for (const pin of pinPositions) {
+      if (typeof pin.lat !== "number" || typeof pin.lng !== "number") continue;
+      seen.add(pin.id);
+      const listing = listings.find((l) => l.id === pin.id);
+      if (!listing) continue;
+
+      let marker = markersRef.current.get(pin.id);
+      const isActive = active === pin.id;
+      if (!marker) {
+        const el = buildPinElement(listing.price, isActive, () => setActive(pin.id));
+        marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
+          .setLngLat([pin.lng, pin.lat])
+          .addTo(map);
+        markersRef.current.set(pin.id, marker);
+      } else {
+        marker.setLngLat([pin.lng, pin.lat]);
+        const el = marker.getElement();
+        updatePinElement(el, listing.price, isActive);
+        el.onclick = (e) => {
+          e.stopPropagation();
+          setActive(pin.id);
+        };
+      }
+    }
+
+    // Drop markers that are no longer in the pin set.
+    for (const [id, marker] of markersRef.current) {
+      if (!seen.has(id)) {
+        marker.remove();
+        markersRef.current.delete(id);
+      }
+    }
+
+    // Recenter on the active pin.
+    if (active) {
+      const activePin = pinPositions.find((p) => p.id === active);
+      if (activePin && typeof activePin.lat === "number" && typeof activePin.lng === "number") {
+        map.easeTo({ center: [activePin.lng, activePin.lat], duration: 350 });
+      }
+    }
+  }, [pinPositions, listings, active, setActive]);
+
   return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: `
-          linear-gradient(180deg, rgba(11,13,18,0.02), rgba(11,13,18,0)),
-          repeating-linear-gradient(0deg, transparent 0 56px, rgba(11,13,18,0.04) 56px 57px),
-          repeating-linear-gradient(90deg, transparent 0 56px, rgba(11,13,18,0.04) 56px 57px),
-          var(--surface-2)
-        `,
-      }}
-    >
-      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} aria-hidden="true">
-        <path
-          d="M 0 200 Q 200 180 400 240 T 800 200"
-          stroke="var(--hairline-strong)"
-          strokeWidth="3"
-          fill="none"
-        />
-        <path
-          d="M 100 0 Q 200 200 350 400 T 500 800"
-          stroke="var(--hairline-strong)"
-          strokeWidth="3"
-          fill="none"
-        />
-        <path
-          d="M 700 100 L 200 700"
-          stroke="var(--hairline-strong)"
-          strokeWidth="2"
-          fill="none"
-          opacity="0.6"
-        />
-      </svg>
-
-      <div style={{ position: "absolute", top: 16, left: 16, display: "flex", gap: 8 }}>
-        <Button variant="secondary" size="sm" leftIcon="search">
-          Search this area
-        </Button>
-        <Button variant="secondary" size="sm" leftIcon="bolt">
-          Commute time
-        </Button>
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          display: "flex",
-          flexDirection: "column",
-          border: "1px solid var(--hairline-strong)",
-          borderRadius: 8,
-          overflow: "hidden",
-          background: "var(--surface)",
-        }}
-      >
-        <IconButton
-          icon="plus"
-          label="Zoom in"
-          size="sm"
-          style={{ borderRadius: 0, borderBottom: "1px solid var(--hairline)" }}
-        />
-        <button
-          type="button"
-          aria-label="Zoom out"
-          className="btn btn--ghost btn--icon btn--sm"
-          style={{ borderRadius: 0 }}
-        >
-          —
-        </button>
-      </div>
-
-      {pinPositions.map((pos) => {
-        const listing = listings.find((l) => l.id === pos.id);
-        if (!listing) return null;
-        const isActive = active === pos.id;
-        return (
-          <MapPin
-            key={pos.id}
-            price={listing.price}
-            active={isActive}
-            onMouseEnter={() => setActive(pos.id)}
-            style={{ position: "absolute", left: `${pos.xPct}%`, top: `${pos.yPct}%` }}
-          />
-        );
-      })}
+    <div style={{ position: "absolute", inset: 0 }}>
+      <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
 
       {activeListing ? (
         <div
@@ -116,6 +133,7 @@ export default function MapPanel({ listings, pinPositions, active, setActive }: 
             background: "var(--surface)",
             overflow: "hidden",
             padding: 0,
+            zIndex: 5,
           }}
         >
           <Photo
@@ -145,4 +163,39 @@ export default function MapPanel({ listings, pinPositions, active, setActive }: 
       ) : null}
     </div>
   );
+}
+
+function buildPinElement(price: number, isActive: boolean, onClick: () => void): HTMLElement {
+  const el = document.createElement("button");
+  el.type = "button";
+  el.dataset.role = "habitat-map-pin";
+  el.style.cursor = "pointer";
+  el.style.transformOrigin = "center bottom";
+  el.style.transition = "transform 150ms, background 150ms";
+  el.style.fontFamily = "inherit";
+  el.style.fontVariantNumeric = "tabular-nums";
+  el.style.fontSize = "13px";
+  el.style.fontWeight = "600";
+  el.style.padding = "6px 12px";
+  el.style.borderRadius = "999px";
+  el.style.boxShadow = "var(--shadow-md)";
+  el.style.whiteSpace = "nowrap";
+  el.style.display = "inline-flex";
+  el.style.alignItems = "center";
+  el.style.gap = "4px";
+  updatePinElement(el, price, isActive);
+  el.onclick = (e) => {
+    e.stopPropagation();
+    onClick();
+  };
+  return el;
+}
+
+function updatePinElement(el: HTMLElement, price: number, isActive: boolean) {
+  el.textContent = formatPrice(price);
+  el.style.background = isActive ? "var(--ink)" : "var(--surface)";
+  el.style.color = isActive ? "var(--paper)" : "var(--ink)";
+  el.style.border = `1px solid ${isActive ? "var(--ink)" : "var(--hairline-strong)"}`;
+  el.style.transform = isActive ? "scale(1.05)" : "scale(1)";
+  el.style.zIndex = isActive ? "5" : "1";
 }

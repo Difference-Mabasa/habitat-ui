@@ -11,6 +11,7 @@ import Photo from "@/components/Photo";
 import Textarea from "@/components/Textarea";
 import EmptyState from "@/components/EmptyState";
 import FollowButton from "@/components/FollowButton";
+import ShareModal from "@/components/ShareModal";
 import { toast } from "@/lib/toast";
 import { POSTS, TAG_TONE, USERS, userById } from "@/screens/communities/feedData";
 
@@ -43,6 +44,7 @@ export default function PostDetail() {
   const { postId = "" } = useParams();
   const post = POSTS.find((p) => p.id === postId);
   const [comment, setComment] = useState("");
+  const [shareOpen, setShareOpen] = useState(false);
 
   if (!post) {
     return (
@@ -169,7 +171,9 @@ export default function PostDetail() {
             <Button variant="ghost" size="sm" leftIcon="chat">Comment</Button>
             <Button variant="ghost" size="sm" leftIcon="refresh">Repost</Button>
             <div style={{ flex: 1 }} />
-            <Button variant="ghost" size="sm" leftIcon="arrUR">Share</Button>
+            <Button variant="ghost" size="sm" leftIcon="arrUR" onClick={() => setShareOpen(true)}>
+              Share
+            </Button>
           </div>
         </Card>
 
@@ -249,6 +253,14 @@ export default function PostDetail() {
           </div>
         )}
       </div>
+
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        url={`${typeof window !== "undefined" ? window.location.origin : "https://habitat.co.za"}/post/${post.id}`}
+        title={`${author.name} on Habitat — ${post.tag}`}
+        body={post.body}
+      />
     </div>
   );
 }

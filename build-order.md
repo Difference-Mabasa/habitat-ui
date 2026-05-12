@@ -368,11 +368,12 @@ End-of-lease workflow + the SA-specific cosigner step now modeled.
 - [x] **Cosigner / guarantor** — optional collapsible card on `/apply` step 2 (Affordability). Fields: full name, relationship, email, mobile. Trust & Safety note explains the separate FICA flow.
 - [x] **Lease-end review** — `/reviews` already shipped a write-a-review form; left intact. Future work: gate it behind a lease-ended state.
 
-### 11f — Discovery polish (queued)
+### 11f — Discovery polish ✅
 
-- [ ] Saved search → email/push alert opt-in on `/saved`.
-- [ ] Replace the CSS-mock map with MapLibre + real geocoded pins.
-- [ ] Post share modal: copy-link, native Web Share API, OG metadata in the HTML head.
+- [x] **Saved search alert opt-in** on `/saved` — each `SavedSearchCard` grew an inline alert Toggle and Email / Push / WhatsApp channel chips. State lives on the screen; toggling fires a toast.
+- [x] **Real map** — `MapPanel` now runs MapLibre GL on OpenFreeMap tiles (no API key). DOM-marker pins render the same price-pill look as before, click to make active, ease-to recenters on selection. Browse pin data switched from `xPct/yPct` to real `lat/lng` for JHB suburb centroids.
+- [x] **Post share modal** — `<ShareModal />` Tier C primitive with copy-link, native Web Share API when available, and three quick targets (WhatsApp / Email / X). Wired to the Share button on `/post/:postId`.
+- [x] **OG metadata** added to `index.html` (title, description, og:* and twitter:* tags) so shared post links unfurl with a proper preview.
 
 ### 11 — Exit criteria
 

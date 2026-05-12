@@ -1,3 +1,4 @@
+import { useState } from "react";
 import TenantShell from "@/components/TenantShell";
 import Photo from "@/components/Photo";
 import Icon from "@/components/Icon";
@@ -7,7 +8,8 @@ import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import PriceDisplay from "@/components/PriceDisplay";
 import Checkbox from "@/components/Checkbox";
-import SavedSearchCard from "@/components/SavedSearchCard";
+import SavedSearchCard, { type AlertChannel } from "@/components/SavedSearchCard";
+import { toast } from "@/lib/toast";
 
 interface SearchRow {
   id: string;
@@ -50,7 +52,31 @@ const NOTE_STYLE: Record<NoteTone, { bg: string; color: string }> = {
   neutral: { bg: "var(--surface-2)", color: "var(--slate)" },
 };
 
+interface SearchAlertState {
+  on: boolean;
+  channels: Set<AlertChannel>;
+}
+
 export default function Saved() {
+  const [alertsState, setAlertsState] = useState<Record<string, SearchAlertState>>(() => ({
+    s1: { on: true,  channels: new Set<AlertChannel>(["email", "push"]) },
+    s2: { on: true,  channels: new Set<AlertChannel>(["email"]) },
+    s3: { on: false, channels: new Set<AlertChannel>(["email"]) },
+  }));
+
+  const setAlerts = (id: string, on: boolean) => {
+    setAlertsState((prev) => ({ ...prev, [id]: { ...prev[id], on } }));
+    toast.success(on ? "Alerts on for this search." : "Alerts paused.");
+  };
+  const toggleChannel = (id: string, ch: AlertChannel) => {
+    setAlertsState((prev) => {
+      const next = new Set(prev[id].channels);
+      if (next.has(ch)) next.delete(ch);
+      else next.add(ch);
+      return { ...prev, [id]: { ...prev[id], channels: next } };
+    });
+  };
+
   return (
     <TenantShell activeId="saved">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
@@ -82,15 +108,22 @@ export default function Saved() {
             </Button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-            {SEARCHES.map((s) => (
-              <SavedSearchCard
-                key={s.id}
-                name={s.name}
-                matchCount={s.matches}
-                newCount={s.newCount}
-                alertFrequency={s.frequency}
-              />
-            ))}
+            {SEARCHES.map((s) => {
+              const state = alertsState[s.id];
+              return (
+                <SavedSearchCard
+                  key={s.id}
+                  name={s.name}
+                  matchCount={s.matches}
+                  newCount={s.newCount}
+                  alertFrequency={s.frequency}
+                  alertsOn={state?.on ?? true}
+                  channels={state?.channels}
+                  onToggleAlerts={(next) => setAlerts(s.id, next)}
+                  onToggleChannel={(ch) => toggleChannel(s.id, ch)}
+                />
+              );
+            })}
           </div>
         </section>
 
