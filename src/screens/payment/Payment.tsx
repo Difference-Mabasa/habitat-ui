@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -93,21 +94,25 @@ export default function Payment() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 24 }}>
-              <Button
-                variant="accent"
-                size="lg"
-                leftIcon="download"
-                style={{ width: "100%", justifyContent: "center" }}
-              >
-                Download receipt PDF
-              </Button>
-              <Button
-                variant="secondary"
-                leftIcon="home"
-                style={{ width: "100%", justifyContent: "center" }}
-              >
-                Back to My Rental
-              </Button>
+              <Link to="/invoice" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="accent"
+                  size="lg"
+                  leftIcon="download"
+                  style={{ width: "100%", justifyContent: "center" }}
+                >
+                  Download receipt PDF
+                </Button>
+              </Link>
+              <Link to="/tenant-portal" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="secondary"
+                  leftIcon="home"
+                  style={{ width: "100%", justifyContent: "center" }}
+                >
+                  Back to My Rental
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -126,9 +131,11 @@ export default function Payment() {
               <Eyebrow style={{ marginBottom: 4 }}>Next payment</Eyebrow>
               <div style={{ fontSize: 13 }}>R 5,400 · due 1 May 2025 (29 days)</div>
             </div>
-            <Button variant="ghost" size="sm" rightIcon="chevR">
-              Schedule debit order
-            </Button>
+            <Link to="/settings" style={{ textDecoration: "none" }}>
+              <Button variant="ghost" size="sm" rightIcon="chevR">
+                Schedule debit order
+              </Button>
+            </Link>
           </div>
         </Card>
 

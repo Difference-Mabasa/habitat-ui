@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -21,6 +22,8 @@ const STEPS = [
 
 export default function Apply() {
   const [step, setStep] = useState(2);
+  const navigate = useNavigate();
+  const isFinalStep = step === STEPS.length - 1;
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -154,10 +157,12 @@ export default function Apply() {
               <Button variant="secondary">Save draft</Button>
               <Button
                 variant="accent"
-                rightIcon="arrR"
-                onClick={() => setStep(Math.min(STEPS.length - 1, step + 1))}
+                rightIcon={isFinalStep ? "check" : "arrR"}
+                onClick={() =>
+                  isFinalStep ? navigate("/my-apps") : setStep(step + 1)
+                }
               >
-                Continue
+                {isFinalStep ? "Submit application" : "Continue"}
               </Button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Photo from "@/components/Photo";
 import Icon, { type IconName } from "@/components/Icon";
@@ -328,24 +329,32 @@ export default function PropertyDetail() {
               landlord.
             </p>
 
-            <Button variant="accent" size="lg" style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
-              Apply for this unit
-            </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              leftIcon="calendar"
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              Book a viewing
-            </Button>
+            <Link to="/apply" style={{ textDecoration: "none" }}>
+              <Button variant="accent" size="lg" style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
+                Apply for this unit
+              </Button>
+            </Link>
+            <Link to="/viewings" style={{ textDecoration: "none" }}>
+              <Button
+                variant="secondary"
+                size="lg"
+                leftIcon="calendar"
+                style={{ width: "100%", justifyContent: "center" }}
+              >
+                Book a viewing
+              </Button>
+            </Link>
 
             <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 20, paddingTop: 20 }}>
               <AgentCard
                 name="Thandi Mokoena"
                 role="Landlord"
                 responseTime="responds in ~2 hrs"
-                actions={<IconButton icon="chat" label="Message" variant="secondary" size="sm" />}
+                actions={
+                  <Link to="/inbox" aria-label="Message landlord">
+                    <IconButton icon="chat" label="Message" variant="secondary" size="sm" />
+                  </Link>
+                }
               />
             </div>
           </Card>

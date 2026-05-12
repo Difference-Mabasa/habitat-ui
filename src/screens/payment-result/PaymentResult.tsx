@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -135,30 +136,42 @@ export default function PaymentResult() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 24 }}>
               {state === "success" ? (
                 <>
-                  <Button variant="accent" size="lg" leftIcon="download" style={{ width: "100%", justifyContent: "center" }}>
-                    Download receipt PDF
-                  </Button>
-                  <Button variant="secondary" leftIcon="home" style={{ width: "100%", justifyContent: "center" }}>
-                    Back to My Rental
-                  </Button>
+                  <Link to="/invoice" style={{ textDecoration: "none" }}>
+                    <Button variant="accent" size="lg" leftIcon="download" style={{ width: "100%", justifyContent: "center" }}>
+                      Download receipt PDF
+                    </Button>
+                  </Link>
+                  <Link to="/tenant-portal" style={{ textDecoration: "none" }}>
+                    <Button variant="secondary" leftIcon="home" style={{ width: "100%", justifyContent: "center" }}>
+                      Back to My Rental
+                    </Button>
+                  </Link>
                 </>
               ) : state === "cancel" ? (
                 <>
-                  <Button variant="accent" size="lg" leftIcon="refresh" style={{ width: "100%", justifyContent: "center" }}>
-                    Try payment again
-                  </Button>
-                  <Button variant="secondary" style={{ width: "100%", justifyContent: "center" }}>
-                    Choose a different method
-                  </Button>
+                  <Link to="/payment" style={{ textDecoration: "none" }}>
+                    <Button variant="accent" size="lg" leftIcon="refresh" style={{ width: "100%", justifyContent: "center" }}>
+                      Try payment again
+                    </Button>
+                  </Link>
+                  <Link to="/payment" style={{ textDecoration: "none" }}>
+                    <Button variant="secondary" style={{ width: "100%", justifyContent: "center" }}>
+                      Choose a different method
+                    </Button>
+                  </Link>
                 </>
               ) : (
                 <>
-                  <Button variant="accent" size="lg" leftIcon="refresh" style={{ width: "100%", justifyContent: "center" }}>
-                    Retry payment
-                  </Button>
-                  <Button variant="secondary" leftIcon="chat" style={{ width: "100%", justifyContent: "center" }}>
-                    Contact support
-                  </Button>
+                  <Link to="/payment" style={{ textDecoration: "none" }}>
+                    <Button variant="accent" size="lg" leftIcon="refresh" style={{ width: "100%", justifyContent: "center" }}>
+                      Retry payment
+                    </Button>
+                  </Link>
+                  <Link to="/help" style={{ textDecoration: "none" }}>
+                    <Button variant="secondary" leftIcon="chat" style={{ width: "100%", justifyContent: "center" }}>
+                      Contact support
+                    </Button>
+                  </Link>
                 </>
               )}
             </div>

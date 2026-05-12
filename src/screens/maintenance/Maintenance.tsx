@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
@@ -238,9 +239,11 @@ export default function Maintenance() {
                   })}
                 </div>
               </FormField>
-              <Button variant="accent" rightIcon="arrR" style={{ justifyContent: "center", marginTop: 8 }}>
-                Submit ticket
-              </Button>
+              <Link to="/tenant-portal" style={{ textDecoration: "none" }}>
+                <Button variant="accent" rightIcon="arrR" style={{ width: "100%", justifyContent: "center", marginTop: 8 }}>
+                  Submit ticket
+                </Button>
+              </Link>
               <div style={{ fontSize: 11, color: "var(--slate)", textAlign: "center", marginTop: 4 }}>
                 Your landlord is notified instantly. Most urgent tickets are triaged within 2 hours.
               </div>

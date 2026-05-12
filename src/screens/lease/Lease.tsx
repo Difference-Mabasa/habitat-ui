@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -93,6 +94,7 @@ export default function Lease() {
   const [stage, setStage] = useState<Stage>("review");
   const [otp, setOtp] = useState("");
   const [template, setTemplate] = useState("rha_standard");
+  const navigate = useNavigate();
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -190,7 +192,9 @@ export default function Lease() {
                 />
               </div>
               <div style={{ marginTop: 20, display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                <Button variant="ghost" leftIcon="chat">Message Thandi</Button>
+                <Link to="/inbox" style={{ textDecoration: "none" }}>
+                  <Button variant="ghost" leftIcon="chat">Message Thandi</Button>
+                </Link>
                 <Button variant="secondary" leftIcon="search" onClick={() => setStage("review")}>
                   Undo — re-open lease
                 </Button>
@@ -286,6 +290,7 @@ export default function Lease() {
                     leftIcon="check"
                     disabled={otp.length < 6}
                     style={{ width: "100%", justifyContent: "center", marginTop: 12 }}
+                    onClick={() => navigate("/payment-result")}
                   >
                     Confirm signature
                   </Button>
@@ -301,14 +306,16 @@ export default function Lease() {
                 </Button>
               )}
 
-              <Button
-                variant="ghost"
-                size="sm"
-                leftIcon="download"
-                style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
-              >
-                Download draft PDF
-              </Button>
+              <Link to="/lease-pdf" style={{ textDecoration: "none" }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon="download"
+                  style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
+                >
+                  Download draft PDF
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="sm"

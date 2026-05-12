@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -33,7 +34,9 @@ export default function Renewal() {
               23 Vilakazi St · current term ends 31 May 2026
             </p>
           </div>
-          <Button variant="ghost">Decline & give notice</Button>
+          <Link to="/vacate" style={{ textDecoration: "none" }}>
+            <Button variant="ghost">Decline & give notice</Button>
+          </Link>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 24 }}>
@@ -99,10 +102,14 @@ export default function Renewal() {
             </div>
 
             <div style={{ marginTop: 24, display: "flex", gap: 10 }}>
-              <Button variant="accent" style={{ flex: 1, height: 52, justifyContent: "center" }}>
-                Accept & sign renewal
-              </Button>
-              <Button variant="secondary">Counter-offer</Button>
+              <Link to="/lease" style={{ flex: 1, textDecoration: "none" }}>
+                <Button variant="accent" style={{ width: "100%", height: 52, justifyContent: "center" }}>
+                  Accept & sign renewal
+                </Button>
+              </Link>
+              <Link to="/inbox" style={{ textDecoration: "none" }}>
+                <Button variant="secondary">Counter-offer</Button>
+              </Link>
             </div>
           </Card>
 

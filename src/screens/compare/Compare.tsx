@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
@@ -22,9 +23,11 @@ export default function Compare() {
               <Button variant="ghost" size="sm" leftIcon="download">
                 Export PDF
               </Button>
-              <Button variant="ghost" size="sm">
-                Add another
-              </Button>
+              <Link to="/browse" style={{ textDecoration: "none" }}>
+                <Button variant="ghost" size="sm">
+                  Add another
+                </Button>
+              </Link>
             </>
           }
         />

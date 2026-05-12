@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Photo from "@/components/Photo";
 import Button from "@/components/Button";
@@ -224,38 +225,66 @@ export default function MyApplications() {
                 >
                   {a.variant === "invoice_due" ? (
                     <>
-                      <Button variant="accent" size="sm" leftIcon="cash">Pay invoice</Button>
-                      <Button variant="ghost" size="sm" leftIcon="download">Download PDF</Button>
+                      <Link to="/payment" style={{ textDecoration: "none" }}>
+                        <Button variant="accent" size="sm" leftIcon="cash" style={{ width: "100%", justifyContent: "center" }}>Pay invoice</Button>
+                      </Link>
+                      <Link to="/invoice" style={{ textDecoration: "none" }}>
+                        <Button variant="ghost" size="sm" leftIcon="download" style={{ width: "100%", justifyContent: "center" }}>Download PDF</Button>
+                      </Link>
                     </>
                   ) : a.variant === "invoice_failed" ? (
                     <>
-                      <Button variant="accent" size="sm" leftIcon="refresh">Retry payment</Button>
-                      <Button variant="secondary" size="sm">Use another card</Button>
+                      <Link to="/payment" style={{ textDecoration: "none" }}>
+                        <Button variant="accent" size="sm" leftIcon="refresh" style={{ width: "100%", justifyContent: "center" }}>Retry payment</Button>
+                      </Link>
+                      <Link to="/payment" style={{ textDecoration: "none" }}>
+                        <Button variant="secondary" size="sm" style={{ width: "100%", justifyContent: "center" }}>Use another card</Button>
+                      </Link>
                     </>
                   ) : a.variant === "conditional" ? (
                     <>
-                      <Button variant="accent" size="sm" leftIcon="upload">Upload statements</Button>
-                      <Button variant="ghost" size="sm" leftIcon="chat">Message landlord</Button>
+                      <Link to="/apply" style={{ textDecoration: "none" }}>
+                        <Button variant="accent" size="sm" leftIcon="upload" style={{ width: "100%", justifyContent: "center" }}>Upload statements</Button>
+                      </Link>
+                      <Link to="/inbox" style={{ textDecoration: "none" }}>
+                        <Button variant="ghost" size="sm" leftIcon="chat" style={{ width: "100%", justifyContent: "center" }}>Message landlord</Button>
+                      </Link>
                     </>
                   ) : a.variant === "on_hold" ? (
                     <>
-                      <Button variant="secondary" size="sm">View status</Button>
-                      <Button variant="ghost" size="sm" leftIcon="chat">Nudge landlord</Button>
+                      <Link to="/property" style={{ textDecoration: "none" }}>
+                        <Button variant="secondary" size="sm" style={{ width: "100%", justifyContent: "center" }}>View status</Button>
+                      </Link>
+                      <Link to="/inbox" style={{ textDecoration: "none" }}>
+                        <Button variant="ghost" size="sm" leftIcon="chat" style={{ width: "100%", justifyContent: "center" }}>Nudge landlord</Button>
+                      </Link>
                     </>
                   ) : a.status === "Lease ready" ? (
                     <>
-                      <Button variant="accent" size="sm" rightIcon="chevR">Sign lease</Button>
-                      <Button variant="ghost" size="sm" leftIcon="chat">Message</Button>
+                      <Link to="/lease" style={{ textDecoration: "none" }}>
+                        <Button variant="accent" size="sm" rightIcon="chevR" style={{ width: "100%", justifyContent: "center" }}>Sign lease</Button>
+                      </Link>
+                      <Link to="/inbox" style={{ textDecoration: "none" }}>
+                        <Button variant="ghost" size="sm" leftIcon="chat" style={{ width: "100%", justifyContent: "center" }}>Message</Button>
+                      </Link>
                     </>
                   ) : a.status === "Declined" ? (
                     <>
-                      <Button variant="ghost" size="sm">View reason</Button>
-                      <Button variant="ghost" size="sm" leftIcon="search">Find similar</Button>
+                      <Link to="/property" style={{ textDecoration: "none" }}>
+                        <Button variant="ghost" size="sm" style={{ width: "100%", justifyContent: "center" }}>View reason</Button>
+                      </Link>
+                      <Link to="/browse" style={{ textDecoration: "none" }}>
+                        <Button variant="ghost" size="sm" leftIcon="search" style={{ width: "100%", justifyContent: "center" }}>Find similar</Button>
+                      </Link>
                     </>
                   ) : (
                     <>
-                      <Button variant="secondary" size="sm">View status</Button>
-                      <Button variant="ghost" size="sm" leftIcon="chat">Message</Button>
+                      <Link to="/property" style={{ textDecoration: "none" }}>
+                        <Button variant="secondary" size="sm" style={{ width: "100%", justifyContent: "center" }}>View status</Button>
+                      </Link>
+                      <Link to="/inbox" style={{ textDecoration: "none" }}>
+                        <Button variant="ghost" size="sm" leftIcon="chat" style={{ width: "100%", justifyContent: "center" }}>Message</Button>
+                      </Link>
                     </>
                   )}
                 </div>

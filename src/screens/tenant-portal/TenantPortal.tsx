@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Photo from "@/components/Photo";
 import Icon, { type IconName } from "@/components/Icon";
@@ -87,9 +88,9 @@ export default function TenantPortal() {
               </div>
             </div>
             <div style={{ display: "flex", borderTop: "1px solid var(--hairline)" }}>
-              <ActionTile icon="cash" title="Pay rent" subtitle="Due in 4 days" />
-              <ActionTile icon="bolt" title="Report issue" subtitle="24h response" />
-              <ActionTile icon="paper" title="View lease" subtitle="Signed 28 Feb" last />
+              <ActionTile to="/payment" icon="cash" title="Pay rent" subtitle="Due in 4 days" />
+              <ActionTile to="/maintenance" icon="bolt" title="Report issue" subtitle="24h response" />
+              <ActionTile to="/lease" icon="paper" title="View lease" subtitle="Signed 28 Feb" last />
             </div>
           </Card>
 
@@ -112,14 +113,16 @@ export default function TenantPortal() {
               ))}
             </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              rightIcon="chevR"
-              style={{ width: "100%", marginTop: 12, justifyContent: "center" }}
-            >
-              View all 14 payments
-            </Button>
+            <Link to="/statements" style={{ textDecoration: "none" }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                rightIcon="chevR"
+                style={{ width: "100%", marginTop: 12, justifyContent: "center" }}
+              >
+                View all 14 payments
+              </Button>
+            </Link>
           </Card>
         </div>
 
@@ -138,9 +141,11 @@ export default function TenantPortal() {
                 <Eyebrow style={{ marginBottom: 6 }}>Maintenance</Eyebrow>
                 <div style={{ fontSize: 18, fontWeight: 600 }}>Open requests</div>
               </div>
-              <Button variant="secondary" size="sm" leftIcon="plus">
-                New request
-              </Button>
+              <Link to="/maintenance" style={{ textDecoration: "none" }}>
+                <Button variant="secondary" size="sm" leftIcon="plus">
+                  New request
+                </Button>
+              </Link>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {MAINTENANCE.map((m) => (
@@ -158,12 +163,16 @@ export default function TenantPortal() {
               responseTime="responds in ~2 hrs"
               actions={
                 <>
-                  <Button variant="secondary" size="sm" leftIcon="chat" style={{ flex: 1, justifyContent: "center" }}>
-                    Message
-                  </Button>
-                  <Button variant="secondary" size="sm" leftIcon="calendar" style={{ flex: 1, justifyContent: "center" }}>
-                    Schedule
-                  </Button>
+                  <Link to="/inbox" style={{ flex: 1, textDecoration: "none" }}>
+                    <Button variant="secondary" size="sm" leftIcon="chat" style={{ width: "100%", justifyContent: "center" }}>
+                      Message
+                    </Button>
+                  </Link>
+                  <Link to="/viewings" style={{ flex: 1, textDecoration: "none" }}>
+                    <Button variant="secondary" size="sm" leftIcon="calendar" style={{ width: "100%", justifyContent: "center" }}>
+                      Schedule
+                    </Button>
+                  </Link>
                 </>
               }
             />
@@ -197,19 +206,21 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 }
 
 function ActionTile({
+  to,
   icon,
   title,
   subtitle,
   last,
 }: {
+  to: string;
   icon: IconName;
   title: string;
   subtitle: string;
   last?: boolean;
 }) {
   return (
-    <button
-      type="button"
+    <Link
+      to={to}
       style={{
         flex: 1,
         padding: "20px 24px",
@@ -217,12 +228,11 @@ function ActionTile({
         alignItems: "center",
         gap: 14,
         background: "transparent",
-        border: 0,
         borderRight: last ? "none" : "1px solid var(--hairline)",
         textAlign: "left",
         cursor: "pointer",
         transition: "background 120ms",
-        fontFamily: "inherit",
+        textDecoration: "none",
         color: "var(--ink)",
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
@@ -246,7 +256,7 @@ function ActionTile({
         <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>{subtitle}</div>
       </div>
       <Icon name="arrR" size={14} style={{ color: "var(--slate)" }} />
-    </button>
+    </Link>
   );
 }
 

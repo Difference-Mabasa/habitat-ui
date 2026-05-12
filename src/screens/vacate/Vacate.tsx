@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -96,10 +97,14 @@ export default function Vacate() {
         </Card>
 
         <div style={{ marginTop: 18, display: "flex", justifyContent: "space-between", gap: 10 }}>
-          <Button variant="ghost">Cancel</Button>
+          <Link to="/tenant-portal" style={{ textDecoration: "none" }}>
+            <Button variant="ghost">Cancel</Button>
+          </Link>
           <div style={{ display: "flex", gap: 8 }}>
             <Button variant="secondary">Save draft</Button>
-            <Button variant="accent">Submit notice</Button>
+            <Link to="/deposit" style={{ textDecoration: "none" }}>
+              <Button variant="accent">Submit notice</Button>
+            </Link>
           </div>
         </div>
 

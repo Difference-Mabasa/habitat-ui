@@ -12,9 +12,9 @@ import Footer from "@/components/Footer";
 
 const FOOTER_COLUMNS = [
   { title: "Landlords", links: [
-    { label: "List a property", href: "/wizard" },
+    { label: "List a property", href: "/list-property" },
     { label: "Pricing", href: "/pricing" },
-    { label: "Find an agent", href: "/mandates" },
+    { label: "Find an agent", href: "/agent-browse" },
     { label: "Resources", href: "/help" },
   ] },
   { title: "Tenants", links: [

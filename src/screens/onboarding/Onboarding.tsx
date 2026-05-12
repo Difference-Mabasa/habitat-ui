@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
@@ -79,9 +80,11 @@ export default function Onboarding() {
           </div>
           <span style={{ fontSize: 13, color: "var(--slate)" }}>Step 3 of 5 · Affordability</span>
         </div>
-        <Button variant="ghost" size="sm">
-          Skip for now
-        </Button>
+        <Link to="/browse" style={{ textDecoration: "none" }}>
+          <Button variant="ghost" size="sm">
+            Skip for now
+          </Button>
+        </Link>
       </header>
 
       <div
@@ -180,10 +183,14 @@ export default function Onboarding() {
               Back
             </Button>
             <div style={{ display: "flex", gap: 8 }}>
-              <Button variant="ghost">Skip this step</Button>
-              <Button variant="accent" rightIcon="arrR">
-                Continue
-              </Button>
+              <Link to="/verification" style={{ textDecoration: "none" }}>
+                <Button variant="ghost">Skip this step</Button>
+              </Link>
+              <Link to="/verification" style={{ textDecoration: "none" }}>
+                <Button variant="accent" rightIcon="arrR">
+                  Continue
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
