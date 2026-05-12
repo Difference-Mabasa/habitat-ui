@@ -359,14 +359,14 @@ The codebase renders mock data instantly; real flows need this once API wiring l
 - [x] Applied to the four data-heaviest screens behind a `?state=loading|error` URL param. Cleared via the Retry button or by removing the param.
 - [x] Dev hub gains a "Preview data states" card with 8 deep links so each state can be inspected at a glance.
 
-### 11e — Lease offboarding + cosigner + reviews (queued)
+### 11e — Lease offboarding + cosigner + reviews ✅
 
-End-of-lease workflow we don't model yet. Important for SA market.
+End-of-lease workflow + the SA-specific cosigner step now modeled.
 
-- [ ] Move-out inspection screen with photo upload + condition checklist.
-- [ ] Deposit refund decision — landlord-side approve/deduct flow.
-- [ ] Lease-end review (tenant rates landlord, vice versa) — connects to existing `/reviews` route.
-- [ ] Cosigner / guarantor section on `/apply` — add a second-applicant block with own FICA reference.
+- [x] **Move-out inspection** `/move-out` — three-step flow (room-by-room condition checklist with Good / Minor / Damaged toggles + per-room note for flagged items, photo upload, free-text notes + submit). Linked from Tenant Portal as a new action tile.
+- [x] **Deposit refund decision** `/deposit-refund` — landlord-side screen showing the tenant's flagged items, three outcome options (Refund full / Refund with deductions / Withhold), itemised deduction lines with reason/amount/evidence, a sticky refund-summary card on the right with the live total. Linked from `/landlord-leases` as a "Decide refund" CTA on ended-state leases.
+- [x] **Cosigner / guarantor** — optional collapsible card on `/apply` step 2 (Affordability). Fields: full name, relationship, email, mobile. Trust & Safety note explains the separate FICA flow.
+- [x] **Lease-end review** — `/reviews` already shipped a write-a-review form; left intact. Future work: gate it behind a lease-ended state.
 
 ### 11f — Discovery polish (queued)
 

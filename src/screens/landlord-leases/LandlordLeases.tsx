@@ -373,6 +373,13 @@ export default function LandlordLeases() {
                       </td>
                       <td style={{ padding: "16px 20px", textAlign: "right" }}>
                         <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                          {l.state === "ended" ? (
+                            <Link to="/deposit-refund" style={{ textDecoration: "none" }}>
+                              <Button variant="accent" size="sm" leftIcon="cash">
+                                Decide refund
+                              </Button>
+                            </Link>
+                          ) : null}
                           <Link to="/lease-pdf" style={{ textDecoration: "none" }}>
                             <Button variant="ghost" size="sm" leftIcon="paper">PDF</Button>
                           </Link>

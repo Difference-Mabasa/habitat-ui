@@ -96,7 +96,8 @@ export default function TenantPortal() {
             <div style={{ display: "flex", borderTop: "1px solid var(--hairline)" }}>
               <ActionTile to="/payment" icon="cash" title="Pay rent" subtitle="Due in 4 days" />
               <ActionTile to="/maintenance" icon="bolt" title="Report issue" subtitle="24h response" />
-              <ActionTile to="/lease" icon="paper" title="View lease" subtitle="Signed 28 Feb" last />
+              <ActionTile to="/lease" icon="paper" title="View lease" subtitle="Signed 28 Feb" />
+              <ActionTile to="/move-out" icon="key" title="Move out" subtitle="Inspection & handover" last />
             </div>
           </Card>
 

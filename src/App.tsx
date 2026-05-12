@@ -157,6 +157,8 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   "forgot-password": lazy(() => import("@/screens/forgot-password/ForgotPassword")),
   "user-profile": lazy(() => import("@/screens/user-profile/UserProfile")),
   "post-detail": lazy(() => import("@/screens/post-detail/PostDetail")),
+  "move-out": lazy(() => import("@/screens/move-out/MoveOut")),
+  "deposit-refund": lazy(() => import("@/screens/deposit-refund/DepositRefund")),
 };
 
 export default function App() {

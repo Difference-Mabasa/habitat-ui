@@ -123,6 +123,11 @@ export default function Apply() {
   );
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptCredit, setAcceptCredit] = useState(false);
+  const [addCosigner, setAddCosigner] = useState(false);
+  const [cosignerName, setCosignerName] = useState("");
+  const [cosignerEmail, setCosignerEmail] = useState("");
+  const [cosignerPhone, setCosignerPhone] = useState("");
+  const [cosignerRelation, setCosignerRelation] = useState("parent");
 
   const monthlyIncome = Number(income || 0) + Number(otherIncome || 0);
   const monthlyExpenses = Number(expenses || 0);
@@ -373,6 +378,66 @@ export default function Apply() {
                 <div style={{ marginTop: 14 }}>
                   <ProgressBar value={Math.min(100, rentToIncome)} tone={affordable ? "success" : "warn"} />
                 </div>
+              </Card>
+
+              <Card padding={24}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 12 }}>
+                  <div>
+                    <Eyebrow style={{ marginBottom: 4 }}>Cosigner / guarantor · optional</Eyebrow>
+                    <p style={{ fontSize: 13, color: "var(--slate)", margin: 0, maxWidth: 460, lineHeight: 1.5 }}>
+                      A working parent, family member, or employer can co-sign your lease. Strongest when
+                      your own affordability is borderline — they're legally on the hook if you default.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAddCosigner((v) => !v)}
+                    className={addCosigner ? "btn btn--secondary btn--sm" : "btn btn--accent btn--sm"}
+                  >
+                    {addCosigner ? "Remove" : "Add cosigner"}
+                  </button>
+                </div>
+
+                {addCosigner ? (
+                  <>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <FormField label="Full name" required>
+                        <Input value={cosignerName} onChange={(e) => setCosignerName(e.target.value)} placeholder="Lerato Dlamini" />
+                      </FormField>
+                      <FormField label="Relationship" required>
+                        <Select
+                          value={cosignerRelation}
+                          onChange={(e) => setCosignerRelation(e.target.value)}
+                          options={[
+                            { value: "parent", label: "Parent" },
+                            { value: "guardian", label: "Guardian" },
+                            { value: "sibling", label: "Sibling" },
+                            { value: "employer", label: "Employer" },
+                            { value: "other", label: "Other" },
+                          ]}
+                        />
+                      </FormField>
+                      <FormField label="Email" required>
+                        <Input
+                          type="email"
+                          value={cosignerEmail}
+                          onChange={(e) => setCosignerEmail(e.target.value)}
+                          placeholder="lerato@example.co.za"
+                        />
+                      </FormField>
+                      <FormField label="Mobile" required helper="We text them a one-tap consent link.">
+                        <Input value={cosignerPhone} onChange={(e) => setCosignerPhone(e.target.value)} placeholder="+27 82 …" />
+                      </FormField>
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                      <Alert tone="info" title="Habitat will FICA-check your cosigner separately">
+                        They'll get a one-time link to upload their own ID + payslip. Until they consent
+                        the cosigner row stays in <span className="mono">PENDING</span>; you can still
+                        submit the application and proceed.
+                      </Alert>
+                    </div>
+                  </>
+                ) : null}
               </Card>
             </div>
           ) : null}

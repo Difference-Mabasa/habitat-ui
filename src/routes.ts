@@ -153,6 +153,8 @@ export const ROUTES: ScreenRoute[] = [
   { id: "forgot-password", label: "91 — Forgot password", path: "/forgot-password", group: "parity" },
   { id: "user-profile", label: "92 — Public user profile", path: "/u/:userId", group: "parity" },
   { id: "post-detail", label: "93 — Post permalink", path: "/post/:postId", group: "parity" },
+  { id: "move-out", label: "94 — Move-out inspection (tenant)", path: "/move-out", group: "lifecycle" },
+  { id: "deposit-refund", label: "95 — Deposit refund decision (landlord)", path: "/deposit-refund", group: "lifecycle" },
 ];
 
 export const GROUP_LABEL: Record<RouteGroup, string> = {
