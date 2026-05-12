@@ -29,34 +29,44 @@ export function useSession(): SessionContextValue {
   return ctx;
 }
 
-/** Default demo users — used by /auth, /register, and the dev role-switcher. */
+/**
+ * Demo users for /auth, /register, and the dev role-switcher.
+ *
+ * Prototype convention: every demo user holds all four roles so the
+ * Workspaces dropdown is fully populated regardless of which persona
+ * signed in. `activeRole` is the only thing that differs and drives
+ * which dashboard renders. When real auth + role assignment lands,
+ * trim each user's `roles` array to what they actually own.
+ */
+const ALL_ROLES: Role[] = ["tenant", "landlord", "agent", "admin"];
+
 export const DEMO_USERS: Record<Role, SessionUser> = {
   tenant: {
     id: "u-sipho",
     name: "Sipho Dlamini",
     email: "sipho@example.co.za",
-    roles: ["tenant"],
+    roles: ALL_ROLES,
     activeRole: "tenant",
   },
   landlord: {
     id: "u-thandi",
     name: "Thandi Mokoena",
     email: "thandi@example.co.za",
-    roles: ["landlord", "tenant"],
+    roles: ALL_ROLES,
     activeRole: "landlord",
   },
   agent: {
     id: "u-naledi-agent",
     name: "Naledi M.",
     email: "naledi@vilakazi.co.za",
-    roles: ["agent", "tenant"],
+    roles: ALL_ROLES,
     activeRole: "agent",
   },
   admin: {
     id: "u-admin",
     name: "Habitat Trust",
     email: "trust@habitat.co.za",
-    roles: ["admin", "tenant", "landlord", "agent"],
+    roles: ALL_ROLES,
     activeRole: "admin",
   },
 };

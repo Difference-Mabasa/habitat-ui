@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
+  DEMO_USERS,
   SESSION_STORAGE_KEY,
   SessionContext,
   type Role,
@@ -18,8 +19,15 @@ function load(): SessionState {
     const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
     if (!raw) return { user: null };
     const parsed = JSON.parse(raw) as SessionState;
-    if (parsed?.user && parsed.user.id && parsed.user.activeRole) return parsed;
-    return { user: null };
+    if (!parsed?.user || !parsed.user.id || !parsed.user.activeRole) return { user: null };
+    // Migrate persisted demo sessions to the latest DEMO_USERS shape (keeps
+    // the active role) so a prototype change like "every demo user owns
+    // every workspace" picks up on existing tabs without a sign-out cycle.
+    const matchingDemo = Object.values(DEMO_USERS).find((d) => d.id === parsed.user!.id);
+    if (matchingDemo) {
+      return { user: { ...matchingDemo, activeRole: parsed.user.activeRole } };
+    }
+    return parsed;
   } catch {
     return { user: null };
   }
