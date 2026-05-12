@@ -81,28 +81,58 @@ export default function Apply() {
             Three required documents. We'll check FICA and run your credit before sending to the landlord.
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
             <DocumentStatusRow
-              name="South African ID / Passport"
+              name="SA ID / Passport"
               status="verified"
-              subText="Verified · 28 Mar 2026"
+              subText="SA_ID · matched home affairs · 28 Mar 2026"
             />
             <DocumentStatusRow
-              name="Proof of income (last 3 months)"
-              status="uploaded"
-              subText="payslip-march.pdf · 2.4 MB"
-            />
-            <DocumentStatusRow
-              name="Bank statements (last 3 months)"
+              name="Passport (non-SA citizens)"
               status="empty"
-              subText="PDF or CSV · max 10 MB"
+              subText="PASSPORT · optional if SA ID provided"
+            />
+            <DocumentStatusRow
+              name="Payslips · last 3 months"
+              status="uploaded"
+              subText="PAYSLIPS_3M · payslip-march.pdf · 2.4 MB · +2 more"
+            />
+            <DocumentStatusRow
+              name="Bank statements · last 3 months"
+              status="empty"
+              subText="BANK_STATEMENTS_3M · PDF or CSV · max 10 MB"
               active
+            />
+            <DocumentStatusRow
+              name="Employment letter"
+              status="uploaded"
+              subText="EMPLOYMENT_LETTER · discovery-letter.pdf · 142 KB"
+            />
+            <DocumentStatusRow
+              name="Proof of address"
+              status="empty"
+              subText="PROOF_OF_ADDRESS · bill / statement / landlord letter < 3 months"
+            />
+            <DocumentStatusRow
+              name="Credit consent (TPN)"
+              status="empty"
+              subText="CREDIT_CONSENT · we won't pull your credit without this"
+            />
+            <DocumentStatusRow
+              name="Previous landlord reference"
+              status="uploaded"
+              subText="LANDLORD_REFERENCE · auto-requested from Mxolisi N. · received 14 Mar"
+            />
+            <DocumentStatusRow
+              name="Other (optional)"
+              status="empty"
+              subText="OTHER · anything else you want to share — pet vet papers, study letter, etc."
             />
           </div>
 
           <FileUploadZone
             title="Drop bank statements here"
-            specsText="PDF · CSV · max 10 MB · 3 months"
+            specsText="BANK_STATEMENTS_3M · PDF · CSV · max 10 MB · 3 months"
           />
 
           <div

@@ -13,6 +13,8 @@ import KeyValueRow from "@/components/KeyValueRow";
 import RatingDisplay from "@/components/RatingDisplay";
 import AgentCard from "@/components/AgentCard";
 
+type UnitStatus = "AVAILABLE" | "OCCUPIED" | "UNDER_MAINTENANCE" | "UNLISTED";
+
 interface Unit {
   id: number;
   name: string;
@@ -20,15 +22,24 @@ interface Unit {
   beds: number;
   baths: number;
   sqm: number;
-  status: "open" | "let";
+  unitStatus: UnitStatus;
   available: string | null;
 }
 
 const UNITS: Unit[] = [
-  { id: 0, name: "Backroom A", price: 4200, beds: 1, baths: 1, sqm: 22, status: "let", available: null },
-  { id: 1, name: "Backroom B", price: 4400, beds: 1, baths: 1, sqm: 24, status: "open", available: "Available now" },
-  { id: 2, name: "Garden Cottage", price: 6800, beds: 2, baths: 1, sqm: 48, status: "open", available: "Available 1 May" },
+  { id: 0, name: "Backroom A", price: 4200, beds: 1, baths: 1, sqm: 22, unitStatus: "OCCUPIED", available: null },
+  { id: 1, name: "Backroom B", price: 4400, beds: 1, baths: 1, sqm: 24, unitStatus: "AVAILABLE", available: "Available now" },
+  { id: 2, name: "Garden Cottage", price: 6800, beds: 2, baths: 1, sqm: 48, unitStatus: "AVAILABLE", available: "Available 1 May" },
+  { id: 3, name: "Backroom C", price: 4400, beds: 1, baths: 1, sqm: 22, unitStatus: "UNDER_MAINTENANCE", available: "Available from 1 Jul (geyser replacement)" },
+  { id: 4, name: "Studio Loft", price: 6200, beds: 1, baths: 1, sqm: 32, unitStatus: "UNLISTED", available: null },
 ];
+
+const UNIT_BADGE: Record<UnitStatus, { tone: "success" | "neutral" | "warn"; label: string }> = {
+  AVAILABLE: { tone: "success", label: "Available" },
+  OCCUPIED: { tone: "neutral", label: "Occupied" },
+  UNDER_MAINTENANCE: { tone: "warn", label: "Maintenance" },
+  UNLISTED: { tone: "neutral", label: "Unlisted" },
+};
 
 const AMENITIES: { i: IconName; t: string }[] = [
   { i: "park", t: "1 parking bay" },
@@ -52,9 +63,14 @@ const NEIGHBOURHOOD_STATS = [
   { l: "Helen Joseph Hospital", v: "12 min" },
 ];
 
+type ListingState = "DRAFT" | "LISTED" | "UNLISTED";
+
 export default function PropertyDetail() {
   const [unitId, setUnitId] = useState(1);
   const activeUnit = UNITS.find((u) => u.id === unitId) ?? UNITS[1];
+  const listingState: ListingState = "LISTED";
+  const listingSource: "LISTED_BY_OWNER" | "BY_AGENT" = "BY_AGENT";
+  const listingAgent = "Naledi M. · Vilakazi Property Co.";
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -117,11 +133,17 @@ export default function PropertyDetail() {
         <main>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 32, marginBottom: 32 }}>
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                 <Badge tone="success" leftIcon="check">
                   Verified
                 </Badge>
-                <Badge tone="neutral">Single landlord</Badge>
+                <Badge tone={listingState === "LISTED" ? "success" : listingState === "DRAFT" ? "warn" : "neutral"}>
+                  {listingState}
+                </Badge>
+                <Badge tone={listingSource === "BY_AGENT" ? "accent" : "neutral"}>
+                  {listingSource === "BY_AGENT" ? `Listed by ${listingAgent}` : "Listed by owner"}
+                </Badge>
+                <Badge tone="success" leftIcon="key">Mandate · Full management</Badge>
               </div>
               <h1
                 style={{
@@ -197,14 +219,17 @@ export default function PropertyDetail() {
             </a>
           </DetailSection>
 
-          <DetailSection title="Available units" subtitle="2 of 3 open">
+          <DetailSection
+            title="Units"
+            subtitle={`${UNITS.filter((u) => u.unitStatus === "AVAILABLE").length} of ${UNITS.length} available · status per unit`}
+          >
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {UNITS.map((u) => (
                 <UnitRow
                   key={u.id}
                   unit={u}
                   active={unitId === u.id}
-                  onClick={() => u.status === "open" && setUnitId(u.id)}
+                  onClick={() => u.unitStatus === "AVAILABLE" && setUnitId(u.id)}
                 />
               ))}
             </div>
@@ -374,7 +399,8 @@ function UnitRow({
   active: boolean;
   onClick: () => void;
 }) {
-  const closed = unit.status !== "open";
+  const closed = unit.unitStatus !== "AVAILABLE";
+  const badge = UNIT_BADGE[unit.unitStatus];
   return (
     <div
       onClick={onClick}
@@ -387,7 +413,7 @@ function UnitRow({
         border: `1px solid ${active ? "var(--ink)" : "var(--hairline)"}`,
         borderRadius: 12,
         background: active ? "var(--surface-2)" : "var(--surface)",
-        opacity: closed ? 0.5 : 1,
+        opacity: closed ? 0.55 : 1,
         cursor: closed ? "default" : "pointer",
         transition: "border-color 150ms, background 150ms",
       }}
@@ -407,18 +433,12 @@ function UnitRow({
           <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
             <PriceDisplay amount={unit.price} period="" size="md" />
             <span style={{ fontSize: 11, color: "var(--slate)", fontWeight: 400 }}>
-              {closed ? "Currently let" : unit.available}
+              {unit.available ?? "Currently occupied"}
             </span>
           </span>
         }
       />
-      {closed ? (
-        <Badge tone="neutral">Let</Badge>
-      ) : (
-        <Button variant="secondary" size="sm" rightIcon="chevR">
-          View
-        </Button>
-      )}
+      <Badge tone={badge.tone}>{badge.label}</Badge>
     </div>
   );
 }

@@ -6,7 +6,7 @@
 >
 > **API**: backroom-api on `localhost:8080/api/v1` (proxied via `/api` in dev).
 >
-> **Status**: Phases 1–9 shipped (65 prototype screens). Phase 10a shipped 2026-05-12 (+15 parity screens, +1 shared component → 80 routes total). 10b services and 10c depth gaps are the active backlog.
+> **Status**: Phases 1–9 shipped (65 prototype screens). Phase 10a shipped 2026-05-12 (+15 parity screens, +1 shared component → 80 routes total). Phase 10c (UI-only depth gaps on 10 existing screens) shipped 2026-05-12. **10b (backend service wiring) is the only remaining work in Phase 10.**
 
 Tick items off as they ship. Each phase ends with **all of**: `npm run typecheck` green, `npm run lint` green, `npm run build` green, dev-server smoke test in browser, single commit with phase name in the message.
 
@@ -284,26 +284,28 @@ These are services on the backend that habitat hasn't surfaced anywhere yet. Eac
 - [ ] **ChatDrawerService** — global signal-driven drawer so any component can open a conversation. Habitat's nav `<ChatDrawer>` is local state only.
 - [ ] **PropertyWizardStateService** — multi-step draft state with step gating, mandate pre-population, and persistence. Habitat's `/wizard` is a static 5-step mock.
 
-### 10c — Depth gaps (Habitat has the screen, Angular has substantially more flow)
+### 10c — Depth gaps (Habitat has the screen, Angular has substantially more flow) ✅ (UI-only pass shipped 2026-05-12)
 
-Each line is a screen Habitat already has, paired with the depth it's missing. These become enhancement passes on existing screens, not new ones.
+Each line was a screen Habitat already had, paired with the depth it was missing. UI added; backend wiring is still 10b.
 
-- [ ] **Lease (`/lease`, `/lease-pdf`)** — template selection, OTP-based dual-signature flow (tenant + landlord separately), lease decline path, PDF download for unsigned drafts. Habitat shows a paginated reader + signature avatars only.
-- [ ] **My applications (`/my-apps`)** — `CONDITIONALLY_APPROVED` status with document-request follow-up, employment status enum (`EMPLOYED / SELF_EMPLOYED / STUDENT / PENSIONER / UNEMPLOYED / OTHER`), `ON_HOLD` / `blockedAt`, invoice generation + payment-link + retry. Habitat shows the 4-stage timeline only.
-- [ ] **Apply (`/apply`)** — document type taxonomy: `SA_ID / PASSPORT / PAYSLIPS_3M / BANK_STATEMENTS_3M / EMPLOYMENT_LETTER / PROOF_OF_ADDRESS / CREDIT_CONSENT / LANDLORD_REFERENCE / OTHER`. Habitat shows 3 generic upload slots.
-- [ ] **Viewings (`/viewings`)** — request states: `APPROVED / DECLINED / ALTERNATIVE_PROPOSED / ALTERNATIVE_ACCEPTED / ALTERNATIVE_DECLINED / CANCELLED`. Habitat shows a calendar grid + simple pending list.
-- [ ] **Communities (`/communities`)** — join-request approval, member roles + permissions (admin, moderator), media upload on messages, message deletion (by author or admin), pagination + discovery filter. Habitat shows a static 3-column layout.
-- [ ] **Notifications (`/notifications`)** — 33+ typed categories (APPLICATION_APPROVED, LEASE_SIGNED, MANDATE_PENDING_APPROVAL, PAYMENT_RECEIVED, DOCUMENTS_REQUESTED, …) with unread-count tracking + delta updates + bell-shake on new + bulk mark-as-read. Habitat shows 3 hard-coded day groups.
-- [ ] **Property detail (`/property`)** + **Landlord dashboard (`/landlord-dashboard`)** — publish/unpublish workflow (DRAFT → LISTED → UNLISTED), listing source (`LISTED_BY_OWNER` vs by agent), mandate-status badge on listings, per-property payout account config, per-unit status (`AVAILABLE / OCCUPIED / UNDER_MAINTENANCE / UNLISTED`).
-- [ ] **Agent profile (`/agent`)** — fee structures (`FIXED` vs `PERCENT_OF_ANNUAL` for landlord; separate `tenantFee`), social links (TikTok / WhatsApp / Instagram), areas covered, agency association, verification flag.
-- [ ] **Payment (`/payment`)** + **Invoice (`/invoice`)** — full financial workflow: invoice lifecycle (`PENDING → PAID / EXPIRED`), expiry timer, payment link initiation, PDF download. Habitat shows confirmation + receipt screens but no invoice state machine.
-- [ ] **Verification (`/verification`)** — `CREDIT_CONSENT` doc type + TPN consent + per-doc-type verification status (FICA, ID, credit, employment, reference). Habitat has a 5-step rail with a single active step.
+- [x] **Lease (`/lease`)** — added template selection (3 RHA templates via Select), OTP dual-signature card (6-digit Input with resend), lease decline path with reason capture + undo, download draft PDF button. Page now switchable across 4 stages via Tabs.
+- [x] **My applications (`/my-apps`)** — extended ApplicationRow with `variant` union: `conditional` (warn alert + docs CTA), `on_hold` (warn card + nudge CTA), `invoice_due` (info alert + Pay button), `invoice_failed` (danger alert + retry). Added `EMPLOYMENT` enum badge on every row. Invoice ref shown as mono code.
+- [x] **Apply (`/apply`)** — replaced 3 generic upload slots with 9 typed `DocumentStatusRow`s: SA_ID, PASSPORT, PAYSLIPS_3M, BANK_STATEMENTS_3M, EMPLOYMENT_LETTER, PROOF_OF_ADDRESS, CREDIT_CONSENT, LANDLORD_REFERENCE, OTHER. Each subText carries the type code in mono.
+- [x] **Viewings (`/viewings`)** — sidebar now shows 7 request states (PENDING / APPROVED / DECLINED / ALTERNATIVE_PROPOSED / ALTERNATIVE_ACCEPTED / ALTERNATIVE_DECLINED / CANCELLED) with per-state Badge + per-state CTAs. PROPOSED rows display the proposed alternative time inline.
+- [x] **Communities (`/communities`)** — added Tabs filter (All / Joined / Discover), area Chip filters; admin/moderator role chips on cards + thread header; right-rail "Join requests" admin panel with Approve / Decline; message hover-menu with Pin (admin) + Delete (own or moderator); media-attached message preview; "Load older" link.
+- [x] **Notifications (`/notifications`)** — expanded to 25 items / 7 categories / 21 typed codes (PAYMENT_RECEIVED, DOCUMENTS_REQUESTED, MANDATE_PENDING_APPROVAL, VIEWING_ALTERNATIVE_PROPOSED, …). Type code rendered in mono next to body. Working "Mark all read" + filter chips by category. Bell-shake intent flagged in the info Alert.
+- [x] **Property detail (`/property`)** + **Landlord dashboard (`/landlord-dashboard`)** — added LISTED / DRAFT / UNLISTED state badge on hero; `LISTED_BY_OWNER` vs `BY_AGENT` badge with agent name; mandate badge (Full management / Tenant find / Self-managed); per-unit status badge (AVAILABLE / OCCUPIED / UNDER_MAINTENANCE / UNLISTED) on every UnitRow. PropertyTable now has State / Source / Mandate columns + payout-account hint per row.
+- [x] **Agent profile (`/agent`)** — added Fees Card (PERCENT_OF_ANNUAL vs FIXED, tenant admin fee), Areas-covered Card with pin chips, Connect Card with WhatsApp / Instagram / TikTok handles, link to agency page. Verification + agency already existed.
+- [x] **Invoice (`/invoice`)** — added Tabs segmented switcher (PENDING / PAID / EXPIRED); PENDING shows warn Alert + "Pay R 4,155.75" CTA + countdown + pay link; PAID keeps the existing watermark; EXPIRED shows danger Alert + "Request new invoice" CTA. Issued/expiry sub-line in the top bar.
+- [x] **Verification (`/verification`)** — added a per-doc-type status grid (SA_ID, SELFIE, POA, BANK, EMPLOYMENT, CREDIT (TPN), REFERENCES) with per-row Badge. Added consent Card with separate CREDIT_CONSENT + TPN toggles, consent reference, and "Withdraw any time" pointer.
+
+**Phase 10c shipped — no new routes, no new visual tokens, no new icons.** Each pass composes existing primitives. Backend wiring remains the entire scope of 10b.
 
 ### 10d — Exit criteria for Phase 10
 
 - [x] All 15 new screens (10a) added to `routes.ts` with their owning groups. Group `parity`, routes 66–80. Shipped 2026-05-12.
 - [ ] All 8 services (10b) wired in `src/lib/<domain>.ts`, talking to backroom-api.
-- [ ] Each depth gap (10c) tracked individually; check off when its screen reaches feature parity with backroom-ui.
+- [x] Each depth gap (10c) tracked individually; check off when its screen reaches feature parity with backroom-ui. **UI-only pass complete 2026-05-12** — Lease, My-apps, Apply, Viewings, Communities, Notifications, Property+Dashboard, Agent, Invoice, Verification all touched.
 - [x] No regressions on the 65 existing screens — Phase 10a build round green, full route list still renders.
 - [x] Build + lint + typecheck green after Phase 10a — full smoke pass via `/dev/routes`.
 

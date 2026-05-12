@@ -9,6 +9,20 @@ import Hairline from "@/components/Hairline";
 import Photo from "@/components/Photo";
 import Tabs from "@/components/Tabs";
 import RatingDisplay from "@/components/RatingDisplay";
+import KeyValueRow from "@/components/KeyValueRow";
+
+const FEES = {
+  landlord: { type: "PERCENT_OF_ANNUAL" as const, value: "8%", note: "of annual rent · once-off on placement" },
+  tenant: { value: "R 800", note: "once-off admin (FICA + lease)" },
+};
+
+const AREAS = ["Soweto", "Diepkloof", "Orlando West", "Pimville", "Mofolo"];
+
+const SOCIALS: { kind: "WhatsApp" | "Instagram" | "TikTok"; handle: string; href: string }[] = [
+  { kind: "WhatsApp", handle: "+27 82 184 4421", href: "https://wa.me/27821844421" },
+  { kind: "Instagram", handle: "@naledi.mokoena.props", href: "https://instagram.com/naledi.mokoena.props" },
+  { kind: "TikTok", handle: "@vilakaziprops", href: "https://tiktok.com/@vilakaziprops" },
+];
 
 const STATS: [string, string][] = [
   ["Active listings", "14"],
@@ -213,6 +227,77 @@ export default function AgentProfile() {
                 </div>
               </div>
             </Card>
+
+            <Card padding={20}>
+              <Eyebrow style={{ marginBottom: 10 }}>Fees</Eyebrow>
+              <KeyValueRow
+                label="Landlord — placement"
+                value={
+                  <span>
+                    {FEES.landlord.value}
+                    <span className="mono" style={{ fontSize: 10, color: "var(--slate-2)", marginLeft: 6 }}>
+                      PERCENT_OF_ANNUAL
+                    </span>
+                  </span>
+                }
+                size="sm"
+              />
+              <div style={{ fontSize: 11, color: "var(--slate)", marginTop: -4, marginBottom: 8 }}>
+                {FEES.landlord.note}
+              </div>
+              <KeyValueRow
+                label="Tenant — admin fee"
+                value={FEES.tenant.value}
+                size="sm"
+                divider
+              />
+              <div style={{ fontSize: 11, color: "var(--slate)", marginTop: -4 }}>{FEES.tenant.note}</div>
+              <div style={{ marginTop: 10, fontSize: 11, color: "var(--slate)" }}>
+                <Icon name="info" size={11} style={{ marginRight: 4, verticalAlign: -1 }} />
+                Other agents may quote <span className="mono">FIXED</span> fees instead — both styles are valid.
+              </div>
+            </Card>
+
+            <Card padding={20}>
+              <Eyebrow style={{ marginBottom: 10 }}>Areas covered</Eyebrow>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {AREAS.map((a) => (
+                  <span
+                    key={a}
+                    style={{
+                      fontSize: 12,
+                      padding: "4px 10px",
+                      background: "var(--surface-2)",
+                      borderRadius: 999,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <Icon name="pin" size={11} /> {a}
+                  </span>
+                ))}
+              </div>
+            </Card>
+
+            <Card padding={20}>
+              <Eyebrow style={{ marginBottom: 10 }}>Connect with Naledi</Eyebrow>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {SOCIALS.map((s) => (
+                  <div
+                    key={s.kind}
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}
+                  >
+                    <span style={{ color: "var(--slate)" }}>{s.kind}</span>
+                    <span className="mono" style={{ fontSize: 12 }}>{s.handle}</span>
+                  </div>
+                ))}
+              </div>
+              <Button variant="ghost" size="sm" rightIcon="arrUR" style={{ marginTop: 12, width: "100%", justifyContent: "center" }}>
+                Open agency page
+              </Button>
+            </Card>
+
             <Card
               padding={20}
               style={{ background: "var(--surface-2)", borderColor: "transparent" }}

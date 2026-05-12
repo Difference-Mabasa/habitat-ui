@@ -1,8 +1,13 @@
+import { useState } from "react";
 import Logo from "@/components/Logo";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import Tabs from "@/components/Tabs";
+import Alert from "@/components/Alert";
+
+type InvoiceState = "PENDING" | "PAID" | "EXPIRED";
 
 interface InvoiceLine {
   description: string;
@@ -23,27 +28,74 @@ const SUBTOTAL = "R 4,128.90";
 const VAT = "R 26.85";
 const TOTAL = "R 4,155.75";
 
+const STATE_HEADER: Record<InvoiceState, { tone: "warn" | "success" | "danger"; label: string; subline: string }> = {
+  PENDING: { tone: "warn", label: "PENDING · 6 days to pay", subline: "Issued 12 May 2026 · expires 20 May 2026" },
+  PAID: { tone: "success", label: "PAID · 2 MAY 2026", subline: "Issued 1 May 2026 · reference HB-PMT-04250" },
+  EXPIRED: { tone: "danger", label: "EXPIRED · 21 MAY 2026", subline: "Issued 12 May 2026 · no payment received" },
+};
+
 export default function Invoice() {
+  const [state, setState] = useState<InvoiceState>("PENDING");
+  const header = STATE_HEADER[state];
+
   return (
     <div style={{ background: "var(--surface-2)", padding: 32, minHeight: "100vh" }}>
       <div style={{ maxWidth: 794, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Demo state switcher */}
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <Tabs
+            variant="segmented"
+            tabs={[
+              { id: "PENDING", label: "Pending" },
+              { id: "PAID", label: "Paid" },
+              { id: "EXPIRED", label: "Expired" },
+            ]}
+            value={state}
+            onChange={(v) => setState(v as InvoiceState)}
+          />
+        </div>
+
         {/* Top bar */}
         <Card
           padding="12px 18px"
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
         >
           <div style={{ fontSize: 13, color: "var(--slate)" }}>
-            Tax invoice #HB-INV-2026-04-1124 · paid 2 May 2026
+            Tax invoice #HB-INV-2026-04-1124 · {header.subline}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
+            {state === "PENDING" ? (
+              <Button variant="accent" size="sm" leftIcon="cash">
+                Pay R 4,155.75
+              </Button>
+            ) : state === "EXPIRED" ? (
+              <Button variant="accent" size="sm" leftIcon="refresh">
+                Request new invoice
+              </Button>
+            ) : (
+              <Button variant="accent" size="sm" leftIcon="paper">
+                Print
+              </Button>
+            )}
             <Button variant="secondary" size="sm" leftIcon="download">
               Download
             </Button>
-            <Button variant="accent" size="sm" leftIcon="paper">
-              Print
-            </Button>
           </div>
         </Card>
+
+        {state === "PENDING" ? (
+          <Alert tone="warn" title="6 days left to pay">
+            Pay by 20 May 2026 to keep the lease offer active. After expiry the landlord may release the unit
+            to the next applicant.{" "}
+            <span className="mono" style={{ fontSize: 11 }}>Status: PENDING</span>
+          </Alert>
+        ) : state === "EXPIRED" ? (
+          <Alert tone="danger" title="This invoice expired">
+            Payment window passed on 20 May 2026. If you still want to take the unit, request a new invoice —
+            the landlord may decline if they've moved on to another applicant.{" "}
+            <span className="mono" style={{ fontSize: 11 }}>Status: EXPIRED</span>
+          </Alert>
+        ) : null}
 
         {/* Invoice */}
         <div style={{ background: "#fff", padding: 56, boxShadow: "var(--shadow-lg)" }}>
@@ -69,10 +121,10 @@ export default function Invoice() {
                 #HB-INV-2026-04-1124
               </div>
               <div className="mono" style={{ fontSize: 12, color: "var(--slate)" }}>
-                Issued 1 May 2026
+                {state === "PAID" ? "Issued 1 May 2026" : "Issued 12 May 2026"}
               </div>
               <div style={{ marginTop: 10 }}>
-                <Badge tone="success">PAID · 2 MAY 2026</Badge>
+                <Badge tone={header.tone}>{header.label}</Badge>
               </div>
             </div>
           </div>
@@ -178,6 +230,35 @@ export default function Invoice() {
             </div>
           </div>
 
+          {/* State-specific watermark for PAID / EXPIRED */}
+          {state !== "PENDING" ? (
+            <div
+              aria-hidden="true"
+              style={{
+                position: "relative",
+                marginTop: 24,
+                textAlign: "center",
+              }}
+            >
+              <span
+                className="display"
+                style={{
+                  fontSize: 48,
+                  letterSpacing: "0.08em",
+                  color: state === "PAID" ? "var(--success)" : "var(--danger)",
+                  opacity: 0.18,
+                  border: `4px solid ${state === "PAID" ? "var(--success)" : "var(--danger)"}`,
+                  padding: "8px 24px",
+                  borderRadius: 8,
+                  display: "inline-block",
+                  transform: "rotate(-4deg)",
+                }}
+              >
+                {state}
+              </span>
+            </div>
+          ) : null}
+
           {/* Footer */}
           <div
             style={{
@@ -192,6 +273,14 @@ export default function Invoice() {
             This is an electronically generated tax invoice — no signature required. Habitat acts as a
             trust-account intermediary under PPRA regulations. For queries, email{" "}
             <strong>billing@habitat.co.za</strong> within 30 days.
+            {state === "PENDING" ? (
+              <>
+                <br />
+                <span className="mono" style={{ color: "var(--accent)" }}>
+                  Pay link: hb.co.za/p/{`HB-INV-2026-04-1124`}
+                </span>
+              </>
+            ) : null}
           </div>
         </div>
       </div>

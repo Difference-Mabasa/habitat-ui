@@ -22,9 +22,11 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
 ];
 
 const PROPERTY_ROWS: PropertyTableRowData[] = [
-  { id: "p1", name: "Sunlit Property · Caroline", sub: "Brixton, JHB", units: 3, occupancyPct: 67, occupancyLabel: "2 of 3", monthlyRent: "R 15,400", apps: 3 },
-  { id: "p2", name: "Garden Cottages", sub: "Westdene, JHB", units: 4, occupancyPct: 100, occupancyLabel: "4 of 4", monthlyRent: "R 21,600", apps: 1 },
-  { id: "p3", name: "Auckland Studios", sub: "Auckland Park, JHB", units: 5, occupancyPct: 100, occupancyLabel: "5 of 5", monthlyRent: "R 32,500", apps: 3 },
+  { id: "p1", name: "Sunlit Property · Caroline", sub: "Brixton, JHB", units: 3, occupancyPct: 67, occupancyLabel: "2 of 3", monthlyRent: "R 15,400", apps: 3, state: "LISTED", source: "BY_AGENT", agent: "Naledi M.", mandate: "Full management", payoutAccount: "FNB ••3091" },
+  { id: "p2", name: "Garden Cottages", sub: "Westdene, JHB", units: 4, occupancyPct: 100, occupancyLabel: "4 of 4", monthlyRent: "R 21,600", apps: 1, state: "LISTED", source: "LISTED_BY_OWNER", mandate: "Self-managed", payoutAccount: "FNB ••3091" },
+  { id: "p3", name: "Auckland Studios", sub: "Auckland Park, JHB", units: 5, occupancyPct: 100, occupancyLabel: "5 of 5", monthlyRent: "R 32,500", apps: 3, state: "LISTED", source: "BY_AGENT", agent: "Lebo Properties", mandate: "Tenant find", payoutAccount: "Capitec ••4280" },
+  { id: "p4", name: "Loft · Maboneng", sub: "Maboneng, JHB", units: 1, occupancyPct: 0, occupancyLabel: "0 of 1", monthlyRent: "R 7,800", apps: 0, state: "DRAFT", source: "LISTED_BY_OWNER", mandate: "Self-managed", payoutAccount: "FNB ••3091" },
+  { id: "p5", name: "Backroom · Vilakazi St", sub: "Orlando West, SOW", units: 2, occupancyPct: 50, occupancyLabel: "1 of 2", monthlyRent: "R 3,450", apps: 5, state: "UNLISTED", source: "BY_AGENT", agent: "Vilakazi Property Co.", mandate: "Full management", payoutAccount: "FNB ••3091" },
 ];
 
 const PIPELINE_COLUMNS: PipelineColumn[] = [

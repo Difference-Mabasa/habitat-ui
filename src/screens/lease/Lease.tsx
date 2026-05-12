@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -5,7 +6,13 @@ import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import Avatar from "@/components/Avatar";
+import Alert from "@/components/Alert";
+import Tabs from "@/components/Tabs";
 import KeyValueRow from "@/components/KeyValueRow";
+import FormField from "@/components/FormField";
+import Input from "@/components/Input";
+import Textarea from "@/components/Textarea";
+import Select from "@/components/Select";
 import LeaseDocument, { type LeasePage } from "./LeaseDocument";
 
 const PAGES: LeasePage[] = [
@@ -80,7 +87,13 @@ const PAGES: LeasePage[] = [
   },
 ];
 
+type Stage = "template" | "review" | "sign" | "decline";
+
 export default function Lease() {
+  const [stage, setStage] = useState<Stage>("review");
+  const [otp, setOtp] = useState("");
+  const [template, setTemplate] = useState("rha_standard");
+
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
       <Nav role="tenant" />
@@ -94,24 +107,107 @@ export default function Lease() {
           }}
         >
           <Eyebrow>Lease · LSE-2024-00482</Eyebrow>
-          <Badge tone="warn" leftIcon="clock">
-            Awaiting your signature
-          </Badge>
+          {stage === "decline" ? (
+            <Badge tone="danger">You declined this offer</Badge>
+          ) : stage === "sign" ? (
+            <Badge tone="accent" leftIcon="shield">OTP signing in progress</Badge>
+          ) : stage === "template" ? (
+            <Badge tone="neutral">Drafting</Badge>
+          ) : (
+            <Badge tone="warn" leftIcon="clock">
+              Awaiting your signature
+            </Badge>
+          )}
         </div>
-        <h1 style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
-          Review and sign your lease
+        <h1 style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px" }}>
+          {stage === "template" ? "Pick a lease template" : stage === "decline" ? "You declined this lease" : "Review and sign your lease"}
         </h1>
 
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 380px", gap: 32 }}>
-          <Card padding={0} style={{ overflow: "hidden" }}>
-            <LeaseDocument
-              title="Residential Lease Agreement · Studio · Melville"
-              pages={PAGES}
-              totalPages={11}
-              initialPage={0}
-            />
-          </Card>
+        <div style={{ marginBottom: 24 }}>
+          <Tabs
+            tabs={[
+              { id: "template", label: "1 · Template" },
+              { id: "review", label: "2 · Review" },
+              { id: "sign", label: "3 · Sign (OTP)" },
+              { id: "decline", label: "× Decline" },
+            ]}
+            value={stage}
+            onChange={(id) => setStage(id as Stage)}
+          />
+        </div>
 
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 380px", gap: 32 }}>
+          {/* MAIN COLUMN */}
+          {stage === "template" ? (
+            <Card padding={32}>
+              <Eyebrow style={{ marginBottom: 12 }}>Choose a template</Eyebrow>
+              <p style={{ fontSize: 14, color: "var(--slate)", marginBottom: 20, maxWidth: 560 }}>
+                Habitat ships three SA-law lease templates. Pick the one that matches your arrangement —
+                you can still negotiate specific clauses with the landlord.
+              </p>
+              <FormField label="Template" helper="Used to generate the draft on the right.">
+                <Select
+                  value={template}
+                  onChange={(e) => setTemplate(e.target.value)}
+                  options={[
+                    { value: "rha_standard", label: "Rental Housing Act · Standard 12-month" },
+                    { value: "rha_six_month", label: "Rental Housing Act · 6-month flexi" },
+                    { value: "rha_room", label: "Single room · simplified lease" },
+                  ]}
+                />
+              </FormField>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginTop: 16 }}>
+                {[
+                  ["12-month standard", "Fixed term, 20-day notice, deposit in trust."],
+                  ["6-month flexi", "Shorter fixed term, escalation negotiable."],
+                  ["Single-room simplified", "For backrooms / outbuildings, shorter & plainer."],
+                ].map(([title, body]) => (
+                  <Card key={title} padding={14}>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{title}</div>
+                    <p style={{ fontSize: 12, color: "var(--slate)", margin: "6px 0 0", lineHeight: 1.5 }}>{body}</p>
+                  </Card>
+                ))}
+              </div>
+              <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+                <Button variant="accent" rightIcon="chevR" onClick={() => setStage("review")}>
+                  Generate draft
+                </Button>
+              </div>
+            </Card>
+          ) : stage === "decline" ? (
+            <Card padding={32}>
+              <Alert tone="danger" title="You declined this lease">
+                The offer is now closed. The landlord has been notified. The unit will be re-offered to the
+                next applicant in the queue. You can browse similar spots, or message Thandi if this was a
+                mistake.
+              </Alert>
+              <div style={{ marginTop: 24 }}>
+                <Eyebrow style={{ marginBottom: 10 }}>Reason you gave</Eyebrow>
+                <Textarea
+                  rows={4}
+                  defaultValue="Took a different unit closer to work — apologies for the late decline."
+                  readOnly
+                />
+              </div>
+              <div style={{ marginTop: 20, display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                <Button variant="ghost" leftIcon="chat">Message Thandi</Button>
+                <Button variant="secondary" leftIcon="search" onClick={() => setStage("review")}>
+                  Undo — re-open lease
+                </Button>
+              </div>
+            </Card>
+          ) : (
+            <Card padding={0} style={{ overflow: "hidden" }}>
+              <LeaseDocument
+                title="Residential Lease Agreement · Studio · Melville"
+                pages={PAGES}
+                totalPages={11}
+                initialPage={0}
+              />
+            </Card>
+          )}
+
+          {/* SIDEBAR */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 16 }}>Lease summary</Eyebrow>
@@ -121,18 +217,36 @@ export default function Lease() {
               <KeyValueRow label="Start" value="1 May 2025" size="sm" />
               <KeyValueRow label="Rent" value="R 5,400 / mo" size="sm" />
               <KeyValueRow label="Deposit" value="R 5,400" size="sm" />
+              <KeyValueRow
+                label="Template"
+                value={
+                  <span className="mono">
+                    {template === "rha_six_month"
+                      ? "RHA · 6-month"
+                      : template === "rha_room"
+                        ? "RHA · room"
+                        : "RHA · standard"}
+                  </span>
+                }
+                size="sm"
+                divider
+              />
             </Card>
 
+            {/* Signatures + OTP */}
             <Card padding={20}>
-              <Eyebrow style={{ marginBottom: 12 }}>Signatures</Eyebrow>
+              <Eyebrow style={{ marginBottom: 12 }}>Signatures (dual OTP)</Eyebrow>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <Avatar name="Thandi Mokoena" size="sm" tone="neutral" />
-                  <span style={{ fontSize: 13 }}>Thandi (landlord)</span>
+                  <div>
+                    <div style={{ fontSize: 13 }}>Thandi (landlord)</div>
+                    <div className="mono" style={{ fontSize: 10, color: "var(--slate)" }}>
+                      OTP · 14 May 09:42
+                    </div>
+                  </div>
                 </div>
-                <Badge tone="success" leftIcon="check">
-                  Signed
-                </Badge>
+                <Badge tone="success" leftIcon="check">Signed</Badge>
               </div>
               <div
                 style={{
@@ -145,24 +259,64 @@ export default function Lease() {
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <Avatar name="Sipho Dlamini" size="sm" tone="neutral" />
-                  <span style={{ fontSize: 13 }}>You</span>
+                  <div>
+                    <div style={{ fontSize: 13 }}>You</div>
+                    <div className="mono" style={{ fontSize: 10, color: "var(--slate)" }}>
+                      OTP sent to +27 82 ••• 4421
+                    </div>
+                  </div>
                 </div>
-                <Badge tone="warn">Pending</Badge>
+                <Badge tone={stage === "sign" ? "accent" : "warn"}>{stage === "sign" ? "Verifying" : "Pending"}</Badge>
               </div>
-              <Button
-                variant="accent"
-                leftIcon="edit"
-                style={{ width: "100%", justifyContent: "center", marginTop: 16 }}
-              >
-                Sign all 11 pages
-              </Button>
+
+              {stage === "sign" ? (
+                <div style={{ marginTop: 16 }}>
+                  <FormField label="Enter 6-digit code" helper="Resend in 0:47">
+                    <Input
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      maxLength={6}
+                      placeholder="••••••"
+                      className="mono"
+                      style={{ letterSpacing: "0.4em", fontSize: 18, height: 48, textAlign: "center" }}
+                    />
+                  </FormField>
+                  <Button
+                    variant="accent"
+                    leftIcon="check"
+                    disabled={otp.length < 6}
+                    style={{ width: "100%", justifyContent: "center", marginTop: 12 }}
+                  >
+                    Confirm signature
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="accent"
+                  leftIcon="edit"
+                  style={{ width: "100%", justifyContent: "center", marginTop: 16 }}
+                  onClick={() => setStage("sign")}
+                >
+                  Sign all 11 pages
+                </Button>
+              )}
+
               <Button
                 variant="ghost"
                 size="sm"
                 leftIcon="download"
                 style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
               >
-                Download draft
+                Download draft PDF
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                style={{ width: "100%", justifyContent: "center", marginTop: 4, color: "var(--danger)" }}
+                onClick={() => setStage("decline")}
+                disabled={stage === "decline"}
+              >
+                Decline this lease
               </Button>
             </Card>
 
@@ -170,8 +324,8 @@ export default function Lease() {
               <div style={{ display: "flex", gap: 10 }}>
                 <Icon name="shield" size={16} style={{ color: "var(--success)", flexShrink: 0, marginTop: 2 }} />
                 <div style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5 }}>
-                  Compliant with the Rental Housing Act and CPA. Signatures are e-IDAS qualified and
-                  time-stamped.
+                  Compliant with the Rental Housing Act and CPA. Signatures are e-IDAS qualified, OTP-bound,
+                  and time-stamped.
                 </div>
               </div>
             </Card>
