@@ -1,8 +1,10 @@
-# Backroom UI — Component Audit
+# Habitat UI — Component Audit
 
-Catalog of every reusable UI pattern across the 43 prototype screens. Anything appearing in 2+ screens is built once and reused — no duplication.
+Catalog of every reusable UI pattern across the design handoff. Anything appearing in 2+ screens is built once and reused — no duplication.
 
-> **Source**: `C:\Users\mabas\Downloads\Backroom Web-handoff\backroom-web\project\` — 43 `screen-*.jsx` files + `nav.jsx`, `primitives.jsx`.
+> **Design lock.** The component list below — together with the tokens in `src/styles/tokens.css` and the rules in [`CLAUDE.md`](./CLAUDE.md) — is the locked Habitat design system. New patterns compose these primitives; they don't replace or fork them. See `CLAUDE.md` §1.5 for the full primitive-selection table.
+
+> **Source**: handoff bundle at `C:\Users\mabas\Downloads\Backroom Web-handoff 2\backroom-web\project\` — 65 prototype `screen-*.jsx` files + `nav.jsx`, `primitives.jsx`. (The original audit was done against the v1 43-screen bundle; the system has since been extended to cover Phases 1–9, but the tiering rules are unchanged.)
 
 ## Tiering
 

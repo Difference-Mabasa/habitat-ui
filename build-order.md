@@ -307,12 +307,16 @@ Each line is a screen Habitat already has, paired with the depth it's missing. T
 
 ## Conventions during build-out
 
+> **Design lock.** The Habitat design system is fixed: tokens, primitives, typography, color, and spacing. New components must compose existing primitives — they do not introduce new visual patterns. See [`CLAUDE.md`](./CLAUDE.md) for the full rule set (color tokens, typography classes, primitive registry, decision checklist for adding components or screens).
+
 - **TypeScript**: strict mode, no `any` unless commented. `interface` for object shapes, `type` for unions.
-- **Components**: function components with `export default`. Co-locate scoped CSS only when utility classes can't express it (`Component.module.css`).
-- **No duplication**: if you're writing JSX that looks like an existing pattern, stop and check `component-audit.md`. The audit is the single source of truth for what's reusable.
+- **Components**: function components with `export default`. Compose existing primitives from `src/components/` rather than re-implementing patterns. Co-locate scoped CSS only when utility classes can't express it (`Component.module.css`).
+- **No duplication**: if you're writing JSX that looks like an existing pattern, stop and check `component-audit.md` and `/dev/components`. The audit is the single source of truth for what's reusable.
+- **No new visual tokens**: use the CSS variables in `src/styles/tokens.css`. No new hex literals (the `/tokens` swatch screen excepted), no custom shadows, no off-scale spacing, no new font families.
 - **Naming**: `kebab-case` for screen folders (`landlord-dashboard/`), `PascalCase` for component files.
 - **Routes**: every screen route lives in `src/routes.ts`; never hardcode a path in `<Link>`. Use route ID constants.
 - **API**: never call `fetch` directly from a component — go through `src/lib/api.ts` or a domain service in `src/lib/<domain>.ts`.
 - **Strings**: user-facing copy can live inline in screens (prototypes do too); extract to `src/copy/` only if duplication grows.
-- **Icons**: never inline SVG in a screen — always `<Icon name="…" />`.
-- **Commits**: one commit per checked phase, message format `phase N: <name>`.
+- **Icons**: never inline SVG in a screen — always `<Icon name="…" />`. New icons go in `Icon.tsx` using the same 24×24 / 1.5-stroke style.
+- **Brand**: user-facing brand is **Habitat** (logo wordmark `HABI`+`TAT`). Property type "backroom" lowercase stays. Backend service `backroom-api` is unchanged.
+- **Commits**: one commit per checked phase, message format `phase N: <name>`. Never include `Co-Authored-By: Claude`.
