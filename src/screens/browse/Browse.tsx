@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
@@ -8,6 +8,8 @@ import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import { useViewport } from "@/hooks/useViewport";
+import { useSession } from "@/lib/session";
+import { createPropertiesApi, type PropertySummary, type UnitType } from "@/lib/api/properties";
 import {
   BudgetFilter,
   BedsFilter,
@@ -18,12 +20,15 @@ import FilterBar, { FilterDivider, LocationFilter } from "@/components/FilterBar
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import MapPanel from "./MapPanel";
 
-const LISTINGS: PropertyCardData[] = [];
-
-// JHB suburb centroids (approximate) — feeds the real MapLibre canvas.
-const PIN_POSITIONS: { id: string; lat: number; lng: number; xPct?: number; yPct?: number }[] = [];
-
-const TYPES = ["Backroom", "Cottage", "Flatlet", "Studio"];
+// User-facing filter chips. Mirrors the API's UnitType enum (premium-aligned;
+// BACKROOM / ROOM removed in the V9 schema).
+const TYPES: { label: string; value: UnitType }[] = [
+  { label: "Apartment",  value: "APARTMENT" },
+  { label: "House",      value: "HOUSE" },
+  { label: "Townhouse",  value: "TOWNHOUSE" },
+  { label: "Cottage",    value: "COTTAGE" },
+  { label: "Studio",     value: "STUDIO" },
+];
 
 type ViewMode = "list" | "split" | "map";
 
@@ -45,14 +50,31 @@ function readNumberParam(params: URLSearchParams, key: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+/** "APARTMENT_BLOCK" -> "Apartment Block". */
+function titleCase(s: string): string {
+  return s
+    .toLowerCase()
+    .split("_")
+    .map((w) => (w.length > 0 ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
 export default function Browse() {
   const [params, setParams] = useSearchParams();
   const { isSm, isMd } = useViewport();
+  const session = useSession();
+  const api = useMemo(() => createPropertiesApi(session.client), [session.client]);
   // On phone, force list view; on tablet, force split-with-narrower-map.
   const [view, setView] = useState<ViewMode>("split");
   const effectiveView: ViewMode = isSm ? "list" : view;
   const [active, setActive] = useState<string | null>(null);
   const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
+
+  // Real listings from the API. Filters live on the URL; whenever a param
+  // changes we re-fetch (the API does the work, no client-side filtering).
+  const [items, setItems] = useState<PropertySummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // All filters are URL-driven so the state survives reload and is shareable.
   const areaSet = useMemo(() => parseCsvSet(params.get("location") ?? params.get("areas")), [params]);
@@ -65,6 +87,34 @@ export default function Browse() {
     newOnly: params.get("new") === "1",
     minSqm: readNumberParam(params, "minSqm"),
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    const filters = {
+      location: areaSet.size > 0 ? Array.from(areaSet).join(" ") : undefined,
+      types: typeSet.size > 0 ? (Array.from(typeSet) as UnitType[]) : undefined,
+      maxPrice: maxPrice ?? undefined,
+      minBeds: minBeds ?? undefined,
+      size: 50,
+    };
+    void api
+      .list(filters)
+      .then((page) => {
+        if (cancelled) return;
+        setItems(page.content);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load listings.");
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [api, areaSet, typeSet, maxPrice, minBeds]);
 
   const patchParams = (mutator: (next: URLSearchParams) => void) => {
     const next = new URLSearchParams(params);
@@ -124,31 +174,35 @@ export default function Browse() {
 
   const resetAll = () => setParams(new URLSearchParams(), { replace: true });
 
-  const dataState = params.get("state") as "loading" | "error" | null;
-  const clearDataState = () => patchParams((p) => p.delete("state"));
-
-  const visibleListings = useMemo(() => {
-    return LISTINGS.filter((l) => {
-      if (areaSet.size > 0) {
-        const matchesArea = Array.from(areaSet).some((area) =>
-          l.area.toLowerCase().startsWith(area.toLowerCase()),
-        );
-        if (!matchesArea) return false;
-      }
-      if (typeSet.size > 0 && (!l.type || !typeSet.has(l.type))) return false;
-      if (minPrice != null && l.price < minPrice) return false;
-      if (maxPrice != null && l.price > maxPrice) return false;
-      if (minBeds != null && (l.beds ?? 0) < minBeds) return false;
-      if (moreFilters.verifiedOnly && l.tag !== "Verified") return false;
-      if (moreFilters.newOnly && l.tag !== "New") return false;
-      if (moreFilters.minSqm != null && (l.sqm ?? 0) < moreFilters.minSqm) return false;
-      return true;
-    });
-  }, [areaSet, typeSet, minPrice, maxPrice, minBeds, moreFilters.verifiedOnly, moreFilters.newOnly, moreFilters.minSqm]);
+  // Server does location/type/maxPrice/minBeds. minPrice, sqm, verified, new
+  // are post-filtered client-side until the API picks them up.
+  const visibleListings = useMemo<PropertyCardData[]>(() => {
+    return items
+      .filter((s) => {
+        if (minPrice != null && (s.headlinePrice ?? 0) < minPrice) return false;
+        if (moreFilters.minSqm != null && (s.headlineSqm ?? 0) < moreFilters.minSqm) return false;
+        return true;
+      })
+      .map((s) => ({
+        id: s.id,
+        title: s.title,
+        area: s.suburb ?? s.city ?? "—",
+        price: s.headlinePrice ?? 0,
+        beds: s.headlineBeds ?? 0,
+        baths: s.headlineBaths ?? 0,
+        sqm: s.headlineSqm ?? undefined,
+        type: s.headlineUnitType ? titleCase(s.headlineUnitType) : undefined,
+        photoSrc: s.coverImageUrl ?? undefined,
+      }));
+  }, [items, minPrice, moreFilters.minSqm]);
 
   const visiblePins = useMemo(
-    () => PIN_POSITIONS.filter((p) => visibleListings.some((l) => l.id === p.id)),
-    [visibleListings],
+    () =>
+      items
+        .filter((s) => s.latitude != null && s.longitude != null)
+        .filter((s) => visibleListings.some((l) => l.id === s.id))
+        .map((s) => ({ id: s.id, lat: s.latitude!, lng: s.longitude! })),
+    [items, visibleListings],
   );
 
   const toggleSave = (id: string) => {
@@ -205,8 +259,8 @@ export default function Browse() {
             ) : null}
             <div style={{ display: "flex", gap: 6 }}>
               {TYPES.map((t) => (
-                <Chip key={t} active={typeSet.has(t)} onClick={() => toggleType(t)}>
-                  {t}
+                <Chip key={t.value} active={typeSet.has(t.value)} onClick={() => toggleType(t.value)}>
+                  {t.label}
                 </Chip>
               ))}
             </div>
@@ -264,13 +318,13 @@ export default function Browse() {
               padding: isSm ? "16px 16px" : "24px 32px",
             }}
           >
-            {dataState === "loading" ? (
+            {loading ? (
               <LoadingState rows={6} />
-            ) : dataState === "error" ? (
+            ) : error ? (
               <ErrorState
                 title="Couldn't load listings"
-                description="The browse feed didn't respond. Retry, or open the saved searches to load cached results."
-                onRetry={clearDataState}
+                description={error}
+                onRetry={resetAll}
               />
             ) : visibleListings.length === 0 ? (
               <EmptyState
@@ -320,6 +374,7 @@ export default function Browse() {
                     saved={savedSet.has(l.id)}
                     onHover={setActive}
                     onToggleSave={toggleSave}
+                    href={`/property/${l.id}`}
                   />
                 ))}
               </div>

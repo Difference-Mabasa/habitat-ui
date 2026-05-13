@@ -1,0 +1,201 @@
+import { type ApiClient } from "./client";
+
+// Mirrors the API enums (com.habitat.api.enums.*). Kept inline rather than
+// pulled from a generated client so the surface is grep-able from the UI.
+export type PropertyType =
+  | "HOUSE"
+  | "APARTMENT_BLOCK"
+  | "TOWNHOUSE_COMPLEX"
+  | "COMPLEX"
+  | "PLOT";
+
+export type UnitType =
+  | "APARTMENT"
+  | "HOUSE"
+  | "TOWNHOUSE"
+  | "COTTAGE"
+  | "STUDIO"
+  | "FLATLET";
+
+export type PropertyStatus = "DRAFT" | "LISTED" | "UNLISTED";
+export type UnitStatus = "AVAILABLE" | "OCCUPIED" | "UNDER_MAINTENANCE" | "UNLISTED";
+export type FurnishingType = "FURNISHED" | "SEMI_FURNISHED" | "UNFURNISHED";
+export type PaymentFrequency = "WEEKLY" | "MONTHLY";
+
+export interface PropertyImage {
+  id: string;
+  url: string;
+  isCover: boolean;
+  sortOrder: number;
+}
+
+export interface UnitDetail {
+  id: string;
+  propertyId: string;
+  unitNumber: string | null;
+  title: string;
+  description: string | null;
+  unitType: UnitType;
+  status: UnitStatus;
+  furnishing: FurnishingType | null;
+  price: number;
+  paymentFrequency: PaymentFrequency;
+  deposit: number | null;
+  bedrooms: number;
+  bathrooms: number;
+  sqm: number | null;
+  maxOccupants: number | null;
+  waterIncluded: boolean;
+  electricityIncluded: boolean;
+  petsAllowed: boolean;
+  availableFrom: string | null;
+  images: PropertyImage[];
+}
+
+export interface PropertyDetail {
+  id: string;
+  title: string;
+  description: string | null;
+  propertyType: PropertyType;
+  status: PropertyStatus;
+  addressLine: string | null;
+  suburb: string | null;
+  city: string | null;
+  province: string | null;
+  postalCode: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  landlordId: string;
+  managerId: string;
+  images: PropertyImage[];
+  units: UnitDetail[];
+  createdAt: string;
+}
+
+export interface PropertySummary {
+  id: string;
+  title: string;
+  suburb: string | null;
+  city: string | null;
+  province: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  propertyType: PropertyType;
+  coverImageUrl: string | null;
+  headlineUnitId: string | null;
+  headlineUnitType: UnitType | null;
+  headlinePrice: number | null;
+  headlineBeds: number | null;
+  headlineBaths: number | null;
+  headlineSqm: number | null;
+  totalUnits: number;
+  availableUnits: number;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface PropertySearchFilters {
+  location?: string;
+  /** One or more unit types — sent as comma-separated `type=APARTMENT,STUDIO`. */
+  types?: UnitType[];
+  maxPrice?: number;
+  minBeds?: number;
+  page?: number;
+  size?: number;
+}
+
+export interface CreatePropertyPayload {
+  title: string;
+  description?: string;
+  propertyType: PropertyType;
+  addressLine?: string;
+  suburb?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export type UpdatePropertyPayload = Partial<CreatePropertyPayload> & {
+  status?: PropertyStatus;
+};
+
+export interface CreateUnitPayload {
+  unitNumber?: string;
+  title: string;
+  description?: string;
+  unitType: UnitType;
+  furnishing?: FurnishingType;
+  price: number;
+  paymentFrequency?: PaymentFrequency;
+  deposit?: number;
+  bedrooms: number;
+  bathrooms: number;
+  sqm?: number;
+  maxOccupants?: number;
+  waterIncluded?: boolean;
+  electricityIncluded?: boolean;
+  petsAllowed?: boolean;
+  availableFrom?: string;
+}
+
+export type UpdateUnitPayload = Partial<CreateUnitPayload> & {
+  status?: UnitStatus;
+};
+
+export interface PropertiesApi {
+  list(filters?: PropertySearchFilters): Promise<PageResponse<PropertySummary>>;
+  getById(id: string): Promise<PropertyDetail>;
+  create(payload: CreatePropertyPayload): Promise<PropertyDetail>;
+  update(id: string, payload: UpdatePropertyPayload): Promise<PropertyDetail>;
+  delete(id: string): Promise<void>;
+  addUnit(propertyId: string, payload: CreateUnitPayload): Promise<UnitDetail>;
+  updateUnit(unitId: string, payload: UpdateUnitPayload): Promise<UnitDetail>;
+  deleteUnit(unitId: string): Promise<void>;
+}
+
+export function createPropertiesApi(client: ApiClient): PropertiesApi {
+  return {
+    list(filters = {}) {
+      const params = new URLSearchParams();
+      if (filters.location) params.set("location", filters.location);
+      if (filters.types && filters.types.length > 0) {
+        params.set("type", filters.types.join(","));
+      }
+      if (filters.maxPrice != null) params.set("maxPrice", String(filters.maxPrice));
+      if (filters.minBeds != null) params.set("minBeds", String(filters.minBeds));
+      if (filters.page != null) params.set("page", String(filters.page));
+      if (filters.size != null) params.set("size", String(filters.size));
+      const qs = params.toString();
+      return client.get<PageResponse<PropertySummary>>(qs ? `/properties?${qs}` : "/properties");
+    },
+    getById(id) {
+      return client.get<PropertyDetail>(`/properties/${id}`);
+    },
+    create(payload) {
+      return client.post<PropertyDetail>("/properties", payload);
+    },
+    update(id, payload) {
+      return client.patch<PropertyDetail>(`/properties/${id}`, payload);
+    },
+    delete(id) {
+      return client.delete<void>(`/properties/${id}`);
+    },
+    addUnit(propertyId, payload) {
+      return client.post<UnitDetail>(`/properties/${propertyId}/units`, payload);
+    },
+    updateUnit(unitId, payload) {
+      return client.patch<UnitDetail>(`/units/${unitId}`, payload);
+    },
+    deleteUnit(unitId) {
+      return client.delete<void>(`/units/${unitId}`);
+    },
+  };
+}

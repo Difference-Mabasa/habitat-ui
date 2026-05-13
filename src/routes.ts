@@ -35,7 +35,7 @@ export const ROUTES: ScreenRoute[] = [
   { id: "landing", label: "01 — Landing", path: "/landing", group: "core" },
   { id: "landlord-dashboard", label: "02 — Landlord dashboard", path: "/landlord-dashboard", group: "core" },
   { id: "browse", label: "03 — Browse + map", path: "/browse", group: "core" },
-  { id: "property", label: "04 — Property detail", path: "/property", group: "core" },
+  { id: "property", label: "04 — Property detail", path: "/property/:id", group: "core" },
   { id: "apply", label: "05 — Apply flow", path: "/apply", group: "core" },
   { id: "tenant-portal", label: "06 — Tenant portal", path: "/tenant-portal", group: "core" },
 

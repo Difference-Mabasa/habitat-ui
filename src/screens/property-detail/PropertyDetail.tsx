@@ -1,4 +1,5 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
 import { useViewport } from "@/hooks/useViewport";
 import Photo from "@/components/Photo";
@@ -13,23 +14,17 @@ import PriceDisplay from "@/components/PriceDisplay";
 import RatingDisplay from "@/components/RatingDisplay";
 import AgentCard from "@/components/AgentCard";
 import EmptyState from "@/components/EmptyState";
+import LoadingState from "@/components/LoadingState";
+import ErrorState from "@/components/ErrorState";
 import NearbyPlaces from "./NearbyPlaces";
-
-type UnitStatus = "AVAILABLE" | "OCCUPIED" | "UNDER_MAINTENANCE" | "UNLISTED";
-
-interface Unit {
-  /** Slug used in /unit?id=… */
-  id: string;
-  name: string;
-  price: number;
-  beds: number;
-  baths: number;
-  sqm: number;
-  unitStatus: UnitStatus;
-  available: string | null;
-}
-
-const UNITS: Unit[] = [];
+import { useSession } from "@/lib/session";
+import {
+  createPropertiesApi,
+  type PropertyDetail as PropertyDetailDto,
+  type PropertyStatus,
+  type UnitDetail,
+  type UnitStatus,
+} from "@/lib/api/properties";
 
 const UNIT_BADGE: Record<UnitStatus, { tone: "success" | "neutral" | "warn"; label: string }> = {
   AVAILABLE: { tone: "success", label: "Available" },
@@ -40,27 +35,113 @@ const UNIT_BADGE: Record<UnitStatus, { tone: "success" | "neutral" | "warn"; lab
 
 const AMENITIES: { i: IconName; t: string }[] = [];
 
-const QUICK_STATS: { i: IconName; l: string; v: string }[] = [
-  { i: "home", l: "Property type", v: "—" },
-  { i: "users", l: "Units available", v: "—" },
-  { i: "calendar", l: "Earliest move-in", v: "—" },
-  { i: "shield", l: "Verified by", v: "—" },
-];
-
-type ListingState = "DRAFT" | "LISTED" | "UNLISTED";
+function titleCase(s: string): string {
+  return s
+    .toLowerCase()
+    .split("_")
+    .map((w) => (w.length > 0 ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
 
 export default function PropertyDetail() {
+  const { id: propertyId } = useParams<{ id: string }>();
   const [params] = useSearchParams();
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
   const ctx = params.get("ctx");
-  const propertyId = params.get("id") ?? "";
+  const session = useSession();
+  const api = useMemo(() => createPropertiesApi(session.client), [session.client]);
+
+  const [property, setProperty] = useState<PropertyDetailDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!propertyId || propertyId === ":id") {
+      setLoading(false);
+      setError("No property selected. Open one from /browse.");
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    void api
+      .getById(propertyId)
+      .then((p) => {
+        if (cancelled) return;
+        setProperty(p);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Property not found.");
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [api, propertyId]);
+
   const canEdit = ctx === "landlord" || ctx === "agent";
-  const editHref = `/wizard?edit=${propertyId}${ctx === "agent" ? "&ctx=agent" : ""}`;
-  const availableUnits = UNITS.filter((u) => u.unitStatus === "AVAILABLE");
-  const listingState: ListingState = "LISTED";
-  const listingSource = "LISTED_BY_OWNER" as "LISTED_BY_OWNER" | "BY_AGENT";
-  const listingAgent = "";
+  const editHref = `/wizard?edit=${propertyId ?? ""}${ctx === "agent" ? "&ctx=agent" : ""}`;
+  const units: UnitDetail[] = property?.units ?? [];
+  const availableUnits = units.filter((u) => u.status === "AVAILABLE");
+  const listingState: PropertyStatus = property?.status ?? "LISTED";
+  const galleryPhotos = useMemo(() => {
+    if (!property) return [] as string[];
+    const propUrls = property.images.map((i) => i.url);
+    const unitUrls = property.units.flatMap((u) => u.images.map((i) => i.url));
+    return [...propUrls, ...unitUrls].slice(0, 5);
+  }, [property]);
+
+  const earliestMoveIn = useMemo(() => {
+    const dates = availableUnits
+      .map((u) => u.availableFrom)
+      .filter((d): d is string => Boolean(d))
+      .sort();
+    return dates[0] ?? null;
+  }, [availableUnits]);
+
+  const quickStats: { i: IconName; l: string; v: string }[] = property
+    ? [
+        { i: "home", l: "Property type", v: titleCase(property.propertyType) },
+        { i: "users", l: "Units available", v: `${availableUnits.length} of ${units.length}` },
+        { i: "calendar", l: "Earliest move-in", v: earliestMoveIn ?? "—" },
+        { i: "shield", l: "Verified by", v: "Habitat" },
+      ]
+    : [];
+
+  if (loading) {
+    return (
+      <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
+        <Nav role="tenant" />
+        <div style={{ maxWidth: 1440, margin: "0 auto", padding: "48px 32px" }}>
+          <LoadingState rows={4} />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !property) {
+    return (
+      <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
+        <Nav role="tenant" />
+        <div style={{ maxWidth: 720, margin: "0 auto", padding: "64px 32px" }}>
+          <ErrorState
+            title="Property not found"
+            description={error ?? "This property may have been unlisted."}
+          />
+          <div style={{ textAlign: "center", marginTop: 16 }}>
+            <Link to="/browse">
+              <Button variant="ghost" leftIcon="arrR">
+                Back to browse
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -91,19 +172,20 @@ export default function PropertyDetail() {
             overflow: "hidden",
           }}
         >
-          <Photo ratio="auto" label="hero · facade.jpg" style={{ gridRow: "1 / 3", borderRadius: 0, height: "100%" }} />
-          <Photo ratio="auto" label="kitchen.jpg" style={{ borderRadius: 0, height: "100%" }} />
-          <Photo ratio="auto" label="garden.jpg" style={{ borderRadius: 0, height: "100%" }} />
-          <Photo ratio="auto" label="bedroom.jpg" style={{ borderRadius: 0, height: "100%" }} />
-          <Photo ratio="auto" label="bath.jpg" style={{ borderRadius: 0, height: "100%" }} />
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon="grid"
-            style={{ position: "absolute", bottom: 16, right: 16 }}
-          >
-            View 24 photos
-          </Button>
+          {galleryPhotos.map((src, i) => (
+            <Photo
+              key={src + i}
+              ratio="auto"
+              src={src}
+              label=""
+              style={i === 0
+                ? { gridRow: isSm ? undefined : "1 / 3", borderRadius: 0, height: "100%" }
+                : { borderRadius: 0, height: "100%" }}
+            />
+          ))}
+          {galleryPhotos.length === 0 ? (
+            <Photo ratio="auto" label="No photos" style={{ borderRadius: 0, height: "100%" }} />
+          ) : null}
         </div>
       </div>
 
@@ -128,10 +210,6 @@ export default function PropertyDetail() {
                 <Badge tone={listingState === "LISTED" ? "success" : listingState === "DRAFT" ? "warn" : "neutral"}>
                   {listingState}
                 </Badge>
-                <Badge tone={listingSource === "BY_AGENT" ? "accent" : "neutral"}>
-                  {listingSource === "BY_AGENT" ? `Listed by ${listingAgent}` : "Listed by owner"}
-                </Badge>
-                <Badge tone="success" leftIcon="key">Mandate · Full management</Badge>
               </div>
               <h1
                 style={{
@@ -142,11 +220,12 @@ export default function PropertyDetail() {
                   margin: "0 0 10px",
                 }}
               >
-                Property
+                {property.title}
               </h1>
               <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--slate)", fontSize: 14 }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Icon name="pin" size={14} /> —
+                  <Icon name="pin" size={14} />
+                  {[property.suburb, property.city, property.province].filter(Boolean).join(", ") || "—"}
                 </span>
                 <span>·</span>
                 <RatingDisplay rating={0} count={0} size="sm" />
@@ -179,10 +258,10 @@ export default function PropertyDetail() {
               marginBottom: 32,
             }}
           >
-            {QUICK_STATS.map((s, i) => (
+            {quickStats.map((s, i) => (
               <div
                 key={s.l}
-                style={{ padding: 20, borderRight: i < QUICK_STATS.length - 1 ? "1px solid var(--hairline)" : "none" }}
+                style={{ padding: 20, borderRight: i < quickStats.length - 1 ? "1px solid var(--hairline)" : "none" }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--slate)", marginBottom: 6 }}>
                   <Icon name={s.i} size={14} />
@@ -195,19 +274,19 @@ export default function PropertyDetail() {
 
           <DetailSection title="About this property">
             <p style={{ fontSize: 15, color: "var(--slate)", lineHeight: 1.7, margin: "0 0 12px" }}>
-              —
+              {property.description ?? "—"}
             </p>
           </DetailSection>
 
           <DetailSection
             title="Units"
-            subtitle={`${availableUnits.length} of ${UNITS.length} available · click a unit for photos & apply`}
+            subtitle={`${availableUnits.length} of ${units.length} available · click a unit for photos & apply`}
           >
-            {UNITS.length === 0 ? (
+            {units.length === 0 ? (
               <EmptyState icon="home" title="No units yet" />
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {UNITS.map((u) => (
+                {units.map((u) => (
                   <UnitRow key={u.id} unit={u} />
                 ))}
               </div>
@@ -242,10 +321,10 @@ export default function PropertyDetail() {
           <Card padding={24} style={{ position: "sticky", top: 88 }}>
             <Eyebrow style={{ marginBottom: 8 }}>About this property</Eyebrow>
             <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
-              Property
+              {property.title}
             </div>
             <div style={{ fontSize: 13, color: "var(--slate)", marginBottom: 16 }}>
-              {UNITS.length} units · {availableUnits.length} available
+              {units.length} units · {availableUnits.length} available
             </div>
 
             <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12 }}>
@@ -269,9 +348,9 @@ export default function PropertyDetail() {
                         fontSize: 13,
                       }}
                     >
-                      <span style={{ fontWeight: 500 }}>{u.name}</span>
+                      <span style={{ fontWeight: 500 }}>{u.title}</span>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                        <PriceDisplay amount={u.price} period="/mo" size="sm" />
+                        <PriceDisplay amount={Number(u.price)} period="/mo" size="sm" />
                         <Icon name="chevR" size={14} style={{ color: "var(--slate)" }} />
                       </span>
                     </Link>
@@ -330,9 +409,10 @@ function DetailSection({
   );
 }
 
-function UnitRow({ unit }: { unit: Unit }) {
-  const closed = unit.unitStatus !== "AVAILABLE";
-  const badge = UNIT_BADGE[unit.unitStatus];
+function UnitRow({ unit }: { unit: UnitDetail }) {
+  const closed = unit.status !== "AVAILABLE";
+  const badge = UNIT_BADGE[unit.status];
+  const cover = unit.images.find((i) => i.isCover)?.url ?? unit.images[0]?.url;
   return (
     <Link
       to={`/unit?id=${unit.id}`}
@@ -352,19 +432,21 @@ function UnitRow({ unit }: { unit: Unit }) {
         transition: "border-color 150ms, background 150ms",
       }}
     >
-      <Photo ratio="4/3" label="" style={{ borderRadius: 8 }} />
+      <Photo ratio="4/3" src={cover} label="" style={{ borderRadius: 8 }} />
       <div>
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{unit.name}</div>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{unit.title}</div>
         <div style={{ fontSize: 12, color: "var(--slate)", display: "flex", gap: 10 }}>
-          <span><Icon name="bed" size={12} /> {unit.beds}</span>
-          <span><Icon name="bath" size={12} /> {unit.baths}</span>
-          <span><Icon name="sqm" size={12} /> {unit.sqm} m²</span>
+          <span><Icon name="bed" size={12} /> {unit.bedrooms}</span>
+          <span><Icon name="bath" size={12} /> {unit.bathrooms}</span>
+          {unit.sqm != null ? (
+            <span><Icon name="sqm" size={12} /> {unit.sqm} m²</span>
+          ) : null}
         </div>
       </div>
       <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-        <PriceDisplay amount={unit.price} period="" size="md" />
+        <PriceDisplay amount={Number(unit.price)} period="" size="md" />
         <span style={{ fontSize: 11, color: "var(--slate)" }}>
-          {unit.available ?? "Currently occupied"}
+          {unit.availableFrom ?? "Currently occupied"}
         </span>
       </span>
       <Badge tone={badge.tone}>{badge.label}</Badge>
