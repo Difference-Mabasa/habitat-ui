@@ -4,19 +4,25 @@ import Input from "./Input";
 /**
  * SA-scoped address autocomplete.
  *
- * Backed by **Nominatim (OpenStreetMap)** in dev: free, no API key,
- * 1 req/sec rate limit, asks for a custom User-Agent. A 300ms debounce
- * + 2-character minimum keeps us comfortably under the rate cap even
- * with users typing fast.
+ * **Primary provider: Google Places** (matches backroom-ui). Loaded via
+ * the script tag in {@code index.html}; consumers call
+ * {@code google.maps.importLibrary('places')} which transparently waits
+ * for the SDK to finish loading. Google has materially better SA
+ * address + suburb data than alternatives.
  *
- * Behaviour ports from backroom's `<app-address-lookup>` — hybrid UX:
- * single search input → dropdown of suggestions → tap a row → the
- * structured fields below auto-fill but stay editable. The same
- * AddressValue shape is used so both ends of the wire match.
+ * **Fallback: Nominatim (OpenStreetMap)**. If the Google SDK isn't
+ * available (key removed, network blocked, ad blocker, dev env without
+ * the script tag), the component falls through to a free Nominatim
+ * lookup so the form remains functional. Quality drops but nothing
+ * breaks.
  *
- * The geocoder lookup is wrapped in a thin adapter so a future swap to
- * a paid provider (Google Places, Mapbox, MapTiler, Pelias) means
- * replacing one function — no caller changes.
+ * UX flow (mirrors backroom):
+ *   1. User types in the search input.
+ *   2. After 300ms debounce + 2-char minimum, fetch predictions.
+ *   3. User taps a suggestion -> resolve it (Google: fetchFields for
+ *      location + addressComponents; Nominatim: already inline) ->
+ *      structured fields below auto-fill.
+ *   4. Structured fields stay editable for manual corrections.
  */
 
 export interface AddressValue {
@@ -52,11 +58,17 @@ interface AddressLookupProps {
   disabled?: boolean;
 }
 
+/**
+ * Internal: a search hit the user can pick. `resolve()` is two-stage
+ * because Google's autocomplete returns lightweight predictions and the
+ * full address details (components + lat/lng) require a second call.
+ * Nominatim returns everything in one call, so `resolve` is just a
+ * trivial wrapper there.
+ */
 interface Suggestion {
-  displayName: string;
   primary: string;
   secondary: string;
-  value: AddressValue;
+  resolve: () => Promise<AddressValue>;
 }
 
 const DEBOUNCE_MS = 300;
@@ -76,6 +88,7 @@ export default function AddressLookup({
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resolving, setResolving] = useState(false);
 
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -100,20 +113,24 @@ export default function AddressLookup({
     return () => clearTimeout(timer);
   }, [query]);
 
-  const pickSuggestion = (s: Suggestion) => {
-    onChange(s.value);
-    onSuggestionPicked?.(s.value);
+  const pickSuggestion = async (s: Suggestion) => {
     setQuery("");
     setSuggestions([]);
     setOpen(false);
+    setResolving(true);
+    try {
+      const resolved = await s.resolve();
+      onChange(resolved);
+      onSuggestionPicked?.(resolved);
+    } finally {
+      setResolving(false);
+    }
   };
 
   const setField = (k: keyof AddressValue, v: string) => {
     onChange({ ...value, [k]: v });
   };
 
-  // Hide the dropdown shortly after blur so mousedown on a suggestion
-  // still registers before the dropdown unmounts.
   const scheduleHide = () => {
     hideTimerRef.current = setTimeout(() => setOpen(false), HIDE_DELAY_MS);
   };
@@ -138,16 +155,13 @@ export default function AddressLookup({
           onFocus={() => setOpen(true)}
           onBlur={() => {
             scheduleHide();
-            // The group-level save can fire after the user picks a
-            // suggestion or types something — but only after the hide
-            // timer resolves so a mid-click doesn't trip it.
             if (onBlur) setTimeout(onBlur, HIDE_DELAY_MS + 20);
           }}
           placeholder={placeholder}
           autoComplete="off"
-          disabled={disabled}
+          disabled={disabled || resolving}
         />
-        {open && (loading || suggestions.length > 0) ? (
+        {open && (loading || resolving || suggestions.length > 0) ? (
           <ul
             role="listbox"
             style={{
@@ -168,7 +182,7 @@ export default function AddressLookup({
             }}
             onMouseDown={cancelHide}
           >
-            {loading ? (
+            {loading || resolving ? (
               <li
                 style={{
                   padding: "10px 12px",
@@ -176,17 +190,17 @@ export default function AddressLookup({
                   color: "var(--slate)",
                 }}
               >
-                Searching…
+                {resolving ? "Loading address…" : "Searching…"}
               </li>
             ) : (
               suggestions.map((s, i) => (
                 <li
-                  key={`${s.displayName}-${i}`}
+                  key={`${s.primary}-${i}`}
                   role="option"
                   aria-selected={false}
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    pickSuggestion(s);
+                    void pickSuggestion(s);
                   }}
                   style={{
                     padding: "10px 12px",
@@ -251,11 +265,79 @@ export default function AddressLookup({
   );
 }
 
-// ── Geocoder adapter ─────────────────────────────────────────────────
+// ── Provider router ──────────────────────────────────────────────────
 
-/**
- * Nominatim shape (subset).
- */
+async function searchAddresses(query: string): Promise<Suggestion[]> {
+  if (isGoogleAvailable()) {
+    try {
+      return await searchViaGoogle(query);
+    } catch (err) {
+      // If Google fails (quota, network, API key issue) we fall back to
+      // Nominatim so the form keeps working. Original error captured for
+      // diagnosis but not surfaced to the user.
+      console.warn("Google Places search failed, falling back to Nominatim:", err);
+    }
+  }
+  return searchViaNominatim(query);
+}
+
+function isGoogleAvailable(): boolean {
+  return typeof window !== "undefined" && Boolean(window.google?.maps?.importLibrary);
+}
+
+// ── Google Places ────────────────────────────────────────────────────
+
+async function searchViaGoogle(query: string): Promise<Suggestion[]> {
+  const { AutocompleteSuggestion } = (await google.maps.importLibrary(
+    "places",
+  )) as google.maps.PlacesLibrary;
+  const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+    input: query,
+    includedRegionCodes: ["za"],
+  });
+  return suggestions
+    .map((s) => s.placePrediction)
+    .filter((p): p is google.maps.places.PlacePrediction => p !== null)
+    .map((pred): Suggestion => ({
+      primary: pred.mainText?.text ?? pred.text.text,
+      secondary: pred.secondaryText?.text ?? "",
+      resolve: () => resolveGooglePrediction(pred),
+    }));
+}
+
+async function resolveGooglePrediction(
+  pred: google.maps.places.PlacePrediction,
+): Promise<AddressValue> {
+  const place = pred.toPlace();
+  await place.fetchFields({ fields: ["location", "addressComponents"] });
+  const comps = place.addressComponents ?? [];
+  const get = (type: string) =>
+    comps.find((c) => c.types.includes(type))?.longText ?? "";
+
+  const streetNumber = get("street_number");
+  const route = get("route");
+  const addressLine = streetNumber ? `${streetNumber} ${route}`.trim() : route;
+  const suburb =
+    get("sublocality_level_1") || get("sublocality") || get("neighborhood");
+  const city = get("locality");
+  const province = get("administrative_area_level_1");
+  const postalCode = get("postal_code");
+  const lat = place.location?.lat() ?? null;
+  const lng = place.location?.lng() ?? null;
+
+  return {
+    addressLine,
+    suburb,
+    city,
+    province,
+    postalCode,
+    latitude: lat,
+    longitude: lng,
+  };
+}
+
+// ── Nominatim (fallback) ─────────────────────────────────────────────
+
 interface NominatimRow {
   display_name: string;
   lat: string;
@@ -276,7 +358,7 @@ interface NominatimRow {
   };
 }
 
-async function searchAddresses(query: string): Promise<Suggestion[]> {
+async function searchViaNominatim(query: string): Promise<Suggestion[]> {
   const params = new URLSearchParams({
     q: query,
     format: "jsonv2",
@@ -284,16 +366,10 @@ async function searchAddresses(query: string): Promise<Suggestion[]> {
     addressdetails: "1",
     limit: "8",
   });
-  const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-  const res = await fetch(url, {
-    headers: {
-      // Nominatim asks for an explicit User-Agent identifying the app.
-      // Browsers strip custom User-Agent headers from fetch requests
-      // (security restriction) so this is a no-op; the Accept-Language
-      // hint gets honoured though, which is what we actually need.
-      "Accept-Language": "en",
-    },
-  });
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+    { headers: { "Accept-Language": "en" } },
+  );
   if (!res.ok) throw new Error(`geocoder ${res.status}`);
   const rows = (await res.json()) as NominatimRow[];
   return rows.map(rowToSuggestion);
@@ -308,19 +384,19 @@ function rowToSuggestion(row: NominatimRow): Suggestion {
   const postalCode = a.postcode ?? "";
   const primary = street || row.display_name.split(",")[0] || row.display_name;
   const secondaryParts = [suburb, city, province, postalCode].filter(Boolean);
+  const value: AddressValue = {
+    addressLine: street,
+    suburb,
+    city,
+    province,
+    postalCode,
+    latitude: numberOrNull(row.lat),
+    longitude: numberOrNull(row.lon),
+  };
   return {
-    displayName: row.display_name,
     primary,
     secondary: secondaryParts.join(" · "),
-    value: {
-      addressLine: street,
-      suburb,
-      city,
-      province,
-      postalCode,
-      latitude: numberOrNull(row.lat),
-      longitude: numberOrNull(row.lon),
-    },
+    resolve: () => Promise.resolve(value),
   };
 }
 

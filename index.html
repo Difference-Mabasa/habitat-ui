@@ -33,6 +33,18 @@
       href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+    <!--
+      Google Maps Places SDK. Reusing backroom's API key (referrer-restricted
+      in GCP). Loaded async + defer so it doesn't block first paint;
+      consumers (AddressLookup today, /browse + /property-detail later) await
+      `google.maps.importLibrary(...)` before use, which transparently waits
+      for the script to finish loading.
+    -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyComWXDCPtCenbiXmqcBfCMDlONckAzrvg&libraries=places&loading=async&v=weekly"
+      async
+      defer
+    ></script>
   </head>
   <body>
     <div id="root"></div>
