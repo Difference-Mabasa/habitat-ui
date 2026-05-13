@@ -39,8 +39,46 @@ export interface UserMeResponse {
   roles: Role[];
   activeRole: Role;
   emailVerified: boolean;
-  area?: string;
+  area: string | null;
   createdAt: string;
+  // Profile-edit fields (V7). Null whenever the user hasn't filled them in.
+  phone: string | null;
+  bio: string | null;
+  interests: string[] | null;
+  jobTitle: string | null;
+  employer: string | null;
+  education: string | null;
+  addressLine: string | null;
+  suburb: string | null;
+  city: string | null;
+  province: string | null;
+  postalCode: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+/**
+ * Partial profile update. Every field is optional — only the keys
+ * present on the object touch the row server-side. To clear a textual
+ * column back to NULL, send an empty string; the API normalises it.
+ */
+export interface UpdateProfilePayload {
+  firstName?: string;
+  surname?: string;
+  phone?: string;
+  bio?: string;
+  interests?: string[];
+  jobTitle?: string;
+  employer?: string;
+  education?: string;
+  addressLine?: string;
+  suburb?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+  area?: string;
 }
 
 export interface AuthApi {
@@ -49,6 +87,7 @@ export interface AuthApi {
   refresh(refreshToken: string): Promise<AuthResponse>;
   logout(refreshToken: string | null): Promise<void>;
   me(): Promise<UserMeResponse>;
+  updateMe(payload: UpdateProfilePayload): Promise<UserMeResponse>;
   switchActiveRole(role: Role): Promise<UserMeResponse>;
 }
 
@@ -109,6 +148,10 @@ export function createAuthApi(client: ApiClient): AuthApi {
       const raw = await client.get<RawUserMe>("/users/me");
       return transformResponse(raw) as UserMeResponse;
     },
+    async updateMe(payload) {
+      const raw = await client.patch<RawUserMe>("/users/me", payload);
+      return transformResponse(raw) as UserMeResponse;
+    },
     async switchActiveRole(role) {
       const raw = await client.patch<RawUserMe>("/users/me/active-role", {
         role: toApiRole(role),
@@ -139,8 +182,21 @@ interface RawUserMe {
   roles: string[];
   activeRole: string;
   emailVerified: boolean;
-  area?: string;
+  area: string | null;
   createdAt: string;
+  phone: string | null;
+  bio: string | null;
+  interests: string[] | null;
+  jobTitle: string | null;
+  employer: string | null;
+  education: string | null;
+  addressLine: string | null;
+  suburb: string | null;
+  city: string | null;
+  province: string | null;
+  postalCode: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 /** Convenience: convert an AuthResponse into the SessionUser shape. */

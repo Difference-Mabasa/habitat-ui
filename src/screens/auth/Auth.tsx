@@ -421,7 +421,7 @@ function RegisterForm() {
     try {
       await register({ email, password, firstName, surname, role });
       // Land on the public landing page. The welcome notification (pushed
-      // by the API event listener) carries the CTA into /profile/onboarding.
+      // by the API event listener) carries a "Complete profile" CTA into /profile.
       navigate("/");
     } catch (e) {
       if (e instanceof ApiError) {

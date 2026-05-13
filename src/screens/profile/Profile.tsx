@@ -1,9 +1,11 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
+import AddressLookup, { EMPTY_ADDRESS, type AddressValue } from "@/components/AddressLookup";
+import { createAuthApi, type UserMeResponse } from "@/lib/api/auth";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Avatar from "@/components/Avatar";
@@ -13,7 +15,6 @@ import Chip from "@/components/Chip";
 import FormField from "@/components/FormField";
 import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
-import Select from "@/components/Select";
 import Toggle from "@/components/Toggle";
 import Radio from "@/components/Radio";
 import Alert from "@/components/Alert";
@@ -133,17 +134,51 @@ export default function Profile() {
   const session = useSession();
   const formCols = isSm ? "1fr" : "1fr 1fr";
   const [section, setSection] = useState<SectionId>("profile");
-  // Seed the editable fields with whatever the signed-in user actually has.
-  // First name + surname + email come from the session; everything else
-  // (phone, DOB, ID number, address, employment, bio, interests) is held
-  // local until the per-step profile-PATCH endpoint lands.
+
+  // The Profile screen is the user's editable source of truth. On
+  // mount we GET /users/me and seed every field state from the row;
+  // each section card then autosaves via PATCH /users/me on blur.
+  const api = useMemo(() => createAuthApi(session.client), [session.client]);
+
   const [firstName, setFirstName] = useState(session.user?.firstName ?? "");
   const [surname, setSurname] = useState(session.user?.surname ?? "");
   const [phone, setPhone] = useState("");
-  const [dob, setDob] = useState("");
-  const [idNumber, setIdNumber] = useState("");
+  const [dob, setDob] = useState("");                  // local-only — no schema column yet
+  const [idNumber, setIdNumber] = useState("");        // local-only — no schema column yet
   const [interests, setInterests] = useState<string[]>([]);
   const [bio, setBio] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [employer, setEmployer] = useState("");
+  const [education, setEducation] = useState("");
+  const [address, setAddress] = useState<AddressValue>(EMPTY_ADDRESS);
+
+  // Hydrate everything we know from the row on mount.
+  useEffect(() => {
+    let cancelled = false;
+    void api.me().then((me: UserMeResponse) => {
+      if (cancelled) return;
+      setFirstName(me.firstName ?? "");
+      setSurname(me.surname ?? "");
+      setPhone(me.phone ?? "");
+      setBio(me.bio ?? "");
+      setInterests(me.interests ?? []);
+      setJobTitle(me.jobTitle ?? "");
+      setEmployer(me.employer ?? "");
+      setEducation(me.education ?? "");
+      setAddress({
+        addressLine: me.addressLine ?? "",
+        suburb: me.suburb ?? "",
+        city: me.city ?? "",
+        province: me.province ?? "",
+        postalCode: me.postalCode ?? "",
+        latitude: me.latitude,
+        longitude: me.longitude,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
   const [notifs, setNotifs] = useState(NOTIF_INITIAL);
   const [feeType, setFeeType] = useState<"FIXED" | "PERCENT_OF_ANNUAL">("PERCENT_OF_ANNUAL");
   const [agentBio, setAgentBio] = useState("");
@@ -167,6 +202,58 @@ export default function Profile() {
     pct += VERIFICATIONS.filter((v) => v.ok).length * 10;
     return Math.min(100, pct);
   }, [bio, interests]);
+
+  // ── per-section autosave ─────────────────────────────────────────
+  // Each section card declares a save function that PATCHes only the
+  // fields it owns. The shared `useGroupAutosave` helper tracks a
+  // dirty bit + saving + saved-at timestamp; flushes when focus leaves
+  // the whole card boundary (relatedTarget check), not on every input
+  // blur — so tabbing between fields within a card doesn't trigger
+  // intermediate saves.
+
+  const savePersonal = useCallback(async () => {
+    await api.updateMe({
+      firstName: firstName.trim(),
+      surname: surname.trim(),
+      phone: phone.trim(),
+    });
+  }, [api, firstName, surname, phone]);
+
+  const saveAbout = useCallback(async () => {
+    await api.updateMe({ bio: bio.trim(), interests });
+  }, [api, bio, interests]);
+
+  const saveEmployment = useCallback(async () => {
+    await api.updateMe({
+      jobTitle: jobTitle.trim(),
+      employer: employer.trim(),
+      education: education.trim(),
+    });
+  }, [api, jobTitle, employer, education]);
+
+  const saveAddress = useCallback(async () => {
+    await api.updateMe({
+      addressLine: address.addressLine.trim(),
+      suburb: address.suburb.trim(),
+      city: address.city.trim(),
+      province: address.province.trim(),
+      postalCode: address.postalCode.trim(),
+      latitude: address.latitude ?? undefined,
+      longitude: address.longitude ?? undefined,
+    });
+  }, [api, address]);
+
+  const personalAutosave = useGroupAutosave(savePersonal);
+  const aboutAutosave = useGroupAutosave(saveAbout);
+  const employmentAutosave = useGroupAutosave(saveEmployment);
+  const addressAutosave = useGroupAutosave(saveAddress);
+
+  // Interest chip-toggle isn't a focus event, so trigger the about-card
+  // save explicitly when the user adds/removes a chip.
+  useEffect(() => {
+    aboutAutosave.markDirty();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interests]);
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -195,125 +282,159 @@ export default function Profile() {
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
             {section === "profile" && (
               <>
-                <Card padding={24}>
-                  <Eyebrow style={{ marginBottom: 14 }}>Basic information</Eyebrow>
-                  <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
-                    <FormField label="First name" required>
-                      <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                    </FormField>
-                    <FormField label="Surname" required>
-                      <Input value={surname} onChange={(e) => setSurname(e.target.value)} />
-                    </FormField>
-                    <FormField label="Phone" helper="SA mobile · we'll send a one-time code if changed.">
-                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+27 71 000 0000" />
-                    </FormField>
-                    <FormField label="Email" helper="Cannot be changed — contact support to update.">
-                      <Input value={session.user?.email ?? ""} readOnly />
-                    </FormField>
-                    <FormField label="Date of birth">
-                      <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
-                    </FormField>
-                    <FormField label="ID number" helper="Used for FICA verification only.">
-                      <Input
-                        value={idNumber}
-                        onChange={(e) => setIdNumber(e.target.value)}
-                        className="mono"
-                      />
-                    </FormField>
-                  </div>
-                </Card>
+                <div onBlur={personalAutosave.onGroupBlur} tabIndex={-1}>
+                  <Card padding={24}>
+                    <div style={{ display: "flex", alignItems: "center", marginBottom: 14 }}>
+                      <Eyebrow>Basic information</Eyebrow>
+                      <SaveIndicator state={personalAutosave} />
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
+                      <FormField label="First name" required>
+                        <Input
+                          value={firstName}
+                          onChange={(e) => {
+                            setFirstName(e.target.value);
+                            personalAutosave.markDirty();
+                          }}
+                        />
+                      </FormField>
+                      <FormField label="Surname" required>
+                        <Input
+                          value={surname}
+                          onChange={(e) => {
+                            setSurname(e.target.value);
+                            personalAutosave.markDirty();
+                          }}
+                        />
+                      </FormField>
+                      <FormField label="Phone" helper="SA mobile.">
+                        <Input
+                          value={phone}
+                          onChange={(e) => {
+                            setPhone(e.target.value);
+                            personalAutosave.markDirty();
+                          }}
+                          placeholder="+27 71 000 0000"
+                        />
+                      </FormField>
+                      <FormField label="Email" helper="Cannot be changed — contact support to update.">
+                        <Input value={session.user?.email ?? ""} readOnly />
+                      </FormField>
+                      <FormField label="Date of birth">
+                        <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+                      </FormField>
+                      <FormField label="ID number" helper="Used for FICA verification only.">
+                        <Input
+                          value={idNumber}
+                          onChange={(e) => setIdNumber(e.target.value)}
+                          className="mono"
+                        />
+                      </FormField>
+                    </div>
+                  </Card>
+                </div>
 
-                <Card padding={24}>
-                  <Eyebrow style={{ marginBottom: 14 }}>About you</Eyebrow>
-                  <FormField
-                    label="Bio"
-                    helper={`${bio.length} / 500 characters · landlords see this on your application.`}
-                  >
-                    <Textarea
-                      rows={4}
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value.slice(0, 500))}
-                    />
-                  </FormField>
-                  <div style={{ marginTop: 16 }}>
+                <div onBlur={aboutAutosave.onGroupBlur} tabIndex={-1}>
+                  <Card padding={24}>
+                    <div style={{ display: "flex", alignItems: "center", marginBottom: 14 }}>
+                      <Eyebrow>About you</Eyebrow>
+                      <SaveIndicator state={aboutAutosave} />
+                    </div>
                     <FormField
-                      label="Interests"
-                      helper={`${interests.length} / 10 · pick what's true. Landlords use these to gauge fit.`}
+                      label="Bio"
+                      helper={`${bio.length} / 500 characters · landlords see this on your application.`}
                     >
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {INTERESTS.map((i) => (
-                          <Chip
-                            key={i}
-                            active={interests.includes(i)}
-                            disabled={!interests.includes(i) && interests.length >= 10}
-                            onClick={() => toggleInterest(i)}
-                          >
-                            {i}
-                          </Chip>
-                        ))}
-                      </div>
-                    </FormField>
-                  </div>
-                </Card>
-
-                <Card padding={24}>
-                  <Eyebrow style={{ marginBottom: 14 }}>Work &amp; education</Eyebrow>
-                  <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
-                    <FormField label="Job title">
-                      <Input defaultValue="" />
-                    </FormField>
-                    <FormField label="Employer / institution">
-                      <Input defaultValue="" />
-                    </FormField>
-                    <FormField label="Employment type">
-                      <Select
-                        defaultValue=""
-                        options={[
-                          { value: "EMPLOYED", label: "Employed" },
-                          { value: "SELF_EMPLOYED", label: "Self-employed" },
-                          { value: "STUDENT", label: "Student" },
-                          { value: "PENSIONER", label: "Pensioner" },
-                          { value: "UNEMPLOYED", label: "Unemployed" },
-                          { value: "OTHER", label: "Other" },
-                        ]}
+                      <Textarea
+                        rows={4}
+                        value={bio}
+                        onChange={(e) => {
+                          setBio(e.target.value.slice(0, 500));
+                          aboutAutosave.markDirty();
+                        }}
                       />
                     </FormField>
-                    <FormField label="Years in current role">
-                      <Input type="number" defaultValue="" />
-                    </FormField>
-                    <FormField label="Highest qualification">
-                      <Input defaultValue="" />
-                    </FormField>
-                    <FormField label="Languages spoken">
-                      <Input defaultValue="" />
-                    </FormField>
-                  </div>
-                </Card>
+                    <div style={{ marginTop: 16 }}>
+                      <FormField
+                        label="Interests"
+                        helper={`${interests.length} / 10 · pick what's true. Landlords use these to gauge fit.`}
+                      >
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                          {INTERESTS.map((i) => (
+                            <Chip
+                              key={i}
+                              active={interests.includes(i)}
+                              disabled={!interests.includes(i) && interests.length >= 10}
+                              onClick={() => toggleInterest(i)}
+                            >
+                              {i}
+                            </Chip>
+                          ))}
+                        </div>
+                      </FormField>
+                    </div>
+                  </Card>
+                </div>
 
-                <Card padding={24}>
-                  <Eyebrow style={{ marginBottom: 14 }}>Current location</Eyebrow>
-                  <p style={{ fontSize: 13, color: "var(--slate)", marginBottom: 16 }}>
-                    Helps landlords understand your commute. Used only with your consent.
-                  </p>
-                  <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
-                    <FormField label="Street address">
-                      <Input defaultValue="" />
-                    </FormField>
-                    <FormField label="Suburb">
-                      <Input defaultValue="" />
-                    </FormField>
-                    <FormField label="City">
-                      <Input defaultValue="" />
-                    </FormField>
-                    <FormField label="Postcode">
-                      <Input defaultValue="" className="mono" />
-                    </FormField>
-                  </div>
-                </Card>
+                <div onBlur={employmentAutosave.onGroupBlur} tabIndex={-1}>
+                  <Card padding={24}>
+                    <div style={{ display: "flex", alignItems: "center", marginBottom: 14 }}>
+                      <Eyebrow>Work &amp; education</Eyebrow>
+                      <SaveIndicator state={employmentAutosave} />
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
+                      <FormField label="Job title">
+                        <Input
+                          value={jobTitle}
+                          onChange={(e) => {
+                            setJobTitle(e.target.value);
+                            employmentAutosave.markDirty();
+                          }}
+                          placeholder="Software engineer"
+                        />
+                      </FormField>
+                      <FormField label="Employer / institution">
+                        <Input
+                          value={employer}
+                          onChange={(e) => {
+                            setEmployer(e.target.value);
+                            employmentAutosave.markDirty();
+                          }}
+                          placeholder="Habitat"
+                        />
+                      </FormField>
+                      <FormField label="Highest qualification">
+                        <Input
+                          value={education}
+                          onChange={(e) => {
+                            setEducation(e.target.value);
+                            employmentAutosave.markDirty();
+                          }}
+                          placeholder="BSc Computer Science, UCT"
+                        />
+                      </FormField>
+                    </div>
+                  </Card>
+                </div>
 
-                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                  <Button variant="ghost">Discard</Button>
-                  <Button variant="accent" leftIcon="check">Save changes</Button>
+                <div onBlur={addressAutosave.onGroupBlur} tabIndex={-1}>
+                  <Card padding={24}>
+                    <div style={{ display: "flex", alignItems: "center", marginBottom: 14 }}>
+                      <Eyebrow>Current address</Eyebrow>
+                      <SaveIndicator state={addressAutosave} />
+                    </div>
+                    <p style={{ fontSize: 13, color: "var(--slate)", marginBottom: 16 }}>
+                      Helps landlords understand your commute. Start typing your address and pick
+                      a suggestion to auto-fill — or fill the fields in manually.
+                    </p>
+                    <AddressLookup
+                      value={address}
+                      onChange={(v) => {
+                        setAddress(v);
+                        addressAutosave.markDirty();
+                      }}
+                      onSuggestionPicked={() => addressAutosave.markDirty()}
+                    />
+                  </Card>
                 </div>
               </>
             )}
@@ -868,4 +989,77 @@ export default function Profile() {
       </div>
     </div>
   );
+}
+
+// ── per-section autosave hook ────────────────────────────────────────
+
+interface GroupAutosave {
+  saving: boolean;
+  savedAt: number | null;
+  error: string | null;
+  /** Call when a field in the group has changed. */
+  markDirty: () => void;
+  /** Spread onto the wrapping <div onBlur={…}>. */
+  onGroupBlur: (e: React.FocusEvent<HTMLElement>) => void;
+}
+
+function useGroupAutosave(saveFn: () => Promise<void>): GroupAutosave {
+  const dirtyRef = useRef(false);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const savingRef = useRef(false);
+
+  const markDirty = useCallback(() => {
+    dirtyRef.current = true;
+  }, []);
+
+  const onGroupBlur = useCallback(
+    (e: React.FocusEvent<HTMLElement>) => {
+      // Focus moving to another descendant of the group's root means
+      // the user is still inside — wait until they actually leave.
+      if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget as Node)) return;
+      if (!dirtyRef.current || savingRef.current) return;
+      dirtyRef.current = false;
+      savingRef.current = true;
+      setSaving(true);
+      setError(null);
+      saveFn()
+        .then(() => {
+          setSavedAt(Date.now());
+        })
+        .catch((err: unknown) => {
+          setError(err instanceof Error ? err.message : "Couldn't save changes.");
+          dirtyRef.current = true; // keep dirty so next blur retries
+        })
+        .finally(() => {
+          savingRef.current = false;
+          setSaving(false);
+        });
+    },
+    [saveFn],
+  );
+
+  return { saving, savedAt, error, markDirty, onGroupBlur };
+}
+
+function SaveIndicator({ state }: { state: GroupAutosave }) {
+  if (state.error) {
+    return (
+      <span style={{ fontSize: 11, color: "var(--danger)", marginLeft: 8 }}>
+        {state.error}
+      </span>
+    );
+  }
+  if (state.saving) {
+    return (
+      <span style={{ fontSize: 11, color: "var(--slate)", marginLeft: 8 }}>Saving…</span>
+    );
+  }
+  if (state.savedAt != null) {
+    return (
+      <span style={{ fontSize: 11, color: "var(--success)", marginLeft: 8 }}>Saved</span>
+    );
+  }
+  return null;
 }
