@@ -25,7 +25,8 @@ export default function Register() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [surname, setSurname] = useState("");
 
   const homeForRole: Record<Role, string> = {
     tenant: "/onboarding",
@@ -35,7 +36,7 @@ export default function Register() {
 
   const completeRegister = async () => {
     try {
-      await register({ email, password, displayName, role });
+      await register({ email, password, firstName, surname, role });
       navigate(homeForRole[role]);
     } catch {
       // error is exposed via session.error.
@@ -169,15 +170,26 @@ export default function Register() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <FormField label="Display name" required>
-              <Input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your full name"
-                style={{ height: 44 }}
-                autoComplete="name"
-              />
-            </FormField>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <FormField label="First name" required>
+                <Input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Your first name"
+                  style={{ height: 44 }}
+                  autoComplete="given-name"
+                />
+              </FormField>
+              <FormField label="Surname" required>
+                <Input
+                  value={surname}
+                  onChange={(e) => setSurname(e.target.value)}
+                  placeholder="Your surname"
+                  style={{ height: 44 }}
+                  autoComplete="family-name"
+                />
+              </FormField>
+            </div>
             <FormField label="Email" required helper="We'll send a one-tap verification link.">
               <Input
                 type="email"

@@ -85,7 +85,8 @@ describe("SessionProvider", () => {
       await result.current.register({
         email: "new@example.co.za",
         password: "password123",
-        displayName: "New User",
+        firstName: "New",
+        surname: "User",
         role: "tenant",
       });
     });
@@ -163,7 +164,8 @@ describe("SessionProvider", () => {
         refreshTokenExpiresAt: new Date(Date.now() + 86_400_000).toISOString(),
         userId: "u-manual",
         email: "manual@example.co.za",
-        displayName: "Manual User",
+        firstName: "Manual",
+        surname: "User",
         roles: ["tenant"],
         activeRole: "tenant",
       });
@@ -191,7 +193,8 @@ describe("SessionProvider", () => {
         result.current.register({
           email: "dup@example.co.za",
           password: "p",
-          displayName: "X",
+          firstName: "Dup",
+          surname: "Tester",
           role: "tenant",
         }),
       ).rejects.toMatchObject({ status: 409 });
@@ -280,7 +283,7 @@ describe("SessionProvider", () => {
         return HttpResponse.json({
           id: "00000000-0000-0000-0000-000000000001",
           email: "a@example.co.za",
-          displayName: "Sipho",
+          firstName: "Sipho", surname: "Dlamini",
           roles: ["TENANT"],
           activeRole: "TENANT",
           emailVerified: true,
@@ -295,7 +298,7 @@ describe("SessionProvider", () => {
           refreshTokenExpiresAt: new Date(Date.now() + 86_400_000).toISOString(),
           userId: "00000000-0000-0000-0000-000000000001",
           email: "a@example.co.za",
-          displayName: "Sipho",
+          firstName: "Sipho", surname: "Dlamini",
           roles: ["TENANT"],
           activeRole: "TENANT",
         }),
@@ -349,7 +352,7 @@ describe("SessionProvider", () => {
         refreshTokenExpiresAt: new Date(Date.now() + 86_400_000).toISOString(),
         userId: "00000000-0000-0000-0000-000000000001",
         email: "a@example.co.za",
-        displayName: "Sipho",
+        firstName: "Sipho", surname: "Dlamini",
         roles: ["tenant"],
         activeRole: "tenant",
       });
@@ -378,7 +381,7 @@ describe("SessionProvider", () => {
           refreshTokenExpiresAt: new Date(Date.now() + 86_400_000).toISOString(),
           userId: "00000000-0000-0000-0000-000000000001",
           email: "a@example.co.za",
-          displayName: "Sipho Dlamini",
+          firstName: "Sipho", surname: "Dlamini",
           roles: ["TENANT"],
           activeRole: "TENANT",
         });
@@ -394,7 +397,7 @@ describe("SessionProvider", () => {
         refreshTokenExpiresAt: new Date(Date.now() + 86_400_000).toISOString(),
         userId: "00000000-0000-0000-0000-000000000001",
         email: "a@example.co.za",
-        displayName: "Sipho",
+        firstName: "Sipho", surname: "Dlamini",
         roles: ["tenant"],
         activeRole: "tenant",
       });

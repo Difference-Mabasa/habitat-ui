@@ -52,7 +52,9 @@ function authResponseToState(res: AuthResponse): PersistedState {
   return {
     user: {
       id: res.userId,
-      name: res.displayName,
+      firstName: res.firstName,
+      surname: res.surname,
+      name: `${res.firstName} ${res.surname}`.trim(),
       email: res.email,
       roles: res.roles,
       activeRole: res.activeRole,

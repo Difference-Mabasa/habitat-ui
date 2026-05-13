@@ -231,7 +231,7 @@ export default function DevHome() {
                       marginTop: 2,
                     }}
                   >
-                    {creds.displayName}
+                    {`${creds.firstName} ${creds.surname}`}
                   </div>
                 </button>
               );

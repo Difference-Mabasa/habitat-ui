@@ -11,7 +11,8 @@ export interface AuthTokens {
 export interface AuthResponse extends AuthTokens {
   userId: string;
   email: string;
-  displayName: string;
+  firstName: string;
+  surname: string;
   roles: Role[];
   activeRole: Role;
 }
@@ -19,7 +20,8 @@ export interface AuthResponse extends AuthTokens {
 export interface RegisterPayload {
   email: string;
   password: string;
-  displayName: string;
+  firstName: string;
+  surname: string;
   role: Exclude<Role, "admin">; // ADMIN/SUPER_ADMIN can't self-register
   area?: string;
 }
@@ -32,7 +34,8 @@ export interface LoginPayload {
 export interface UserMeResponse {
   id: string;
   email: string;
-  displayName: string;
+  firstName: string;
+  surname: string;
   roles: Role[];
   activeRole: Role;
   emailVerified: boolean;
@@ -119,7 +122,8 @@ interface RawAuthResponse {
   refreshTokenExpiresAt: string;
   userId: string;
   email: string;
-  displayName: string;
+  firstName: string;
+  surname: string;
   roles: string[];
   activeRole: string;
 }
@@ -127,7 +131,8 @@ interface RawAuthResponse {
 interface RawUserMe {
   id: string;
   email: string;
-  displayName: string;
+  firstName: string;
+  surname: string;
   roles: string[];
   activeRole: string;
   emailVerified: boolean;
@@ -139,7 +144,9 @@ interface RawUserMe {
 export function authResponseToSessionUser(res: AuthResponse): SessionUser {
   return {
     id: res.userId,
-    name: res.displayName,
+    firstName: res.firstName,
+    surname: res.surname,
+    name: `${res.firstName} ${res.surname}`.trim(),
     email: res.email,
     roles: res.roles,
     activeRole: res.activeRole,

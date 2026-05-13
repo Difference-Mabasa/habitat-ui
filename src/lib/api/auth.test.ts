@@ -12,7 +12,8 @@ describe("api/auth", () => {
     const out = await api.register({
       email: "test@example.co.za",
       password: "password123",
-      displayName: "Test",
+      firstName: "Test",
+      surname: "Tester",
       role: "tenant",
     });
     expect(out.activeRole).toBe("tenant");
@@ -39,7 +40,8 @@ describe("api/auth", () => {
           refreshTokenExpiresAt: "2030-12-31T00:00:00Z",
           userId: "00000000-0000-0000-0000-000000000001",
           email: "x@example.co.za",
-          displayName: "X",
+          firstName: "Refresh",
+          surname: "Tester",
           roles: ["TENANT"],
           activeRole: "TENANT",
         });
@@ -96,7 +98,8 @@ describe("api/auth", () => {
         return HttpResponse.json({
           id: "00000000-0000-0000-0000-000000000001",
           email: "x@example.co.za",
-          displayName: "X",
+          firstName: "Switch",
+          surname: "Tester",
           roles: ["TENANT", "LANDLORD"],
           activeRole: "LANDLORD",
           emailVerified: true,
@@ -113,7 +116,9 @@ describe("api/auth", () => {
     const out = await api.login({ email: "a@example.co.za", password: "p" });
     const session = authResponseToSessionUser(out);
     expect(session.id).toBe(out.userId);
-    expect(session.name).toBe(out.displayName);
+    expect(session.firstName).toBe(out.firstName);
+    expect(session.surname).toBe(out.surname);
+    expect(session.name).toBe(`${out.firstName} ${out.surname}`);
     expect(session.email).toBe(out.email);
     expect(session.roles).toEqual(out.roles);
     expect(session.activeRole).toBe(out.activeRole);

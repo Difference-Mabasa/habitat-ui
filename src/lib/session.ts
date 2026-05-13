@@ -4,6 +4,15 @@ export type Role = "tenant" | "landlord" | "agent" | "admin";
 
 export interface SessionUser {
   id: string;
+  firstName: string;
+  surname: string;
+  /**
+   * Composed `${firstName} ${surname}`. Kept as a derived field on the
+   * SessionUser so downstream consumers that just want a single display
+   * handle (Avatar, Nav header, gallery byline) don't have to concat
+   * themselves. `firstName` / `surname` are the source of truth — `name`
+   * is just the convenience.
+   */
   name: string;
   email: string;
   /** All roles this user can act as. */
@@ -25,7 +34,8 @@ export type SessionStatus = "loading" | "anonymous" | "authenticated";
 export interface RegisterPayload {
   email: string;
   password: string;
-  displayName: string;
+  firstName: string;
+  surname: string;
   /** Self-registration only supports the three non-privileged roles. */
   role: "tenant" | "landlord" | "agent";
   area?: string;
@@ -51,7 +61,8 @@ export interface SessionContextValue {
     refreshTokenExpiresAt: string;
     userId: string;
     email: string;
-    displayName: string;
+    firstName: string;
+    surname: string;
     roles: Role[];
     activeRole: Role;
   }) => void;
@@ -78,7 +89,8 @@ export function useSession(): SessionContextValue {
 export interface DemoCredential {
   email: string;
   password: string;
-  displayName: string;
+  firstName: string;
+  surname: string;
   /** The activeRole the seeded user has by default. */
   defaultActiveRole: Role;
 }
@@ -87,25 +99,29 @@ export const DEMO_CREDENTIALS: Record<Role, DemoCredential> = {
   tenant: {
     email: "sipho@example.co.za",
     password: "habitat123",
-    displayName: "Sipho Dlamini",
+    firstName: "Sipho",
+    surname: "Dlamini",
     defaultActiveRole: "tenant",
   },
   landlord: {
     email: "thandi@example.co.za",
     password: "habitat123",
-    displayName: "Thandi Mokoena",
+    firstName: "Thandi",
+    surname: "Mokoena",
     defaultActiveRole: "landlord",
   },
   agent: {
     email: "naledi@vilakazi.co.za",
     password: "habitat123",
-    displayName: "Naledi M.",
+    firstName: "Naledi",
+    surname: "M.",
     defaultActiveRole: "agent",
   },
   admin: {
     email: "trust@habitat.co.za",
     password: "habitat123",
-    displayName: "Habitat Trust",
+    firstName: "Habitat",
+    surname: "Trust",
     defaultActiveRole: "admin",
   },
 };

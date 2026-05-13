@@ -12,14 +12,16 @@ export const handlers = [
     const body = (await request.json()) as {
       email: string;
       password: string;
-      displayName: string;
+      firstName: string;
+      surname: string;
       role: "TENANT" | "LANDLORD" | "AGENT";
       area?: string;
     };
     return HttpResponse.json(
       authResponseFor({
         email: body.email,
-        displayName: body.displayName,
+        firstName: body.firstName,
+        surname: body.surname,
         activeRole: body.role,
       }),
       { status: 201 },
@@ -31,7 +33,8 @@ export const handlers = [
     return HttpResponse.json(
       authResponseFor({
         email: body.email,
-        displayName: "Mock User",
+        firstName: "Mock",
+        surname: "User",
         activeRole: "TENANT",
       }),
     );
@@ -48,7 +51,8 @@ export const handlers = [
     return HttpResponse.json(
       authResponseFor({
         email: "refreshed@example.co.za",
-        displayName: "Refreshed User",
+        firstName: "Refreshed",
+        surname: "User",
         activeRole: "TENANT",
       }),
     );
@@ -67,7 +71,8 @@ export const handlers = [
     return HttpResponse.json({
       id: "00000000-0000-0000-0000-000000000001",
       email: "sipho@example.co.za",
-      displayName: "Sipho Dlamini",
+      firstName: "Sipho",
+      surname: "Dlamini",
       roles: ["TENANT", "LANDLORD", "AGENT", "ADMIN"],
       activeRole: "TENANT",
       emailVerified: true,
@@ -81,7 +86,8 @@ export const handlers = [
     return HttpResponse.json({
       id: "00000000-0000-0000-0000-000000000001",
       email: "sipho@example.co.za",
-      displayName: "Sipho Dlamini",
+      firstName: "Sipho",
+      surname: "Dlamini",
       roles: ["TENANT", "LANDLORD", "AGENT", "ADMIN"],
       activeRole: body.role,
       emailVerified: true,
@@ -93,11 +99,13 @@ export const handlers = [
 
 function authResponseFor({
   email,
-  displayName,
+  firstName,
+  surname,
   activeRole,
 }: {
   email: string;
-  displayName: string;
+  firstName: string;
+  surname: string;
   activeRole: string;
 }) {
   const exp = new Date(Date.now() + 15 * 60_000).toISOString();
@@ -109,7 +117,8 @@ function authResponseFor({
     refreshTokenExpiresAt: refreshExp,
     userId: "00000000-0000-0000-0000-000000000001",
     email,
-    displayName,
+    firstName,
+    surname,
     roles: ["TENANT", "LANDLORD", "AGENT", "ADMIN"],
     activeRole,
   };
