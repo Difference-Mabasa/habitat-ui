@@ -5,6 +5,7 @@ import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import EmptyState from "@/components/EmptyState";
 import SubNav, { type SubNavItem } from "@/components/SubNav";
+import NotificationsPreferencesPane from "./NotificationsPreferencesPane";
 
 const ITEMS: SubNavItem[] = [
   { id: "plan", label: "Plan & billing", icon: "cash" },
@@ -51,6 +52,14 @@ export default function Settings() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {section === "notifications" ? <NotificationsPreferencesPane /> : null}
+
+            {/* Plan + payout + invoices stay on the "plan" tab. The other
+                SubNav rows (tax, team, security, …) are still under the
+                product backlog — they show the Plan view as a fallback for
+                now. */}
+            {section === "notifications" ? null : (
+              <>
             {/* Plan */}
             <Card padding={24}>
               <div
@@ -139,6 +148,8 @@ export default function Settings() {
                 />
               ) : null}
             </Card>
+              </>
+            )}
           </div>
         </div>
       </div>
