@@ -24,6 +24,13 @@ export interface NotificationDrawerProps {
   open: boolean;
   onClose: () => void;
   items: NotificationItem[];
+  /**
+   * Called once per session for an unread notification when the user first
+   * interacts with it (taps to open the detail view, or taps the CTA).
+   * Drawer doesn't await the result — flip the local `unread` flag
+   * optimistically in your store and refresh on the next poll.
+   */
+  onMarkAsRead?: (id: string) => void;
 }
 
 const DRAWER_KEYFRAMES = `
@@ -35,11 +42,17 @@ export default function NotificationDrawer({
   open,
   onClose,
   items,
+  onMarkAsRead,
 }: NotificationDrawerProps) {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = items.find((n) => n.id === selectedId) ?? null;
   const unreadCount = items.filter((n) => n.unread).length;
+
+  const selectAndMarkRead = (n: NotificationItem) => {
+    setSelectedId(n.id);
+    if (n.unread) onMarkAsRead?.(n.id);
+  };
 
   useEffect(() => {
     if (!open) setSelectedId(null);
@@ -101,13 +114,21 @@ export default function NotificationDrawer({
           <DetailView
             item={selected}
             onAction={() => {
+              if (selected.unread) onMarkAsRead?.(selected.id);
               if (!selected.href) return;
               navigate(selected.href);
               onClose();
             }}
           />
         ) : (
-          <ListView items={items} onSelect={setSelectedId} onClose={onClose} />
+          <ListView
+            items={items}
+            onSelect={(id) => {
+              const n = items.find((it) => it.id === id);
+              if (n) selectAndMarkRead(n);
+            }}
+            onClose={onClose}
+          />
         )}
       </aside>
     </>,

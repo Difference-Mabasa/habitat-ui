@@ -94,9 +94,11 @@ export default function SessionProvider({ children, client: injectedClient }: Se
   }, []);
 
   // The api client: reads tokens from stateRef, calls refresh on 401,
-  // clears session if refresh fails.
-  const api = useMemo(() => {
-    const client =
+  // clears session if refresh fails. Hoisted out of the api memo below so
+  // it can be exposed through the session context for non-auth callers
+  // (e.g. useNotifications) that need an auto-refreshing client.
+  const client = useMemo<ApiClient>(() => {
+    return (
       injectedClient ??
       createClient({
         getAccessToken: () => stateRef.current.tokens?.accessToken ?? null,
@@ -120,11 +122,13 @@ export default function SessionProvider({ children, client: injectedClient }: Se
         onAuthFailure: () => {
           setState({ user: null, tokens: null });
         },
-      });
-    return createAuthApi(client);
+      })
+    );
     // We intentionally create this once — closures read state via stateRef.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const api = useMemo(() => createAuthApi(client), [client]);
 
   // Background access-token refresh. Re-armed whenever tokens change.
   useEffect(() => {
@@ -222,13 +226,14 @@ export default function SessionProvider({ children, client: injectedClient }: Se
       tokens: state.tokens,
       status,
       error,
+      client,
       login,
       register,
       logout,
       switchActiveRole,
       setSession,
     }),
-    [state.user, state.tokens, status, error, login, register, logout, switchActiveRole, setSession],
+    [state.user, state.tokens, status, error, client, login, register, logout, switchActiveRole, setSession],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

@@ -10,6 +10,8 @@ import NotificationDrawer, { type NotificationItem } from "./NotificationDrawer"
 import type { ChatDirectMessage } from "./ChatDrawer";
 import { useSession, type Role } from "@/lib/session";
 import { useViewport } from "@/hooks/useViewport";
+import { useNotifications } from "@/lib/useNotifications";
+import type { NotificationItem as ApiNotificationItem } from "@/lib/api/notifications";
 
 export type NavRole = "tenant" | "landlord" | "agent" | "admin";
 
@@ -91,20 +93,21 @@ export interface NavProps {
   dms?: ChatDirectMessage[];
 }
 
-// Notifications and DMs are owned by the API. The Nav consumes whatever is
-// passed via props; an empty default means a signed-in user sees their real
-// (empty) inbox until callers wire the data.
-const EMPTY_NOTIFICATIONS: NotificationItem[] = [];
+// DMs are still mocked until the messaging slice lands; notifications now
+// flow through useNotifications when no override prop is passed.
 const EMPTY_DMS: ChatDirectMessage[] = [];
 
 export default function Nav({
   role,
   user,
   showBadges = true,
-  notifications = EMPTY_NOTIFICATIONS,
+  notifications: notificationsProp,
   dms = EMPTY_DMS,
 }: NavProps) {
   const session = useSession();
+  const isAuthenticated = session.status === "authenticated";
+  // Live notifications from the API. The hook idles cleanly when signed out.
+  const live = useNotifications(session.client, isAuthenticated);
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
   // Effective role + display name: caller's explicit prop wins, else session user, else tenant fallback.
@@ -119,9 +122,24 @@ export default function Nav({
   const [openNotif, setOpenNotif] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
   const location = useLocation();
-  const unreadNotif = notifications.filter((n) => n.unread).length;
+
+  // Drawer items come from the prop if set (tests, stories), otherwise
+  // from the live hook (mapped from the API shape to the drawer shape).
+  const notifications: NotificationItem[] =
+    notificationsProp ?? live.items.map(toDrawerItem);
+  const unreadNotif = showBadges
+    ? notificationsProp
+      ? notificationsProp.filter((n) => n.unread).length
+      : live.unreadCount
+    : 0;
   const unreadDms = dms.reduce((sum, d) => sum + d.unread, 0);
   const accountMenu = accountMenuFor(effectiveRole);
+
+  // Fetch the recent list whenever the drawer opens so it's never stale.
+  useEffect(() => {
+    if (openNotif && !notificationsProp) void live.refreshList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openNotif, notificationsProp]);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = () => {
@@ -461,7 +479,55 @@ export default function Nav({
         </div>
       </div>
 
-      <NotificationDrawer open={openNotif} onClose={() => setOpenNotif(false)} items={notifications} />
+      <NotificationDrawer
+        open={openNotif}
+        onClose={() => setOpenNotif(false)}
+        items={notifications}
+        onMarkAsRead={(id) => {
+          if (!notificationsProp) void live.markAsRead(id);
+        }}
+      />
     </header>
   );
+}
+
+/**
+ * Translate an API notification into the shape NotificationDrawer expects.
+ * The drawer was modelled on the original mock data — id, title, body,
+ * a relative `time` string, an `unread` boolean, optional `href` +
+ * `actionLabel`. We keep that shape and adapt the API payload at the edge
+ * so the drawer itself doesn't have to learn about `read_at` / `createdAt`.
+ */
+function toDrawerItem(n: ApiNotificationItem): NotificationItem {
+  return {
+    id: n.id,
+    type: humanizeType(n.type),
+    title: n.title,
+    body: n.body ?? "",
+    fullBody: n.body ?? undefined,
+    time: formatRelativeTime(n.createdAt),
+    unread: !n.read,
+    href: n.actionUrl ?? undefined,
+    actionLabel: n.actionLabel ?? undefined,
+  };
+}
+
+function humanizeType(type: string): string {
+  if (!type) return "Notification";
+  return type[0] + type.slice(1).toLowerCase();
+}
+
+function formatRelativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const diffSec = Math.max(0, Math.round((Date.now() - then) / 1000));
+  if (diffSec < 60) return "Just now";
+  const min = Math.round(diffSec / 60);
+  if (min < 60) return `${min}m`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h`;
+  const day = Math.round(hr / 24);
+  if (day < 7) return `${day}d`;
+  // For older items, fall back to a localised date.
+  return new Date(iso).toLocaleDateString();
 }

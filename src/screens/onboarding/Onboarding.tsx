@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import Logo from "@/components/Logo";
+import Nav from "@/components/Nav";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -64,28 +64,39 @@ const SCORE_ROWS: ScorePanelRow[] = [
 export default function Onboarding() {
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <header
+      <Nav role="tenant" />
+
+      {/* Sub-header for the onboarding flow — stepper + skip CTA. Sits
+          under Nav so the flow is clearly part of the profile surface
+          rather than a secluded full-screen wizard. */}
+      <div
         style={{
-          padding: "20px 32px",
+          padding: "16px 32px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           borderBottom: "1px solid var(--hairline)",
+          background: "var(--surface)",
         }}
       >
-        <Logo size={20} />
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <div style={{ minWidth: 280 }}>
+          <Link
+            to="/profile"
+            style={{ fontSize: 13, color: "var(--slate)", textDecoration: "none", fontWeight: 500 }}
+          >
+            ← Profile
+          </Link>
+          <div style={{ minWidth: 280, marginLeft: 8 }}>
             <Stepper orientation="horizontal" steps={STEPS} currentStep={2} />
           </div>
           <span style={{ fontSize: 13, color: "var(--slate)" }}>Step 3 of 5 · Affordability</span>
         </div>
-        <Link to="/browse" style={{ textDecoration: "none" }}>
+        <Link to="/profile" style={{ textDecoration: "none" }}>
           <Button variant="ghost" size="sm">
             Skip for now
           </Button>
         </Link>
-      </header>
+      </div>
 
       <div
         style={{

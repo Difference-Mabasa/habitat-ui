@@ -61,7 +61,7 @@ export const ROUTES: ScreenRoute[] = [
   { id: "maintenance", label: "17 — Report maintenance", path: "/maintenance", group: "tenant" },
   { id: "deposit", label: "18 — Deposit return", path: "/deposit", group: "tenant" },
   { id: "reviews", label: "19 — Reviews", path: "/reviews", group: "tenant" },
-  { id: "onboarding", label: "20 — Tenant onboarding", path: "/onboarding", group: "tenant" },
+  { id: "onboarding", label: "20 — Profile onboarding", path: "/profile/onboarding", group: "tenant" },
 
   // Account, system, mobile
   { id: "auth", label: "27 — Sign in", path: "/auth", group: "account" },

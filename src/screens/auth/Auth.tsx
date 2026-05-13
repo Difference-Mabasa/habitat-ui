@@ -411,11 +411,6 @@ function RegisterForm() {
   const [surname, setSurname] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  const homeForRole: Record<RegisterRole, string> = {
-    user: "/onboarding",
-    agent: "/agent-overview",
-  };
-
   const completeRegister = async () => {
     const localErrors = validateRegistration({ firstName, surname, email, password, acceptTerms });
     if (Object.keys(localErrors).length > 0) {
@@ -425,7 +420,9 @@ function RegisterForm() {
     setFieldErrors({});
     try {
       await register({ email, password, firstName, surname, role });
-      navigate(homeForRole[role]);
+      // Land on the public landing page. The welcome notification (pushed
+      // by the API event listener) carries the CTA into /profile/onboarding.
+      navigate("/");
     } catch (e) {
       if (e instanceof ApiError) {
         const next: FieldErrors = {};

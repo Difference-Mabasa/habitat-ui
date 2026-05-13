@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import type { ApiClient } from "@/lib/api/client";
 
 /**
  * Auth role attached to a user's identity. Aligned with backroom-api's
@@ -69,6 +70,14 @@ export interface SessionContextValue {
   status: SessionStatus;
   /** Most recent error from login / register — cleared on next attempt. */
   error: string | null;
+
+  /**
+   * The auto-refreshing API client used internally for auth calls. Exposed
+   * so other domains (notifications, properties, etc.) can build their own
+   * typed clients on top without re-implementing token injection + 401
+   * refresh.
+   */
+  client: ApiClient;
 
   login: (creds: { email: string; password: string }) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
