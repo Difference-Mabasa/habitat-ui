@@ -8,12 +8,19 @@ import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
-import { createPropertiesApi, type PropertySummary, type UnitType } from "@/lib/api/properties";
+import {
+  createPropertiesApi,
+  type PropertySummary,
+  type SortDirection,
+  type SortKey,
+  type UnitType,
+} from "@/lib/api/properties";
 import {
   AreaFilter,
   BudgetFilter,
   BedsFilter,
   MoreFiltersControl,
+  SortFilter,
   TypeFilter,
   type MoreFilters,
   type TypeFilterOption,
@@ -52,6 +59,15 @@ function readNumberParam(params: URLSearchParams, key: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+function readSortKey(raw: string | null): SortKey {
+  if (raw === "PRICE" || raw === "BEDROOMS" || raw === "SIZE" || raw === "NEWEST") return raw;
+  return "NEWEST";
+}
+
+function readSortDirection(raw: string | null): SortDirection {
+  return raw === "ASC" ? "ASC" : "DESC";
+}
+
 /** "APARTMENT_BLOCK" -> "Apartment Block". */
 function titleCase(s: string): string {
   return s
@@ -84,6 +100,8 @@ export default function Browse() {
   const minPrice = readNumberParam(params, "minPrice");
   const maxPrice = readNumberParam(params, "maxPrice");
   const minBeds = readNumberParam(params, "minBeds");
+  const sort: SortKey = readSortKey(params.get("sort"));
+  const direction: SortDirection = readSortDirection(params.get("dir"));
   const moreFilters: MoreFilters = {
     verifiedOnly: params.get("verified") === "1",
     newOnly: params.get("new") === "1",
@@ -101,6 +119,8 @@ export default function Browse() {
       types: typeSet.size > 0 ? (Array.from(typeSet) as UnitType[]) : undefined,
       maxPrice: maxPrice ?? undefined,
       minBeds: minBeds ?? undefined,
+      sort,
+      dir: direction,
       size: 50,
     };
     void api
@@ -118,7 +138,7 @@ export default function Browse() {
     return () => {
       cancelled = true;
     };
-  }, [api, areaSet, typeSet, maxPrice, minBeds]);
+  }, [api, areaSet, typeSet, maxPrice, minBeds, sort, direction]);
 
   const patchParams = (mutator: (next: URLSearchParams) => void) => {
     const next = new URLSearchParams(params);
@@ -137,6 +157,19 @@ export default function Browse() {
     patchParams((p) => {
       if (next.length === 0) p.delete("type");
       else p.set("type", next.join(","));
+    });
+
+  const setSort = (next: { sort: SortKey; direction: SortDirection }) =>
+    patchParams((p) => {
+      // NEWEST + DESC is the implicit default — keep the URL clean by
+      // omitting both params for that case.
+      if (next.sort === "NEWEST" && next.direction === "DESC") {
+        p.delete("sort");
+        p.delete("dir");
+      } else {
+        p.set("sort", next.sort);
+        p.set("dir", next.direction);
+      }
     });
 
   const setBudget = ({ minPrice: lo, maxPrice: hi }: { minPrice: number | null; maxPrice: number | null }) =>
@@ -224,6 +257,7 @@ export default function Browse() {
               onChange={setBudget}
             />
             <BedsFilter minBeds={minBeds} onChange={setMinBeds} />
+            <SortFilter sort={sort} direction={direction} onChange={setSort} />
             <MoreFiltersControl value={moreFilters} onChange={setMoreFilters} />
           </>
         }

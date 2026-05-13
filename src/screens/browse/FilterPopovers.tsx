@@ -10,7 +10,8 @@ import Toggle from "@/components/Toggle";
 import Checkbox from "@/components/Checkbox";
 import Button from "@/components/Button";
 import PlaceSearch from "@/components/PlaceSearch";
-import type { UnitType } from "@/lib/api/properties";
+import Radio from "@/components/Radio";
+import type { SortDirection, SortKey, UnitType } from "@/lib/api/properties";
 
 interface PopoverProps {
   /** Visible chip text. */
@@ -504,3 +505,87 @@ export function TypeFilter({ options, selected, onChange }: TypeFilterProps) {
 function labelOf(options: TypeFilterOption[], value: UnitType): string {
   return options.find((o) => o.value === value)?.label ?? value;
 }
+
+// ─── Sort ─────────────────────────────────────────────────────────────────
+//
+// Two-axis control: pick a key, then pick a direction. Both axes are radio
+// groups so the state model stays obvious (single selection per axis) and
+// the popover doesn't pretend to be a combined 8-option dropdown that
+// drifts when we add a new key later.
+
+export interface SortOption {
+  value: SortKey;
+  label: string;
+  /** Direction the user usually wants when picking this key. */
+  defaultDir: SortDirection;
+  /** Labels for the asc / desc toggle when this key is active. */
+  ascLabel: string;
+  descLabel: string;
+}
+
+export const SORT_OPTIONS: SortOption[] = [
+  { value: "NEWEST",   label: "Newest",    defaultDir: "DESC", ascLabel: "Oldest first",    descLabel: "Newest first" },
+  { value: "PRICE",    label: "Price",     defaultDir: "ASC",  ascLabel: "Low to high",     descLabel: "High to low" },
+  { value: "BEDROOMS", label: "Bedrooms",  defaultDir: "DESC", ascLabel: "Fewest first",    descLabel: "Most first" },
+  { value: "SIZE",     label: "Size (m²)", defaultDir: "DESC", ascLabel: "Smallest first",  descLabel: "Largest first" },
+];
+
+export interface SortFilterProps {
+  sort: SortKey;
+  direction: SortDirection;
+  onChange: (next: { sort: SortKey; direction: SortDirection }) => void;
+}
+
+export function SortFilter({ sort, direction, onChange }: SortFilterProps) {
+  const opt = SORT_OPTIONS.find((o) => o.value === sort) ?? SORT_OPTIONS[0];
+  const dirLabel = direction === "ASC" ? opt.ascLabel : opt.descLabel;
+  const isDefault = sort === "NEWEST" && direction === "DESC";
+
+  return (
+    <FilterPopover
+      label={isDefault ? "Newest first" : `${opt.label} · ${dirLabel}`}
+      leftIcon="list"
+      active={!isDefault}
+      width={280}
+    >
+      {() => (
+        <>
+          <Eyebrow style={{ marginBottom: 10 }}>Sort by</Eyebrow>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+            {SORT_OPTIONS.map((o) => (
+              <Radio
+                key={o.value}
+                name="sort-key"
+                value={o.value}
+                checked={sort === o.value}
+                onChange={() => onChange({ sort: o.value, direction: o.defaultDir })}
+                label={o.label}
+              />
+            ))}
+          </div>
+
+          <Eyebrow style={{ marginBottom: 10 }}>Direction</Eyebrow>
+          <div style={{ display: "flex", gap: 6 }}>
+            <Chip
+              active={direction === "ASC"}
+              onClick={() => onChange({ sort, direction: "ASC" })}
+              style={{ height: 36, flex: 1, justifyContent: "center", fontSize: 13 }}
+            >
+              <Icon name="chevU" size={12} />
+              <span style={{ marginLeft: 6 }}>{opt.ascLabel}</span>
+            </Chip>
+            <Chip
+              active={direction === "DESC"}
+              onClick={() => onChange({ sort, direction: "DESC" })}
+              style={{ height: 36, flex: 1, justifyContent: "center", fontSize: 13 }}
+            >
+              <Icon name="chevD" size={12} />
+              <span style={{ marginLeft: 6 }}>{opt.descLabel}</span>
+            </Chip>
+          </div>
+        </>
+      )}
+    </FilterPopover>
+  );
+}
+

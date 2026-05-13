@@ -100,12 +100,17 @@ export interface PageResponse<T> {
   totalPages: number;
 }
 
+export type SortKey = "NEWEST" | "PRICE" | "BEDROOMS" | "SIZE";
+export type SortDirection = "ASC" | "DESC";
+
 export interface PropertySearchFilters {
   location?: string;
   /** One or more unit types — sent as comma-separated `type=APARTMENT,STUDIO`. */
   types?: UnitType[];
   maxPrice?: number;
   minBeds?: number;
+  sort?: SortKey;
+  dir?: SortDirection;
   page?: number;
   size?: number;
 }
@@ -171,6 +176,8 @@ export function createPropertiesApi(client: ApiClient): PropertiesApi {
       }
       if (filters.maxPrice != null) params.set("maxPrice", String(filters.maxPrice));
       if (filters.minBeds != null) params.set("minBeds", String(filters.minBeds));
+      if (filters.sort) params.set("sort", filters.sort);
+      if (filters.dir) params.set("dir", filters.dir);
       if (filters.page != null) params.set("page", String(filters.page));
       if (filters.size != null) params.set("size", String(filters.size));
       const qs = params.toString();
