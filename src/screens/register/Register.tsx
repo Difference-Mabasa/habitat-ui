@@ -9,8 +9,39 @@ import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import Icon from "@/components/Icon";
 import { useSession } from "@/lib/session";
+import { ApiError } from "@/lib/api/client";
 
 type Role = "tenant" | "landlord" | "agent";
+
+interface FieldErrors {
+  firstName?: string;
+  surname?: string;
+  email?: string;
+  password?: string;
+  acceptTerms?: string;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateRegistration(values: {
+  firstName: string;
+  surname: string;
+  email: string;
+  password: string;
+  acceptTerms: boolean;
+}): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!values.firstName.trim()) errors.firstName = "First name is required.";
+  else if (values.firstName.trim().length > 40) errors.firstName = "Max 40 characters.";
+  if (!values.surname.trim()) errors.surname = "Surname is required.";
+  else if (values.surname.trim().length > 40) errors.surname = "Max 40 characters.";
+  if (!values.email.trim()) errors.email = "Email is required.";
+  else if (!EMAIL_RE.test(values.email.trim())) errors.email = "That doesn't look like an email.";
+  if (!values.password) errors.password = "Password is required.";
+  else if (values.password.length < 8) errors.password = "Use at least 8 characters.";
+  if (!values.acceptTerms) errors.acceptTerms = "Accept the terms and POPIA notice to continue.";
+  return errors;
+}
 
 const ROLES: { id: Role; title: string; body: string; icon: "home" | "key" | "users" }[] = [
   { id: "tenant", title: "I'm renting", body: "Browse spots, apply, sign a lease.", icon: "home" },
@@ -27,6 +58,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [surname, setSurname] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const homeForRole: Record<Role, string> = {
     tenant: "/onboarding",
@@ -35,11 +67,33 @@ export default function Register() {
   };
 
   const completeRegister = async () => {
+    const localErrors = validateRegistration({ firstName, surname, email, password, acceptTerms });
+    if (Object.keys(localErrors).length > 0) {
+      setFieldErrors(localErrors);
+      return;
+    }
+    setFieldErrors({});
     try {
       await register({ email, password, firstName, surname, role });
       navigate(homeForRole[role]);
-    } catch {
-      // error is exposed via session.error.
+    } catch (e) {
+      // Map server-side field errors onto the same per-field slots so the user
+      // sees them inline. ApiError.fieldErrors is the @Valid path; a 409
+      // (email already registered) carries the message at the top level.
+      if (e instanceof ApiError) {
+        const next: FieldErrors = {};
+        if (e.fieldErrors) {
+          for (const fe of e.fieldErrors) {
+            if (fe.field === "firstName" || fe.field === "surname" ||
+                fe.field === "email" || fe.field === "password") {
+              next[fe.field] = fe.message;
+            }
+          }
+        }
+        if (e.status === 409) next.email = e.message;
+        if (Object.keys(next).length > 0) setFieldErrors(next);
+      }
+      // The non-field top-level banner is still rendered via session.error.
     }
   };
 
@@ -171,7 +225,7 @@ export default function Register() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <FormField label="First name" required>
+              <FormField label="First name" required error={fieldErrors.firstName}>
                 <Input
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
@@ -180,7 +234,7 @@ export default function Register() {
                   autoComplete="given-name"
                 />
               </FormField>
-              <FormField label="Surname" required>
+              <FormField label="Surname" required error={fieldErrors.surname}>
                 <Input
                   value={surname}
                   onChange={(e) => setSurname(e.target.value)}
@@ -190,7 +244,12 @@ export default function Register() {
                 />
               </FormField>
             </div>
-            <FormField label="Email" required helper="We'll send a one-tap verification link.">
+            <FormField
+              label="Email"
+              required
+              helper="We'll send a one-tap verification link."
+              error={fieldErrors.email}
+            >
               <Input
                 type="email"
                 placeholder="you@example.co.za"
@@ -200,7 +259,7 @@ export default function Register() {
                 autoComplete="email"
               />
             </FormField>
-            <FormField label="Password" required helper="Min 8 chars.">
+            <FormField label="Password" required helper="Min 8 chars." error={fieldErrors.password}>
               <Input
                 type="password"
                 placeholder="••••••••"
@@ -210,35 +269,44 @@ export default function Register() {
                 autoComplete="new-password"
               />
             </FormField>
-            {error ? (
+            {/* Top-level banner — only shows when the API throws something
+                that didn't map to a specific field (network down, 500, etc.). */}
+            {error && Object.keys(fieldErrors).length === 0 ? (
               <div role="alert" style={{ fontSize: 13, color: "var(--danger)" }}>
                 {error}
               </div>
             ) : null}
 
-            <Card padding={14} style={{ background: "var(--surface-2)" }}>
-              <Checkbox
-                checked={acceptTerms}
-                onChange={(e) => setAcceptTerms(e.target.checked)}
-                label={
-                  <span style={{ fontSize: 13 }}>
-                    I accept Habitat's{" "}
-                    <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
-                      terms of service
-                    </Link>{" "}
-                    and{" "}
-                    <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
-                      POPIA notice
-                    </Link>
-                    .
-                  </span>
-                }
-              />
-            </Card>
+            <div>
+              <Card padding={14} style={{ background: "var(--surface-2)" }}>
+                <Checkbox
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  label={
+                    <span style={{ fontSize: 13 }}>
+                      I accept Habitat's{" "}
+                      <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
+                        terms of service
+                      </Link>{" "}
+                      and{" "}
+                      <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
+                        POPIA notice
+                      </Link>
+                      .
+                    </span>
+                  }
+                />
+              </Card>
+              {fieldErrors.acceptTerms ? (
+                <div role="alert" style={{ fontSize: 12, color: "var(--danger)", marginTop: 6 }}>
+                  {fieldErrors.acceptTerms}
+                </div>
+              ) : null}
+            </div>
 
             <Button
               variant="accent"
-              disabled={!acceptTerms || status === "loading"}
+              disabled={status === "loading"}
               onClick={() => void completeRegister()}
               style={{
                 height: 52,
