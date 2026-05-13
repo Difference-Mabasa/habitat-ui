@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
-import Chip from "@/components/Chip";
 import Button from "@/components/Button";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
@@ -11,18 +10,21 @@ import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
 import { createPropertiesApi, type PropertySummary, type UnitType } from "@/lib/api/properties";
 import {
+  AreaFilter,
   BudgetFilter,
   BedsFilter,
   MoreFiltersControl,
+  TypeFilter,
   type MoreFilters,
+  type TypeFilterOption,
 } from "./FilterPopovers";
-import FilterBar, { FilterDivider, LocationFilter } from "@/components/FilterBar";
+import FilterBar from "@/components/FilterBar";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import MapPanel from "./MapPanel";
 
-// User-facing filter chips. Mirrors the API's UnitType enum (premium-aligned;
-// BACKROOM / ROOM removed in the V9 schema).
-const TYPES: { label: string; value: UnitType }[] = [
+// Mirrors the API's UnitType enum (premium-aligned; BACKROOM / ROOM removed
+// in the V9 schema). Fed into the multi-select TypeFilter dropdown.
+const TYPES: TypeFilterOption[] = [
   { label: "Apartment",  value: "APARTMENT" },
   { label: "House",      value: "HOUSE" },
   { label: "Townhouse",  value: "TOWNHOUSE" },
@@ -93,7 +95,9 @@ export default function Browse() {
     setLoading(true);
     setError(null);
     const filters = {
-      location: areaSet.size > 0 ? Array.from(areaSet).join(" ") : undefined,
+      // API binds repeated/CSV ?location values into List<String>; each
+      // value is OR-matched against suburb / city / province server-side.
+      location: areaSet.size > 0 ? Array.from(areaSet).join(",") : undefined,
       types: typeSet.size > 0 ? (Array.from(typeSet) as UnitType[]) : undefined,
       maxPrice: maxPrice ?? undefined,
       minBeds: minBeds ?? undefined,
@@ -122,15 +126,18 @@ export default function Browse() {
     setParams(next, { replace: true });
   };
 
-  const toggleType = (t: string) => {
-    const next = new Set(typeSet);
-    if (next.has(t)) next.delete(t);
-    else next.add(t);
+  const setAreas = (next: string[]) =>
     patchParams((p) => {
-      if (next.size === 0) p.delete("type");
-      else p.set("type", Array.from(next).join(","));
+      p.delete("areas");
+      if (next.length === 0) p.delete("location");
+      else p.set("location", next.join(","));
     });
-  };
+
+  const setTypes = (next: UnitType[]) =>
+    patchParams((p) => {
+      if (next.length === 0) p.delete("type");
+      else p.set("type", next.join(","));
+    });
 
   const setBudget = ({ minPrice: lo, maxPrice: hi }: { minPrice: number | null; maxPrice: number | null }) =>
     patchParams((p) => {
@@ -154,22 +161,6 @@ export default function Browse() {
       else p.delete("new");
       if (next.minSqm == null) p.delete("minSqm");
       else p.set("minSqm", String(next.minSqm));
-    });
-
-  const removeArea = (name: string) => {
-    const next = new Set(areaSet);
-    next.delete(name);
-    patchParams((p) => {
-      p.delete("areas");
-      if (next.size === 0) p.delete("location");
-      else p.set("location", Array.from(next).join(","));
-    });
-  };
-
-  const clearAreas = () =>
-    patchParams((p) => {
-      p.delete("areas");
-      p.delete("location");
     });
 
   const resetAll = () => setParams(new URLSearchParams(), { replace: true });
@@ -219,52 +210,14 @@ export default function Browse() {
       <Nav role="tenant" />
 
       <FilterBar
-        left={<LocationFilter city="Johannesburg" extraAreas={areaSet.size} />}
         filters={
           <>
-            {areaSet.size > 0 ? (
-              <>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {Array.from(areaSet).map((a) => (
-                    <Chip
-                      key={a}
-                      active
-                      leftIcon="pin"
-                      onClick={() => removeArea(a)}
-                      aria-label={`Remove ${a}`}
-                    >
-                      {a}
-                      <Icon name="x" size={11} style={{ marginLeft: 4 }} />
-                    </Chip>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={clearAreas}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      padding: "0 4px",
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      fontSize: 12,
-                      color: "var(--slate)",
-                      textDecoration: "underline",
-                    }}
-                  >
-                    Clear areas
-                  </button>
-                </div>
-                <FilterDivider />
-              </>
-            ) : null}
-            <div style={{ display: "flex", gap: 6 }}>
-              {TYPES.map((t) => (
-                <Chip key={t.value} active={typeSet.has(t.value)} onClick={() => toggleType(t.value)}>
-                  {t.label}
-                </Chip>
-              ))}
-            </div>
-            <FilterDivider />
+            <AreaFilter areas={Array.from(areaSet)} onChange={setAreas} />
+            <TypeFilter
+              options={TYPES}
+              selected={Array.from(typeSet) as UnitType[]}
+              onChange={setTypes}
+            />
             <BudgetFilter
               minPrice={minPrice}
               maxPrice={maxPrice}
@@ -341,7 +294,7 @@ export default function Browse() {
                 actions={
                   <>
                     {areaSet.size > 0 ? (
-                      <Button variant="ghost" onClick={clearAreas}>
+                      <Button variant="ghost" onClick={() => setAreas([])}>
                         Clear areas
                       </Button>
                     ) : null}

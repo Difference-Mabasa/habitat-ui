@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { type IconName } from "@/components/Icon";
+import Icon, { type IconName } from "@/components/Icon";
 import Chip from "@/components/Chip";
 import Badge from "@/components/Badge";
 import Input from "@/components/Input";
 import FormField from "@/components/FormField";
 import Eyebrow from "@/components/Eyebrow";
 import Toggle from "@/components/Toggle";
+import Checkbox from "@/components/Checkbox";
 import Button from "@/components/Button";
+import PlaceSearch from "@/components/PlaceSearch";
+import type { UnitType } from "@/lib/api/properties";
 
 interface PopoverProps {
   /** Visible chip text. */
@@ -323,4 +326,181 @@ export function MoreFiltersControl({ value, onChange }: MoreFiltersProps) {
       )}
     </FilterPopover>
   );
+}
+
+// ─── Area multiselect ─────────────────────────────────────────────────────
+//
+// Replaces the legacy FilterBar.LocationFilter (a static button). Search
+// uses the shared PlaceSearch primitive so suggestions come from Google
+// Places (Nominatim as fallback) — same lookup the hero search and the
+// profile address picker use. Picking a suggestion appends its primary
+// label (suburb-name when Google has one, city-name otherwise) to the
+// selected list; selections render as removable chips below.
+
+export interface AreaFilterProps {
+  /** Currently selected area names. Each value is OR-matched against
+   *  suburb / city / province on the API. */
+  areas: string[];
+  onChange: (next: string[]) => void;
+}
+
+export function AreaFilter({ areas, onChange }: AreaFilterProps) {
+  const [query, setQuery] = useState("");
+
+  const triggerLabel =
+    areas.length === 0
+      ? "Any area"
+      : areas.length === 1
+        ? areas[0]
+        : `${areas[0]} + ${areas.length - 1} more`;
+
+  const addArea = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    if (areas.some((a) => a.toLowerCase() === trimmed.toLowerCase())) return;
+    onChange([...areas, trimmed]);
+  };
+
+  const removeArea = (name: string) => {
+    onChange(areas.filter((a) => a !== name));
+  };
+
+  return (
+    <FilterPopover
+      label={triggerLabel}
+      leftIcon="pin"
+      active={areas.length > 0}
+      badge={areas.length > 1 ? areas.length : undefined}
+      width={340}
+    >
+      {() => (
+        <>
+          <Eyebrow style={{ marginBottom: 10 }}>Search areas</Eyebrow>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              height: 40,
+              padding: "0 12px",
+              background: "var(--surface)",
+              border: "1px solid var(--hairline-strong)",
+              borderRadius: "var(--r-md)",
+              marginBottom: 12,
+            }}
+          >
+            <PlaceSearch
+              value={query}
+              onChange={setQuery}
+              onPick={(place, primary) => {
+                addArea(place.suburb || place.city || primary);
+                setQuery("");
+              }}
+              leftSlot={<Icon name="search" size={14} style={{ color: "var(--slate)", flexShrink: 0 }} />}
+              placeholder="Type a suburb or city…"
+              ariaLabel="Area search"
+            />
+          </div>
+
+          {areas.length === 0 ? (
+            <div style={{ fontSize: 12, color: "var(--slate)" }}>
+              Pick one or more suburbs to filter the list. Listings match if their suburb, city,
+              or province contains any of the selected names.
+            </div>
+          ) : (
+            <>
+              <Eyebrow style={{ marginBottom: 8 }}>Selected · {areas.length}</Eyebrow>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+                {areas.map((a) => (
+                  <Chip
+                    key={a}
+                    active
+                    leftIcon="pin"
+                    onClick={() => removeArea(a)}
+                    aria-label={`Remove ${a}`}
+                    style={{ height: 28, fontSize: 12 }}
+                  >
+                    {a}
+                    <Icon name="x" size={11} style={{ marginLeft: 4 }} />
+                  </Chip>
+                ))}
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
+                <Button variant="ghost" size="sm" onClick={() => onChange([])}>
+                  Clear all
+                </Button>
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </FilterPopover>
+  );
+}
+
+// ─── Type multiselect ─────────────────────────────────────────────────────
+//
+// Compact checkbox dropdown that replaces the inline chip row (which took
+// 5+ slots on the filter bar). Values are uppercase UnitType enum values
+// so they map straight onto the API's ?type=A,B param.
+
+export interface TypeFilterOption {
+  value: UnitType;
+  label: string;
+}
+
+export interface TypeFilterProps {
+  options: TypeFilterOption[];
+  selected: UnitType[];
+  onChange: (next: UnitType[]) => void;
+}
+
+export function TypeFilter({ options, selected, onChange }: TypeFilterProps) {
+  const triggerLabel =
+    selected.length === 0
+      ? "Any type"
+      : selected.length === 1
+        ? labelOf(options, selected[0])
+        : `${labelOf(options, selected[0])} + ${selected.length - 1} more`;
+
+  const toggle = (value: UnitType) => {
+    onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);
+  };
+
+  return (
+    <FilterPopover
+      label={triggerLabel}
+      leftIcon="home"
+      active={selected.length > 0}
+      badge={selected.length > 1 ? selected.length : undefined}
+      width={240}
+    >
+      {() => (
+        <>
+          <Eyebrow style={{ marginBottom: 10 }}>Property type</Eyebrow>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {options.map((opt) => (
+              <Checkbox
+                key={opt.value}
+                checked={selected.includes(opt.value)}
+                onChange={() => toggle(opt.value)}
+                label={opt.label}
+              />
+            ))}
+          </div>
+          {selected.length > 0 ? (
+            <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 12, marginTop: 12, borderTop: "1px solid var(--hairline)" }}>
+              <Button variant="ghost" size="sm" onClick={() => onChange([])}>
+                Clear
+              </Button>
+            </div>
+          ) : null}
+        </>
+      )}
+    </FilterPopover>
+  );
+}
+
+function labelOf(options: TypeFilterOption[], value: UnitType): string {
+  return options.find((o) => o.value === value)?.label ?? value;
 }
