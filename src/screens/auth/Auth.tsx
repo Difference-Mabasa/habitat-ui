@@ -2,6 +2,12 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "@/components/Logo";
 import IconButton from "@/components/IconButton";
+import Button from "@/components/Button";
+import Input from "@/components/Input";
+import FormField from "@/components/FormField";
+import Checkbox from "@/components/Checkbox";
+import Card from "@/components/Card";
+import Alert from "@/components/Alert";
 import { useSession } from "@/lib/session";
 import { ApiError } from "@/lib/api/client";
 
@@ -9,14 +15,20 @@ type Mode = "login" | "register";
 type RegisterRole = "user" | "agent";
 
 /**
- * /auth and /register render the same screen. Only the eyebrow over the
+ * /auth and /register render the same screen. Only the eyebrow above the
  * hero ("WELCOME BACK" vs "JOIN HABITAT") and the right-hand form change
  * between modes; the espresso panel, the hero, the subtitle, and the
  * footer line are shared.
  *
- * Proportions aligned with the original backroom-ui auth screens —
- * fixed 420px left panel, 52px hero, 36px form heading, 15px inputs —
- * which fit a typical laptop screen without scrolling.
+ * Layout proportions follow backroom-ui's auth screens — fixed 420px
+ * left panel, 52px hero, 36px form heading — which fit a typical laptop
+ * viewport without scrolling.
+ *
+ * Casing: form headings, field labels, article titles, and role-toggle
+ * options are written in Title Case in source so they render Title Case
+ * directly. Buttons inherit `.btn`'s `text-transform: uppercase` from
+ * the design system, so `<Button>` text written Title Case renders as
+ * ALL CAPS in the browser — matches the rest of the app.
  */
 export default function Auth() {
   const location = useLocation();
@@ -136,7 +148,7 @@ function PitchPanel({ mode }: { mode: Mode }) {
   );
 }
 
-// ── Shared form wrapper + primitives ─────────────────────────────────────
+// ── Shared form chrome ───────────────────────────────────────────────────
 
 function FormPanel({ children }: { children: React.ReactNode }) {
   return (
@@ -162,8 +174,9 @@ function FormHeading({ title, switchPrompt, switchLabel, switchTo }: {
 }) {
   return (
     <>
-      {/* No .display class on this h2 — sentence-case form heading, not a
-          brand-hero. The espresso panel keeps its uppercase hero. */}
+      {/* No .display class — form headings render Title Case directly,
+          not uppercased. The .display class is reserved for the brand
+          hero on the espresso panel. */}
       <h2
         style={{
           fontSize: 32,
@@ -197,8 +210,8 @@ function Divider() {
         color: "var(--slate)",
         fontSize: 12,
         fontWeight: 500,
-        letterSpacing: "0.05em",
         textTransform: "uppercase",
+        letterSpacing: "0.08em",
       }}
     >
       <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
@@ -209,6 +222,9 @@ function Divider() {
 }
 
 function GoogleButton({ onClick }: { onClick: () => void }) {
+  // `<Button variant="secondary">` uppercases via .btn — Google sign-in
+  // is typically sentence-cased in vendor guidance, so we use a plain
+  // button here matching backroom's pattern.
   return (
     <button
       type="button"
@@ -236,120 +252,6 @@ function GoogleButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function FieldLabel({ children, labelRight }: { children: React.ReactNode; labelRight?: React.ReactNode }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-      <label
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: "var(--ink)",
-        }}
-      >
-        {children}
-      </label>
-      {labelRight}
-    </div>
-  );
-}
-
-function TextInput({
-  type,
-  value,
-  onChange,
-  placeholder,
-  autoComplete,
-  invalid,
-  paddingRight,
-}: {
-  type: "email" | "text" | "password";
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  autoComplete?: string;
-  invalid?: boolean;
-  paddingRight?: number;
-}) {
-  return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      autoComplete={autoComplete}
-      style={{
-        width: "100%",
-        boxSizing: "border-box",
-        padding: paddingRight ? `13px ${paddingRight}px 13px 16px` : "13px 16px",
-        border: `1.5px solid ${invalid ? "var(--danger)" : "var(--hairline-strong)"}`,
-        borderRadius: 8,
-        fontSize: 15,
-        fontFamily: "inherit",
-        background: "#fff",
-        color: "var(--ink)",
-        outline: "none",
-      }}
-    />
-  );
-}
-
-function FieldError({ children }: { children: React.ReactNode }) {
-  return (
-    <span role="alert" style={{ display: "block", fontSize: 12, color: "var(--danger)", marginTop: 6 }}>
-      {children}
-    </span>
-  );
-}
-
-function SubmitButton({ disabled, label, loadingLabel, loading }: {
-  disabled?: boolean;
-  label: string;
-  loadingLabel: string;
-  loading: boolean;
-}) {
-  return (
-    <button
-      type="submit"
-      disabled={disabled}
-      style={{
-        width: "100%",
-        padding: 14,
-        background: disabled ? "color-mix(in oklch, var(--accent) 65%, transparent)" : "var(--accent)",
-        color: "#fff",
-        border: "none",
-        borderRadius: 8,
-        fontFamily: "inherit",
-        fontSize: 16,
-        fontWeight: 600,
-        letterSpacing: "0",
-        cursor: disabled ? "not-allowed" : "pointer",
-        marginTop: 4,
-      }}
-    >
-      {loading ? loadingLabel : label}
-    </button>
-  );
-}
-
-function FormErrorBanner({ message }: { message: string }) {
-  return (
-    <div
-      role="alert"
-      style={{
-        background: "color-mix(in oklch, var(--danger) 8%, transparent)",
-        border: "1px solid color-mix(in oklch, var(--danger) 25%, transparent)",
-        borderRadius: 8,
-        padding: "12px 16px",
-        fontSize: 13,
-        color: "var(--danger)",
-        marginBottom: 16,
-      }}
-    >
-      {message}
-    </div>
-  );
-}
-
 // ── Login form ───────────────────────────────────────────────────────────
 
 function LoginForm() {
@@ -374,7 +276,7 @@ function LoginForm() {
   return (
     <FormPanel>
       <FormHeading
-        title="Sign in"
+        title="Sign In"
         switchPrompt="No account?"
         switchLabel="Create one free"
         switchTo="/register"
@@ -389,62 +291,72 @@ function LoginForm() {
           void completeSignIn();
         }}
       >
-        {error ? <FormErrorBanner message={error} /> : null}
+        {error ? (
+          <div style={{ marginBottom: 16 }}>
+            <Alert tone="danger">{error}</Alert>
+          </div>
+        ) : null}
 
-        <div style={{ marginBottom: 16 }}>
-          <FieldLabel>Email address</FieldLabel>
-          <TextInput
+        <FormField label="Email Address">
+          <Input
             type="email"
-            value={email}
-            onChange={setEmail}
             placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
           />
-        </div>
+        </FormField>
 
-        <div style={{ marginBottom: 16 }}>
-          <FieldLabel
-            labelRight={
+        <div style={{ marginTop: 14 }}>
+          <FormField
+            label="Password"
+            helper={
               <Link
                 to="/forgot-password"
-                style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, textTransform: "none" }}
+                style={{ color: "var(--accent)", fontWeight: 600, textDecoration: "none" }}
               >
                 Forgot?
               </Link>
             }
           >
-            Password
-          </FieldLabel>
-          <div style={{ position: "relative" }}>
-            <TextInput
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={setPassword}
-              autoComplete="current-password"
-              paddingRight={44}
-            />
-            <IconButton
-              icon="eye"
-              label={showPassword ? "Hide password" : "Show password"}
-              size="sm"
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute",
-                right: 6,
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "var(--slate)",
-              }}
-            />
-          </div>
+            <div style={{ position: "relative" }}>
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                style={{ paddingRight: 44 }}
+              />
+              <IconButton
+                icon="eye"
+                label={showPassword ? "Hide password" : "Show password"}
+                size="sm"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: 6,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "var(--slate)",
+                }}
+              />
+            </div>
+          </FormField>
         </div>
 
-        <SubmitButton
+        <Button
+          type="submit"
+          variant="accent"
+          size="lg"
           disabled={status === "loading"}
-          loading={status === "loading"}
-          label="Sign in"
-          loadingLabel="Signing in…"
-        />
+          style={{
+            width: "100%",
+            justifyContent: "center",
+            marginTop: 20,
+          }}
+        >
+          {status === "loading" ? "Signing In…" : "Sign In"}
+        </Button>
       </form>
     </FormPanel>
   );
@@ -483,8 +395,8 @@ function validateRegistration(values: {
 }
 
 const ROLE_OPTIONS: { id: RegisterRole; label: string; emoji: string }[] = [
-  { id: "user", label: "Tenant or landlord", emoji: "🏠" },
-  { id: "agent", label: "Independent agent", emoji: "🤝" },
+  { id: "user", label: "Tenant or Landlord", emoji: "🏠" },
+  { id: "agent", label: "Independent Agent", emoji: "🤝" },
 ];
 
 function RegisterForm() {
@@ -499,8 +411,6 @@ function RegisterForm() {
   const [surname, setSurname] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  // USER auth role can take either workspace; AGENT lands on the agent
-  // overview. Both still respect ?from=… on the URL when present elsewhere.
   const homeForRole: Record<RegisterRole, string> = {
     user: "/onboarding",
     agent: "/agent-overview",
@@ -542,7 +452,7 @@ function RegisterForm() {
   return (
     <FormPanel>
       <FormHeading
-        title="Create account"
+        title="Create Account"
         switchPrompt="Already have one?"
         switchLabel="Sign in"
         switchTo="/auth"
@@ -585,126 +495,121 @@ function RegisterForm() {
           void completeRegister();
         }}
       >
-        {showBanner ? <FormErrorBanner message={error} /> : null}
+        {showBanner ? (
+          <div style={{ marginBottom: 16 }}>
+            <Alert tone="danger">{error}</Alert>
+          </div>
+        ) : null}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
-          <div>
-            <FieldLabel>First name</FieldLabel>
-            <TextInput
-              type="text"
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+          <FormField label="First Name" required error={fieldErrors.firstName}>
+            <Input
               value={firstName}
-              onChange={setFirstName}
+              onChange={(e) => setFirstName(e.target.value)}
               placeholder="Sipho"
               autoComplete="given-name"
-              invalid={!!fieldErrors.firstName}
             />
-            {fieldErrors.firstName ? <FieldError>{fieldErrors.firstName}</FieldError> : null}
-          </div>
-          <div>
-            <FieldLabel>Surname</FieldLabel>
-            <TextInput
-              type="text"
+          </FormField>
+          <FormField label="Surname" required error={fieldErrors.surname}>
+            <Input
               value={surname}
-              onChange={setSurname}
+              onChange={(e) => setSurname(e.target.value)}
               placeholder="Dlamini"
               autoComplete="family-name"
-              invalid={!!fieldErrors.surname}
             />
-            {fieldErrors.surname ? <FieldError>{fieldErrors.surname}</FieldError> : null}
-          </div>
+          </FormField>
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <FieldLabel>Email address</FieldLabel>
-          <TextInput
-            type="email"
-            value={email}
-            onChange={setEmail}
-            placeholder="you@example.com"
-            autoComplete="email"
-            invalid={!!fieldErrors.email}
-          />
-          {fieldErrors.email ? <FieldError>{fieldErrors.email}</FieldError> : null}
+        <div style={{ marginBottom: 14 }}>
+          <FormField label="Email Address" required error={fieldErrors.email}>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+          </FormField>
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <FieldLabel>Password</FieldLabel>
-          <div style={{ position: "relative" }}>
-            <TextInput
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={setPassword}
-              placeholder="••••••••"
-              autoComplete="new-password"
-              invalid={!!fieldErrors.password}
-              paddingRight={44}
-            />
-            <IconButton
-              icon="eye"
-              label={showPassword ? "Hide password" : "Show password"}
-              size="sm"
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute",
-                right: 6,
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "var(--slate)",
-              }}
-            />
-          </div>
-          {fieldErrors.password ? <FieldError>{fieldErrors.password}</FieldError> : null}
+        <div style={{ marginBottom: 14 }}>
+          <FormField label="Password" required helper="Min 8 characters." error={fieldErrors.password}>
+            <div style={{ position: "relative" }}>
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                style={{ paddingRight: 44 }}
+              />
+              <IconButton
+                icon="eye"
+                label={showPassword ? "Hide password" : "Show password"}
+                size="sm"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: 6,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "var(--slate)",
+                }}
+              />
+            </div>
+          </FormField>
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <label
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 10,
-              fontSize: 13,
-              color: "var(--slate)",
-              lineHeight: 1.5,
-              cursor: "pointer",
-            }}
-          >
-            <input
-              type="checkbox"
+        <div style={{ marginBottom: 14 }}>
+          <Card padding={14} style={{ background: "var(--surface-2)" }}>
+            <Checkbox
               checked={acceptTerms}
               onChange={(e) => setAcceptTerms(e.target.checked)}
-              style={{ marginTop: 2, accentColor: "var(--accent)" }}
+              label={
+                <span style={{ fontSize: 13 }}>
+                  I accept Habitat's{" "}
+                  <Link
+                    to="/help/terms-of-service"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--accent)", fontWeight: 600 }}
+                  >
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    to="/help/popia-notice"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--accent)", fontWeight: 600 }}
+                  >
+                    POPIA Notice
+                  </Link>
+                  .
+                </span>
+              }
             />
-            <span>
-              I accept Habitat's{" "}
-              <Link
-                to="/help/terms-of-service"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "var(--accent)", fontWeight: 600 }}
-              >
-                terms of service
-              </Link>{" "}
-              and{" "}
-              <Link
-                to="/help/popia-notice"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "var(--accent)", fontWeight: 600 }}
-              >
-                POPIA notice
-              </Link>
-              .
-            </span>
-          </label>
-          {fieldErrors.acceptTerms ? <FieldError>{fieldErrors.acceptTerms}</FieldError> : null}
+          </Card>
+          {fieldErrors.acceptTerms ? (
+            <div role="alert" style={{ fontSize: 12, color: "var(--danger)", marginTop: 6 }}>
+              {fieldErrors.acceptTerms}
+            </div>
+          ) : null}
         </div>
 
-        <SubmitButton
+        <Button
+          type="submit"
+          variant="accent"
+          size="lg"
           disabled={status === "loading"}
-          loading={status === "loading"}
-          label="Create account"
-          loadingLabel="Creating account…"
-        />
+          style={{
+            width: "100%",
+            justifyContent: "center",
+            marginTop: 4,
+          }}
+        >
+          {status === "loading" ? "Creating Account…" : "Create Account"}
+        </Button>
       </form>
     </FormPanel>
   );
