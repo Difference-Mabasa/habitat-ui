@@ -15,12 +15,20 @@ This is a fresh rebuild from the Backroom Web design handoff: pixel-perfect Reac
 
 ## Getting started
 
+Two ways to run it locally:
+
+- **`npm run dev`** — fastest iteration. Hot-module reload; Vite proxies `/api` to whatever's on `localhost:8080`. Use this when you're iterating on UI code.
+- **Full-stack Docker** — Postgres + Redis + API + UI in containers, no IDE needed. See [`../habitat-stack/README.md`](../habitat-stack/README.md) for the command list. Use this when you want a clean, IDE-free environment for manual testing or for testing the production build (the Docker UI is the nginx-served Vite build, not the dev server).
+
 ```bash
 npm install
 npm run dev        # http://localhost:5173 — /api proxies to http://localhost:8080
 npm run build
 npm run lint
 npm run typecheck
+npm test           # Vitest + RTL component tests
+npm run e2e        # Playwright headless run (requires the API + UI to be up)
+npm run e2e:ui     # Playwright UI mode — best dev loop
 ```
 
 ## Build order
