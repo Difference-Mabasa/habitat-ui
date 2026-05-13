@@ -5,7 +5,7 @@ export type IconName =
   | "grid" | "map" | "sliders" | "plus" | "chevR" | "chevL" | "chevD" | "chevU"
   | "arrR" | "arrUR" | "check" | "x" | "upload" | "doc" | "home" | "key" | "settings"
   | "star" | "eye" | "calendar" | "cash" | "trend" | "inbox" | "users" | "logout"
-  | "burger" | "list" | "filter" | "info" | "shield" | "sparkle" | "paper" | "park"
+  | "burger" | "list" | "filter" | "info" | "help" | "shield" | "sparkle" | "paper" | "park"
   | "pet" | "wifi" | "flame" | "edit" | "download" | "clock" | "bolt" | "trash"
   | "moon" | "sun" | "mic" | "video" | "wrench" | "arrL" | "refresh"
   | "more" | "flag" | "bookmark";
@@ -49,6 +49,7 @@ const PATHS: Record<IconName, JSX.Element> = {
   list: <><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><circle cx="4" cy="6" r="1" /><circle cx="4" cy="12" r="1" /><circle cx="4" cy="18" r="1" /></>,
   filter: <polygon points="22 3 2 3 10 12.5 10 19 14 21 14 12.5 22 3" />,
   info: <><circle cx="12" cy="12" r="9" /><line x1="12" y1="11" x2="12" y2="16" /><circle cx="12" cy="8" r="0.8" fill="currentColor" /></>,
+  help: <><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-1 .4-1.2 1-1.2 1.7v.5" /><circle cx="11.8" cy="17" r="0.9" fill="currentColor" /></>,
   shield: <><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V6l8-3z" /><polyline points="9 12 11 14 15 10" /></>,
   sparkle: <><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" /><path d="M19 17l.7 1.8L21.5 19.5l-1.8.7L19 22l-.7-1.8L16.5 19.5l1.8-.7z" /></>,
   paper: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="8" y1="13" x2="16" y2="13" /><line x1="8" y1="17" x2="13" y2="17" /></>,

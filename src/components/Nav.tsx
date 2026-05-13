@@ -265,6 +265,9 @@ export default function Nav({
             badge={showBadges ? unreadDms : undefined}
           />
         </Link>
+        <Link to="/help" aria-label="Open help center" style={{ display: "inline-flex" }}>
+          <IconButton icon="help" label="Help center" />
+        </Link>
         <IconButton
           icon="bell"
           label="Notifications"
