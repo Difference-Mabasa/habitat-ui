@@ -14,6 +14,9 @@ export default defineConfig({
     environment: "happy-dom",
     setupFiles: ["./src/test/setup.ts"],
     css: false,
+    // Playwright owns e2e/** — Vitest would otherwise pick up *.spec.ts
+    // there and try to run real-browser tests in happy-dom.
+    exclude: ["node_modules", "dist", "e2e/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
