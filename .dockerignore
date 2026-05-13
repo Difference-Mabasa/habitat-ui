@@ -1,0 +1,41 @@
+node_modules
+dist
+dist-ssr
+coverage
+playwright-report
+test-results
+playwright/.cache
+.vite
+.vitest
+*.tsbuildinfo
+
+# E2E suite — image is for runtime, not for running tests.
+e2e
+
+# VCS, IDE, OS
+.git
+.gitignore
+.github
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+
+# Logs and env
+*.log
+.env
+.env.*
+.env.*.local
+
+# Docker artifacts
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.*.yml
+
+# Docs the runtime doesn't need
+README.md
+CLAUDE.md
+build-order.md
+component-audit.md
+development-standards.md
