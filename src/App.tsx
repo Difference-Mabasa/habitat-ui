@@ -153,7 +153,7 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   "listing-submitted": lazy(() => import("@/screens/listing-submitted/ListingSubmitted")),
   "property-chat": lazy(() => import("@/screens/property-chat/PropertyChat")),
   "community-thread": lazy(() => import("@/screens/community-thread/CommunityThread")),
-  register: lazy(() => import("@/screens/register/Register")),
+  register: lazy(() => import("@/screens/auth/Auth")),
   "forgot-password": lazy(() => import("@/screens/forgot-password/ForgotPassword")),
   "user-profile": lazy(() => import("@/screens/user-profile/UserProfile")),
   "post-detail": lazy(() => import("@/screens/post-detail/PostDetail")),
