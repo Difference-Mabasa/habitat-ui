@@ -60,6 +60,11 @@ export default function ChatDrawer({
       <div style={{ padding: "12px 16px 8px" }}>
         <Eyebrow style={{ marginBottom: 8 }}>Direct messages</Eyebrow>
       </div>
+      {dms.length === 0 ? (
+        <div style={{ padding: "16px 16px 8px", fontSize: 12, color: "var(--slate)" }}>
+          No messages yet.
+        </div>
+      ) : null}
       {dms.map((d) => (
         <button
           key={d.id}

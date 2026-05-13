@@ -84,129 +84,18 @@ export interface NavProps {
   dms?: ChatDirectMessage[];
 }
 
-const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "n0a",
-    type: "Follow",
-    title: "Naledi Khumalo started following you",
-    body: "Tenant · Melville · 4m",
-    fullBody:
-      "Naledi Khumalo started following you. She's a verified Melville tenant — open her profile to follow back or send a message.",
-    unread: true,
-    time: "4m",
-    href: "/u/u-naledi",
-    actionLabel: "View profile",
-  },
-  {
-    id: "n0b",
-    type: "Reply",
-    title: "Thandi replied to your post",
-    body: "\"Sello did our place too. Reliable.\"",
-    fullBody:
-      "Thandi Mokoena replied to your tip about Sello the plumber: \"Sello did our place too. Reliable. He also does CoJ municipal compliance certificates if you need them at lease-end.\"",
-    unread: true,
-    time: "12m",
-    href: "/post/p1",
-    actionLabel: "Open reply",
-  },
-  {
-    id: "n0c",
-    type: "Mention",
-    title: "Pieter mentioned you in a post",
-    body: "\"@Sipho can confirm — Sello is the plumber.\"",
-    fullBody:
-      "Pieter Kruger mentioned you in a post about Westdene plumbers: \"@Sipho can confirm — Sello is the plumber I keep coming back to. Brixton + Westdene.\"",
-    unread: true,
-    time: "1h",
-    href: "/post/p7",
-    actionLabel: "Open post",
-  },
-  {
-    id: "n0d",
-    type: "Like",
-    title: "12 people liked your tip",
-    body: "\"Plumber rec for Brixton…\" picked up traction overnight",
-    fullBody:
-      "Your tip \"Plumber rec for Brixton: Sello on 071 322 0918\" got 12 new likes overnight (24 total). Thandi, Naledi, and 10 others reacted.",
-    unread: false,
-    time: "8h",
-    href: "/post/p1",
-    actionLabel: "Open post",
-  },
-  {
-    id: "n1",
-    type: "Application",
-    title: "Sipho Dlamini applied",
-    body: "2-Bed Cottage · Brixton — submitted 14 min ago",
-    fullBody:
-      "Sipho Dlamini submitted an application for 2-Bed Cottage · Brixton 14 min ago. Affordability score 88, payslips and bank statements verified, FICA complete. Awaiting your review.",
-    unread: true,
-    time: "14m",
-    href: "/applicant",
-    actionLabel: "Review applicant",
-  },
-  {
-    id: "n2",
-    type: "Viewing",
-    title: "New viewing request",
-    body: "Naledi K. requested Sat 10:30 for Studio · Melville",
-    fullBody:
-      "Naledi Khumalo asked to view Studio · Melville on Saturday at 10:30. She's open to a 30-minute window. Confirm, propose another time, or decline.",
-    unread: true,
-    time: "1h",
-    href: "/viewings",
-    actionLabel: "Confirm viewing",
-  },
-  {
-    id: "n3",
-    type: "Lease",
-    title: "Lease ready to sign",
-    body: "Garden Flat · Westdene — 1 signature pending",
-    fullBody:
-      "The lease for Garden Flat · Westdene (HB-LSE-2026-00418) is drafted and waiting on your signature. Tenant has already signed.",
-    unread: true,
-    time: "3h",
-    href: "/lease",
-    actionLabel: "Send to tenant",
-  },
-  {
-    id: "n4",
-    type: "Payment",
-    title: "Rent received",
-    body: "R 6,800 from Lerato N. for Backroom · Yeoville",
-    fullBody:
-      "R 6,800 was received from Lerato Ndlovu for Backroom · Yeoville. Trust-account hold released, payout queued for T+3.",
-    unread: false,
-    time: "Yesterday",
-    href: "/statements",
-    actionLabel: "View statement",
-  },
-  {
-    id: "n5",
-    type: "Message",
-    title: "Mandate update",
-    body: "Khaya Properties accepted your mandate",
-    fullBody:
-      "Khaya Properties accepted your Full-Management mandate for Loft · Maboneng. Effective immediately — 8% fee, monthly inspections included.",
-    unread: false,
-    time: "2d",
-    href: "/my-mandates",
-    actionLabel: "Open mandate",
-  },
-];
-
-const SAMPLE_DMS: ChatDirectMessage[] = [
-  { id: "d1", name: "Sipho Dlamini", sub: "Re: Studio · Melville", unread: 2, last: "Hi, is the unit still available?" },
-  { id: "d2", name: "Naledi Khumalo", sub: "Re: 2-Bed Cottage · Brixton", unread: 0, last: "Thanks, see you Saturday." },
-  { id: "d3", name: "Lerato Ndlovu", sub: "Re: Backroom · Yeoville", unread: 1, last: "Sent the deposit just now." },
-];
+// Notifications and DMs are owned by the API. The Nav consumes whatever is
+// passed via props; an empty default means a signed-in user sees their real
+// (empty) inbox until callers wire the data.
+const EMPTY_NOTIFICATIONS: NotificationItem[] = [];
+const EMPTY_DMS: ChatDirectMessage[] = [];
 
 export default function Nav({
   role,
   user,
   showBadges = true,
-  notifications = SAMPLE_NOTIFICATIONS,
-  dms = SAMPLE_DMS,
+  notifications = EMPTY_NOTIFICATIONS,
+  dms = EMPTY_DMS,
 }: NavProps) {
   const session = useSession();
   const { isSm, isMd } = useViewport();
