@@ -19,10 +19,9 @@ import {
   AreaFilter,
   BudgetFilter,
   BedsFilter,
-  MoreFiltersControl,
+  SizeFilter,
   SortFilter,
   TypeFilter,
-  type MoreFilters,
   type TypeFilterOption,
 } from "./FilterPopovers";
 import FilterBar from "@/components/FilterBar";
@@ -59,6 +58,17 @@ function readNumberParam(params: URLSearchParams, key: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+// Grid is 3 columns wide on desktop and 2 on tablet; 12 fits 4 rows / 6 rows
+// without leaving a half-empty trailing row at common widths.
+const PAGE_SIZE = 12;
+
+function readIntParam(params: URLSearchParams, key: string): number | null {
+  const raw = params.get(key);
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 0 ? n : null;
+}
+
 function readSortKey(raw: string | null): SortKey {
   if (raw === "PRICE" || raw === "BEDROOMS" || raw === "SIZE" || raw === "NEWEST") return raw;
   return "NEWEST";
@@ -91,6 +101,8 @@ export default function Browse() {
   // Real listings from the API. Filters live on the URL; whenever a param
   // changes we re-fetch (the API does the work, no client-side filtering).
   const [items, setItems] = useState<PropertySummary[]>([]);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,13 +112,13 @@ export default function Browse() {
   const minPrice = readNumberParam(params, "minPrice");
   const maxPrice = readNumberParam(params, "maxPrice");
   const minBeds = readNumberParam(params, "minBeds");
+  const minSqm = readNumberParam(params, "minSqm");
   const sort: SortKey = readSortKey(params.get("sort"));
   const direction: SortDirection = readSortDirection(params.get("dir"));
-  const moreFilters: MoreFilters = {
-    verifiedOnly: params.get("verified") === "1",
-    newOnly: params.get("new") === "1",
-    minSqm: readNumberParam(params, "minSqm"),
-  };
+  // Page is 0-indexed on the wire and in the URL; the pagination control
+  // displays it 1-indexed.
+  const page = Math.max(0, readIntParam(params, "page") ?? 0);
+  const pageSize = PAGE_SIZE;
 
   useEffect(() => {
     let cancelled = false;
@@ -117,17 +129,22 @@ export default function Browse() {
       // value is OR-matched against suburb / city / province server-side.
       location: areaSet.size > 0 ? Array.from(areaSet).join(",") : undefined,
       types: typeSet.size > 0 ? (Array.from(typeSet) as UnitType[]) : undefined,
+      minPrice: minPrice ?? undefined,
       maxPrice: maxPrice ?? undefined,
       minBeds: minBeds ?? undefined,
+      minSqm: minSqm ?? undefined,
       sort,
       dir: direction,
-      size: 50,
+      page,
+      size: pageSize,
     };
     void api
       .list(filters)
-      .then((page) => {
+      .then((response) => {
         if (cancelled) return;
-        setItems(page.content);
+        setItems(response.content);
+        setTotalElements(response.totalElements);
+        setTotalPages(response.totalPages);
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -138,29 +155,33 @@ export default function Browse() {
     return () => {
       cancelled = true;
     };
-  }, [api, areaSet, typeSet, maxPrice, minBeds, sort, direction]);
+  }, [api, areaSet, typeSet, minPrice, maxPrice, minBeds, minSqm, sort, direction, page, pageSize]);
 
-  const patchParams = (mutator: (next: URLSearchParams) => void) => {
+  /** Any filter change resets the page back to 0 — the user's expectation is
+   *  "I narrowed the list, show me from the top" and it also avoids landing on
+   *  an out-of-range page after the result set shrinks. */
+  const patchFilter = (mutator: (next: URLSearchParams) => void) => {
     const next = new URLSearchParams(params);
+    next.delete("page");
     mutator(next);
     setParams(next, { replace: true });
   };
 
   const setAreas = (next: string[]) =>
-    patchParams((p) => {
+    patchFilter((p) => {
       p.delete("areas");
       if (next.length === 0) p.delete("location");
       else p.set("location", next.join(","));
     });
 
   const setTypes = (next: UnitType[]) =>
-    patchParams((p) => {
+    patchFilter((p) => {
       if (next.length === 0) p.delete("type");
       else p.set("type", next.join(","));
     });
 
   const setSort = (next: { sort: SortKey; direction: SortDirection }) =>
-    patchParams((p) => {
+    patchFilter((p) => {
       // NEWEST + DESC is the implicit default — keep the URL clean by
       // omitting both params for that case.
       if (next.sort === "NEWEST" && next.direction === "DESC") {
@@ -173,7 +194,7 @@ export default function Browse() {
     });
 
   const setBudget = ({ minPrice: lo, maxPrice: hi }: { minPrice: number | null; maxPrice: number | null }) =>
-    patchParams((p) => {
+    patchFilter((p) => {
       if (lo == null) p.delete("minPrice");
       else p.set("minPrice", String(lo));
       if (hi == null) p.delete("maxPrice");
@@ -181,52 +202,50 @@ export default function Browse() {
     });
 
   const setMinBeds = (n: number | null) =>
-    patchParams((p) => {
+    patchFilter((p) => {
       if (n == null) p.delete("minBeds");
       else p.set("minBeds", String(n));
     });
 
-  const setMoreFilters = (next: MoreFilters) =>
-    patchParams((p) => {
-      if (next.verifiedOnly) p.set("verified", "1");
-      else p.delete("verified");
-      if (next.newOnly) p.set("new", "1");
-      else p.delete("new");
-      if (next.minSqm == null) p.delete("minSqm");
-      else p.set("minSqm", String(next.minSqm));
+  const setMinSqm = (n: number | null) =>
+    patchFilter((p) => {
+      if (n == null) p.delete("minSqm");
+      else p.set("minSqm", String(n));
     });
+
+  const setPage = (n: number) => {
+    const next = new URLSearchParams(params);
+    if (n <= 0) next.delete("page");
+    else next.set("page", String(n));
+    setParams(next, { replace: true });
+  };
 
   const resetAll = () => setParams(new URLSearchParams(), { replace: true });
 
-  // Server does location/type/maxPrice/minBeds. minPrice, sqm, verified, new
-  // are post-filtered client-side until the API picks them up.
+  // Pure projection — the API already enforces every filter, including
+  // minPrice and minSqm. Adding a client-side filter here would mean the
+  // paginated page is whatever's LEFT after a second pass, which mismatches
+  // totalElements and shows half-empty pages (the backroom PERF-01 bug).
   const visibleListings = useMemo<PropertyCardData[]>(() => {
-    return items
-      .filter((s) => {
-        if (minPrice != null && (s.headlinePrice ?? 0) < minPrice) return false;
-        if (moreFilters.minSqm != null && (s.headlineSqm ?? 0) < moreFilters.minSqm) return false;
-        return true;
-      })
-      .map((s) => ({
-        id: s.id,
-        title: s.title,
-        area: s.suburb ?? s.city ?? "—",
-        price: s.headlinePrice ?? 0,
-        beds: s.headlineBeds ?? 0,
-        baths: s.headlineBaths ?? 0,
-        sqm: s.headlineSqm ?? undefined,
-        type: s.headlineUnitType ? titleCase(s.headlineUnitType) : undefined,
-        photoSrc: s.coverImageUrl ?? undefined,
-      }));
-  }, [items, minPrice, moreFilters.minSqm]);
+    return items.map((s) => ({
+      id: s.id,
+      title: s.title,
+      area: s.suburb ?? s.city ?? "—",
+      price: s.headlinePrice ?? 0,
+      beds: s.headlineBeds ?? 0,
+      baths: s.headlineBaths ?? 0,
+      sqm: s.headlineSqm ?? undefined,
+      type: s.headlineUnitType ? titleCase(s.headlineUnitType) : undefined,
+      photoSrc: s.coverImageUrl ?? undefined,
+    }));
+  }, [items]);
 
   const visiblePins = useMemo(
     () =>
       items
         .filter((s) => s.latitude != null && s.longitude != null)
-        .filter((s) => visibleListings.some((l) => l.id === s.id))
         .map((s) => ({ id: s.id, lat: s.latitude!, lng: s.longitude! })),
-    [items, visibleListings],
+    [items],
   );
 
   const toggleSave = (id: string) => {
@@ -257,14 +276,14 @@ export default function Browse() {
               onChange={setBudget}
             />
             <BedsFilter minBeds={minBeds} onChange={setMinBeds} />
+            <SizeFilter minSqm={minSqm} onChange={setMinSqm} />
             <SortFilter sort={sort} direction={direction} onChange={setSort} />
-            <MoreFiltersControl value={moreFilters} onChange={setMoreFilters} />
           </>
         }
         right={
           <>
             <span style={{ fontSize: 13, color: "var(--slate)" }} className="tabular">
-              <span style={{ fontWeight: 600, color: "var(--ink)" }}>{visibleListings.length}</span> homes
+              <span style={{ fontWeight: 600, color: "var(--ink)" }}>{totalElements}</span> homes
             </span>
             <div
               style={{
@@ -366,6 +385,40 @@ export default function Browse() {
                 ))}
               </div>
             )}
+
+            {!loading && !error && totalPages > 1 ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 12,
+                  padding: "32px 0 16px",
+                }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon="chevL"
+                  disabled={page <= 0}
+                  onClick={() => setPage(page - 1)}
+                >
+                  Previous
+                </Button>
+                <span style={{ fontSize: 13, color: "var(--slate)" }} className="tabular">
+                  Page <span style={{ fontWeight: 600, color: "var(--ink)" }}>{page + 1}</span> of {totalPages}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  rightIcon="chevR"
+                  disabled={page >= totalPages - 1}
+                  onClick={() => setPage(page + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

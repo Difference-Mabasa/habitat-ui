@@ -6,7 +6,6 @@ import Badge from "@/components/Badge";
 import Input from "@/components/Input";
 import FormField from "@/components/FormField";
 import Eyebrow from "@/components/Eyebrow";
-import Toggle from "@/components/Toggle";
 import Checkbox from "@/components/Checkbox";
 import Button from "@/components/Button";
 import PlaceSearch from "@/components/PlaceSearch";
@@ -232,66 +231,31 @@ export function BedsFilter({ minBeds, onChange }: BedsFilterProps) {
   );
 }
 
-// ─── More filters ──────────────────────────────────────────────────────────
+// ─── Min size ──────────────────────────────────────────────────────────────
+//
+// Used to be a multi-toggle "More filters" popover (verified-by-Habitat /
+// new-this-week / minimum m²). The first two were UI-only with no API or
+// schema backing, so filtering on them was guaranteed to drift from the
+// data behind the cards. Stripped them; this popover now owns only the
+// one filter the API enforces (minSqm). When real verification +
+// freshness columns land, add them back here with matching API params.
 
-export interface MoreFilters {
-  verifiedOnly: boolean;
-  newOnly: boolean;
+export interface SizeFilterProps {
   minSqm: number | null;
+  onChange: (next: number | null) => void;
 }
 
-export interface MoreFiltersProps {
-  value: MoreFilters;
-  onChange: (next: MoreFilters) => void;
-}
-
-function activeMoreFiltersCount(v: MoreFilters): number {
-  let n = 0;
-  if (v.verifiedOnly) n++;
-  if (v.newOnly) n++;
-  if (v.minSqm != null) n++;
-  return n;
-}
-
-export function MoreFiltersControl({ value, onChange }: MoreFiltersProps) {
-  const [draftSqm, setDraftSqm] = useState(value.minSqm?.toString() ?? "");
-  useEffect(() => setDraftSqm(value.minSqm?.toString() ?? ""), [value.minSqm]);
-  const count = activeMoreFiltersCount(value);
+export function SizeFilter({ minSqm, onChange }: SizeFilterProps) {
+  const [draftSqm, setDraftSqm] = useState(minSqm?.toString() ?? "");
+  useEffect(() => setDraftSqm(minSqm?.toString() ?? ""), [minSqm]);
+  const label = minSqm == null ? "Any size" : `${minSqm}m² +`;
 
   return (
-    <FilterPopover label="More filters" leftIcon="sliders" badge={count > 0 ? count : undefined} active={count > 0} width={320}>
+    <FilterPopover label={label} leftIcon="sqm" active={minSqm != null} width={260}>
       {(close) => (
         <>
-          <Eyebrow style={{ marginBottom: 10 }}>Trust &amp; freshness</Eyebrow>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
-              <Toggle
-                checked={value.verifiedOnly}
-                onChange={(e) => onChange({ ...value, verifiedOnly: e.target.checked })}
-              />
-              <span>
-                <strong>Verified by Habitat</strong>
-                <span style={{ display: "block", fontSize: 11, color: "var(--slate)" }}>
-                  FICA + photos + landlord ID checked
-                </span>
-              </span>
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
-              <Toggle
-                checked={value.newOnly}
-                onChange={(e) => onChange({ ...value, newOnly: e.target.checked })}
-              />
-              <span>
-                <strong>New this week</strong>
-                <span style={{ display: "block", fontSize: 11, color: "var(--slate)" }}>
-                  Listed in the last 7 days
-                </span>
-              </span>
-            </label>
-          </div>
-
-          <Eyebrow style={{ marginBottom: 10 }}>Size</Eyebrow>
-          <FormField label="Minimum (m²)" helper="Whole numbers only.">
+          <Eyebrow style={{ marginBottom: 10 }}>Minimum size (m²)</Eyebrow>
+          <FormField label="Min" helper="Whole numbers only.">
             <Input
               inputMode="numeric"
               value={draftSqm}
@@ -306,7 +270,7 @@ export function MoreFiltersControl({ value, onChange }: MoreFiltersProps) {
               variant="ghost"
               size="sm"
               onClick={() => {
-                onChange({ verifiedOnly: false, newOnly: false, minSqm: null });
+                onChange(null);
                 close();
               }}
             >
@@ -316,7 +280,7 @@ export function MoreFiltersControl({ value, onChange }: MoreFiltersProps) {
               variant="accent"
               size="sm"
               onClick={() => {
-                onChange({ ...value, minSqm: draftSqm ? Number(draftSqm) : null });
+                onChange(draftSqm ? Number(draftSqm) : null);
                 close();
               }}
             >
