@@ -40,7 +40,7 @@ export const CATEGORY_LABELS: Record<HelpCategory, string> = {
 export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "terms-of-service",
-    title: "Terms of Service",
+    title: "Terms of service",
     category: "legal",
     summary:
       "The legal agreement between you and Habitat that governs your use of the platform, account, listings, and payments.",
@@ -90,7 +90,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
   },
   {
     slug: "popia-notice",
-    title: "POPIA Notice",
+    title: "POPIA notice",
     category: "legal",
     summary:
       "How Habitat collects, uses, shares, and protects your personal information under the Protection of Personal Information Act, 2013.",

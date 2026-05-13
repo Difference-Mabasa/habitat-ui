@@ -37,9 +37,17 @@ export default function HelpArticle() {
         {article ? (
           <article>
             <Eyebrow style={{ marginBottom: 12 }}>{CATEGORY_LABELS[article.category]}</Eyebrow>
+            {/* No .display class — article titles stay sentence-case so
+                they read like docs, not banners. */}
             <h1
-              className="display"
-              style={{ fontSize: 40, lineHeight: 1.1, color: "var(--ink)", margin: "0 0 14px" }}
+              style={{
+                fontSize: 36,
+                fontWeight: 700,
+                lineHeight: 1.15,
+                letterSpacing: "-0.01em",
+                color: "var(--ink)",
+                margin: "0 0 14px",
+              }}
             >
               {article.title}
             </h1>

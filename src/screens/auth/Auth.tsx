@@ -162,13 +162,16 @@ function FormHeading({ title, switchPrompt, switchLabel, switchTo }: {
 }) {
   return (
     <>
+      {/* No .display class on this h2 — sentence-case form heading, not a
+          brand-hero. The espresso panel keeps its uppercase hero. */}
       <h2
-        className="display"
         style={{
-          fontSize: 36,
+          fontSize: 32,
+          fontWeight: 700,
           color: "var(--ink)",
+          letterSpacing: "-0.01em",
+          lineHeight: 1.1,
           margin: "0 0 6px",
-          letterSpacing: "0.01em",
         }}
       >
         {title}
@@ -235,14 +238,12 @@ function GoogleButton({ onClick }: { onClick: () => void }) {
 
 function FieldLabel({ children, labelRight }: { children: React.ReactNode; labelRight?: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
       <label
         style={{
           fontSize: 13,
           fontWeight: 600,
           color: "var(--ink)",
-          textTransform: "uppercase",
-          letterSpacing: "0.5px",
         }}
       >
         {children}
@@ -318,10 +319,9 @@ function SubmitButton({ disabled, label, loadingLabel, loading }: {
         border: "none",
         borderRadius: 8,
         fontFamily: "inherit",
-        fontSize: 18,
-        fontWeight: 700,
-        letterSpacing: "0.05em",
-        textTransform: "uppercase",
+        fontSize: 16,
+        fontWeight: 600,
+        letterSpacing: "0",
         cursor: disabled ? "not-allowed" : "pointer",
         marginTop: 4,
       }}
