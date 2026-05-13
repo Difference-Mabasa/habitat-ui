@@ -308,7 +308,7 @@ function SubmitButton({ disabled, label, loadingLabel, loading }: {
 }) {
   return (
     <button
-      type="button"
+      type="submit"
       disabled={disabled}
       style={{
         width: "100%",
