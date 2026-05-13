@@ -113,11 +113,11 @@ export default function HeroSearch() {
 
 /**
  * Free-input rent cap with +/- stepper buttons. The user can type any
- * value (numbers only — non-digits are stripped) OR nudge by R 5,000 at
- * a time. Empty = no max ("Any budget"); the stepper jumps to R 10,000
- * on the first +, then climbs in 5K increments.
+ * value (numbers only — non-digits are stripped) OR nudge by R 1,000 at
+ * a time. Empty = no max ("Any budget"); the first + jumps to R 1,000.
+ * For big numbers, typing is faster than stepping.
  */
-const RENT_STEP = 5000;
+const RENT_STEP = 1000;
 
 function MaxRentStepper({
   value,
@@ -135,7 +135,7 @@ function MaxRentStepper({
     else onChange(String(n));
   };
 
-  const inc = () => setNumber((current ?? RENT_STEP) + RENT_STEP);
+  const inc = () => setNumber((current ?? 0) + RENT_STEP);
   const dec = () => setNumber(current == null ? null : current - RENT_STEP);
 
   return (
