@@ -7,8 +7,10 @@ import RoutesGallery from "@/screens/_gallery/Routes";
 import ComponentGallery from "@/screens/_gallery/Components";
 import Placeholder from "@/screens/_placeholder/Placeholder";
 import ToastHost from "@/components/ToastHost";
+import CommandPalette from "@/components/CommandPalette";
 import RequireAuth from "@/lib/RequireAuth";
 import SessionProvider from "@/lib/SessionProvider";
+import { PaletteProvider } from "@/lib/palette";
 
 /**
  * Routes that don't require a signed-in session — everything else is wrapped
@@ -168,6 +170,7 @@ export default function App() {
 
   return (
     <SessionProvider>
+      <PaletteProvider>
       <Suspense fallback={<div style={{ padding: 40 }}>Loading…</div>}>
         <Routes>
           {/* Root redirects to the customer-facing landing page. The dev hub
@@ -203,7 +206,9 @@ export default function App() {
           <Route path="*" element={<Placeholder label="Not found" phase="Phase 5 (states)" />} />
         </Routes>
       </Suspense>
+      <CommandPalette />
       <ToastHost />
+      </PaletteProvider>
     </SessionProvider>
   );
 }

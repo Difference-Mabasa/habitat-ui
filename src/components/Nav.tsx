@@ -12,6 +12,7 @@ import { useSession, type Role } from "@/lib/session";
 import { useViewport } from "@/hooks/useViewport";
 import { useNotifications } from "@/lib/useNotifications";
 import type { NotificationItem as ApiNotificationItem } from "@/lib/api/notifications";
+import { usePalette } from "@/lib/palette";
 
 export type NavRole = "tenant" | "landlord" | "agent" | "admin";
 
@@ -111,6 +112,7 @@ export default function Nav({
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
   const navigate = useNavigate();
+  const { openPalette } = usePalette();
   const [openNotif, setOpenNotif] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
   const location = useLocation();
@@ -254,8 +256,10 @@ export default function Nav({
         <div style={{ flex: 1 }} />
 
         {isMobile ? null : (
-        <Link
-          to="/cmdk"
+        <button
+          type="button"
+          onClick={openPalette}
+          aria-label="Open command palette"
           style={{
             display: "flex",
             alignItems: "center",
@@ -269,9 +273,7 @@ export default function Nav({
             color: "var(--slate)",
             cursor: "pointer",
             fontFamily: "inherit",
-            textDecoration: "none",
           }}
-          aria-label="Open command palette"
         >
           <Icon name="search" size={15} />
           <span style={{ fontSize: 13 }}>Search anywhere…</span>
@@ -285,17 +287,11 @@ export default function Nav({
           >
             ⌘K
           </span>
-        </Link>
+        </button>
         )}
 
         {isMobile ? (
-          <Link
-            to="/cmdk"
-            aria-label="Open search"
-            style={{ display: "inline-flex" }}
-          >
-            <IconButton icon="search" label="Search" />
-          </Link>
+          <IconButton icon="search" label="Search" onClick={openPalette} />
         ) : null}
 
         <Link to="/inbox" aria-label="Open inbox" style={{ display: "inline-flex" }}>
