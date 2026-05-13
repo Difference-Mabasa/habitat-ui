@@ -1,6 +1,4 @@
-import { useEffect, useRef } from "react";
-import maplibregl, { Map as MlMap, Marker } from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
+import { useEffect, useRef, useState } from "react";
 import Photo from "@/components/Photo";
 import Icon from "@/components/Icon";
 import PriceDisplay from "@/components/PriceDisplay";
@@ -20,18 +18,50 @@ export interface MapPanelProps {
   pinPositions: PinPosition[];
   active: string | null;
   setActive: (id: string) => void;
-  /** Initial center if no pins. Defaults to central Joburg. */
+  /** Initial center as [lng, lat] (matches the prior MapLibre signature). */
   center?: [number, number];
   zoom?: number;
 }
 
-// OpenFreeMap public style — OSM tiles, no API key.
-const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
+/**
+ * Google-Maps-backed browse panel. The Maps + Places JS SDK is loaded
+ * globally via the script tag in index.html (same key the hero search and
+ * profile address picker use); we just wait for `google.maps.importLibrary`
+ * to be wired and then materialise the map + AdvancedMarkerElements.
+ *
+ * Active state mirrors the previous MapLibre behaviour: hovering a card on
+ * the left highlights the matching pin and recentres the map; clicking a
+ * pin promotes that listing as the active selection (and renders a card
+ * overlay bottom-left).
+ *
+ * Map ID: "DEMO_MAP_ID" is Google's free fallback that unlocks
+ * AdvancedMarkerElement without a Cloud-configured map style. Swap to a
+ * real Map ID once we want custom map styling.
+ */
+const DEMO_MAP_ID = "DEMO_MAP_ID";
 
 function formatPrice(n: number): string {
   if (n >= 1_000_000) return `R ${(n / 1_000_000).toFixed(1)}m`;
   if (n >= 1_000) return `R ${(n / 1_000).toFixed(1)}k`;
   return `R ${n}`;
+}
+
+function isGoogleReady(): boolean {
+  return typeof window !== "undefined" && Boolean(window.google?.maps?.importLibrary);
+}
+
+/** Resolve once the Google Maps SDK has set window.google.maps. Polls because
+ *  the script tag is async/defer and may not be parsed when the component mounts. */
+function waitForGoogle(): Promise<void> {
+  return new Promise((resolve) => {
+    if (isGoogleReady()) return resolve();
+    const t = setInterval(() => {
+      if (isGoogleReady()) {
+        clearInterval(t);
+        resolve();
+      }
+    }, 100);
+  });
 }
 
 export default function MapPanel({
@@ -40,86 +70,156 @@ export default function MapPanel({
   active,
   setActive,
   center = [28.01, -26.19],
-  zoom = 12,
+  zoom = 11,
 }: MapPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<MlMap | null>(null);
-  const markersRef = useRef<Map<string, Marker>>(new Map());
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
+  const [ready, setReady] = useState(false);
+  const [missingKey, setMissingKey] = useState(false);
 
   const activeListing = listings.find((l) => l.id === active);
 
-  // Initialise once.
+  // Initialise the map once Google is loaded.
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: STYLE_URL,
-      center,
-      zoom,
-      attributionControl: { compact: true },
-    });
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    mapRef.current = map;
-    const markers = markersRef.current;
+    let cancelled = false;
+    (async () => {
+      // Five-second budget — if the script never resolves the user is
+      // either offline or the API key was never wired; fall through to a
+      // friendly placeholder rather than spin forever.
+      const timer = setTimeout(() => {
+        if (!cancelled && !mapRef.current) setMissingKey(true);
+      }, 5000);
+
+      await waitForGoogle();
+      clearTimeout(timer);
+      if (cancelled || !containerRef.current) return;
+
+      const { Map } = (await google.maps.importLibrary("maps")) as google.maps.MapsLibrary;
+      if (cancelled || !containerRef.current) return;
+
+      const map = new Map(containerRef.current, {
+        center: { lat: center[1], lng: center[0] },
+        zoom,
+        mapId: DEMO_MAP_ID,
+        disableDefaultUI: false,
+        zoomControl: true,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        clickableIcons: false,
+      });
+      mapRef.current = map;
+      setReady(true);
+    })();
+
     return () => {
-      map.remove();
+      cancelled = true;
       mapRef.current = null;
+      const markers = markersRef.current;
+      markers.forEach((m) => (m.map = null));
       markers.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Sync markers when pins or active change.
+  // Sync markers + recenter on active.
   useEffect(() => {
+    if (!ready) return;
     const map = mapRef.current;
     if (!map) return;
 
-    const seen = new Set<string>();
-    for (const pin of pinPositions) {
-      if (typeof pin.lat !== "number" || typeof pin.lng !== "number") continue;
-      seen.add(pin.id);
-      const listing = listings.find((l) => l.id === pin.id);
-      if (!listing) continue;
+    let cancelled = false;
+    (async () => {
+      const { AdvancedMarkerElement } = (await google.maps.importLibrary(
+        "marker",
+      )) as google.maps.MarkerLibrary;
+      if (cancelled) return;
 
-      let marker = markersRef.current.get(pin.id);
-      const isActive = active === pin.id;
-      if (!marker) {
-        const el = buildPinElement(listing.price, isActive, () => setActive(pin.id));
-        marker = new maplibregl.Marker({ element: el, anchor: "bottom" })
-          .setLngLat([pin.lng, pin.lat])
-          .addTo(map);
-        markersRef.current.set(pin.id, marker);
-      } else {
-        marker.setLngLat([pin.lng, pin.lat]);
-        const el = marker.getElement();
-        updatePinElement(el, listing.price, isActive);
-        el.onclick = (e) => {
-          e.stopPropagation();
-          setActive(pin.id);
-        };
-      }
-    }
+      const seen = new Set<string>();
+      for (const pin of pinPositions) {
+        if (typeof pin.lat !== "number" || typeof pin.lng !== "number") continue;
+        seen.add(pin.id);
+        const listing = listings.find((l) => l.id === pin.id);
+        if (!listing) continue;
 
-    // Drop markers that are no longer in the pin set.
-    for (const [id, marker] of markersRef.current) {
-      if (!seen.has(id)) {
-        marker.remove();
-        markersRef.current.delete(id);
+        const isActive = active === pin.id;
+        const position = { lat: pin.lat, lng: pin.lng };
+        let marker = markersRef.current.get(pin.id);
+        if (!marker) {
+          const el = buildPinElement(listing.price, isActive, () => setActive(pin.id));
+          marker = new AdvancedMarkerElement({
+            map,
+            position,
+            content: el,
+          });
+          markersRef.current.set(pin.id, marker);
+        } else {
+          marker.position = position;
+          marker.map = map;
+          updatePinElement(marker.content as HTMLElement, listing.price, isActive);
+        }
       }
-    }
 
-    // Recenter on the active pin.
-    if (active) {
-      const activePin = pinPositions.find((p) => p.id === active);
-      if (activePin && typeof activePin.lat === "number" && typeof activePin.lng === "number") {
-        map.easeTo({ center: [activePin.lng, activePin.lat], duration: 350 });
+      // Detach markers that no longer match a pin.
+      for (const [id, marker] of markersRef.current) {
+        if (!seen.has(id)) {
+          marker.map = null;
+          markersRef.current.delete(id);
+        }
       }
-    }
-  }, [pinPositions, listings, active, setActive]);
+
+      // Recentre on the active pin so the card overlay lines up.
+      if (active) {
+        const activePin = pinPositions.find((p) => p.id === active);
+        if (activePin && typeof activePin.lat === "number" && typeof activePin.lng === "number") {
+          map.panTo({ lat: activePin.lat, lng: activePin.lng });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, pinPositions, listings, active, setActive]);
 
   return (
     <div style={{ position: "absolute", inset: 0 }}>
       <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
+
+      {!ready && !missingKey ? (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            placeItems: "center",
+            background: "var(--surface-2)",
+            color: "var(--slate)",
+            fontSize: 13,
+          }}
+        >
+          Loading map…
+        </div>
+      ) : null}
+
+      {missingKey ? (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            placeItems: "center",
+            background: "var(--surface-2)",
+            color: "var(--slate)",
+            fontSize: 13,
+            padding: 24,
+            textAlign: "center",
+          }}
+        >
+          Map unavailable — the Google Maps key didn&apos;t load. The listings still work in the list view.
+        </div>
+      ) : null}
 
       {activeListing ? (
         <div
