@@ -110,18 +110,40 @@ export default function Nav({
   const live = useNotifications(session.client, isAuthenticated);
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
-  // Effective role + display name: caller's explicit prop wins, else session user, else tenant fallback.
-  const sessionRole = (session.user?.activeRole ?? "tenant") as NavRole;
-  const effectiveRole: NavRole = role ?? sessionRole;
-  const effectiveUser = user ?? (session.user ? { name: session.user.name } : { name: "Guest" });
-  const availableRoles = new Set<NavRole>(
-    (session.user?.roles ?? (["tenant", "landlord", "agent", "admin"] as NavRole[])) as NavRole[],
-  );
-  const visibleWorkspaces = WORKSPACES.filter((w) => availableRoles.has(w.role));
   const navigate = useNavigate();
   const [openNotif, setOpenNotif] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
   const location = useLocation();
+
+  // Map the auth-level Role onto a workspace NavRole. USER covers both
+  // "tenant" and "landlord" workspaces — we pick whichever the URL is
+  // currently inside, so the dropdown's "current workspace" highlight
+  // tracks where the user actually is. AGENT and ADMIN map 1:1.
+  const sessionRole: NavRole = (() => {
+    const r = session.user?.activeRole;
+    if (r === "agent") return "agent";
+    if (r === "admin") return "admin";
+    return location.pathname.startsWith("/landlord") ? "landlord" : "tenant";
+  })();
+  const effectiveRole: NavRole = role ?? sessionRole;
+  const effectiveUser = user ?? (session.user ? { name: session.user.name } : { name: "Guest" });
+  const effectiveEmail = session.user?.email ?? null;
+  // After the role collapse, session.user.roles is ("user"|"agent"|"admin"). The
+  // workspace dropdown is keyed by NavRole, so unfold "user" into both tenant +
+  // landlord workspaces so anyone signed in as USER sees both options.
+  const authRoles = session.user?.roles ?? (["user", "agent", "admin"] as Role[]);
+  const availableRoles = new Set<NavRole>();
+  for (const r of authRoles) {
+    if (r === "user") {
+      availableRoles.add("tenant");
+      availableRoles.add("landlord");
+    } else if (r === "agent") {
+      availableRoles.add("agent");
+    } else if (r === "admin") {
+      availableRoles.add("admin");
+    }
+  }
+  const visibleWorkspaces = WORKSPACES.filter((w) => availableRoles.has(w.role));
 
   // Drawer items come from the prop if set (tests, stories), otherwise
   // from the live hook (mapped from the API shape to the drawer shape).
@@ -363,10 +385,18 @@ export default function Nav({
                 }}
               >
                 <Avatar name={effectiveUser.name} size="md" />
-                <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+                <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2, minWidth: 0 }}>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{effectiveUser.name}</span>
-                  <span style={{ fontSize: 11, color: "var(--slate)" }}>
-                    {ROLE_LABEL[effectiveRole]} · habitat.co.za
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "var(--slate)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {effectiveEmail ?? ROLE_LABEL[effectiveRole]}
                   </span>
                 </div>
               </div>

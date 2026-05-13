@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import { useViewport } from "@/hooks/useViewport";
+import { useSession } from "@/lib/session";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Avatar from "@/components/Avatar";
@@ -129,8 +130,18 @@ const SOWETO_AREAS = ["Orlando West", "Diepkloof", "Pimville", "Mofolo", "Klipsp
 
 export default function Profile() {
   const { isSm } = useViewport();
+  const session = useSession();
   const formCols = isSm ? "1fr" : "1fr 1fr";
   const [section, setSection] = useState<SectionId>("profile");
+  // Seed the editable fields with whatever the signed-in user actually has.
+  // First name + surname + email come from the session; everything else
+  // (phone, DOB, ID number, address, employment, bio, interests) is held
+  // local until the per-step profile-PATCH endpoint lands.
+  const [firstName, setFirstName] = useState(session.user?.firstName ?? "");
+  const [surname, setSurname] = useState(session.user?.surname ?? "");
+  const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
+  const [idNumber, setIdNumber] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
   const [bio, setBio] = useState("");
   const [notifs, setNotifs] = useState(NOTIF_INITIAL);
@@ -188,22 +199,26 @@ export default function Profile() {
                   <Eyebrow style={{ marginBottom: 14 }}>Basic information</Eyebrow>
                   <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
                     <FormField label="First name" required>
-                      <Input defaultValue="" />
+                      <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                     </FormField>
-                    <FormField label="Last name" required>
-                      <Input defaultValue="" />
+                    <FormField label="Surname" required>
+                      <Input value={surname} onChange={(e) => setSurname(e.target.value)} />
                     </FormField>
                     <FormField label="Phone" helper="SA mobile · we'll send a one-time code if changed.">
-                      <Input defaultValue="" />
+                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+27 71 000 0000" />
                     </FormField>
                     <FormField label="Email" helper="Cannot be changed — contact support to update.">
-                      <Input defaultValue="" readOnly />
+                      <Input value={session.user?.email ?? ""} readOnly />
                     </FormField>
                     <FormField label="Date of birth">
-                      <Input type="date" defaultValue="" />
+                      <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
                     </FormField>
                     <FormField label="ID number" helper="Used for FICA verification only.">
-                      <Input defaultValue="" className="mono" />
+                      <Input
+                        value={idNumber}
+                        onChange={(e) => setIdNumber(e.target.value)}
+                        className="mono"
+                      />
                     </FormField>
                   </div>
                 </Card>
@@ -783,15 +798,17 @@ export default function Profile() {
           >
             <Card padding={20} style={{ textAlign: "center" }}>
               <Avatar
-                name=""
+                name={session.user?.name ?? ""}
                 size="lg"
                 tone="neutral"
                 style={{ width: 88, height: 88, fontSize: 28, margin: "0 auto 12px" }}
               />
               <Button variant="ghost" size="sm" leftIcon="upload">Change photo</Button>
-              <div style={{ fontSize: 16, fontWeight: 600, marginTop: 12 }}>—</div>
+              <div style={{ fontSize: 16, fontWeight: 600, marginTop: 12 }}>
+                {session.user?.name ?? "—"}
+              </div>
               <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>
-                Tenant
+                {session.user?.email ?? ""}
               </div>
 
               <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--hairline)" }}>
