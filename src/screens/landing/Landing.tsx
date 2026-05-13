@@ -54,7 +54,7 @@ export default function Landing() {
       <FeaturedAreas />
       <Footer
         columns={FOOTER_COLUMNS}
-        tagline="The calmest way to rent out a backroom in South Africa. Built in Joburg."
+        tagline="The calmest way to rent in South Africa. Built in Joburg."
         copyright="© 2026 Habitat · Your Spot. Your Hood."
       />
     </div>
@@ -219,7 +219,7 @@ function SearchHero() {
             margin: "8px 0 16px",
           }}
         >
-          Your hood. <span style={{ color: "var(--accent)" }}>Your spot.</span>
+          Your Hood. <span style={{ color: "var(--accent)" }}>Your Spot.</span>
         </h1>
         <p
           style={{
@@ -230,13 +230,13 @@ function SearchHero() {
             maxWidth: 580,
           }}
         >
-          Verified backrooms, cottages and flatlets across South Africa. Pick a suburb, set your budget,
-          go.
+          Verified homes across South Africa's most sought-after neighbourhoods. Pick a suburb,
+          set your budget, go.
         </p>
         <HeroSearch />
         <div style={{ marginTop: 20, fontSize: 12, color: "var(--slate)" }}>
           Popular:{" "}
-          {["Brixton", "Melville", "Soweto", "Yeoville"].map((s, i, arr) => (
+          {["Sandton", "Umhlanga", "Camps Bay"].map((s, i, arr) => (
             <span key={s}>
               <Link
                 to={`/browse?location=${encodeURIComponent(s)}`}
@@ -287,7 +287,7 @@ function Hero() {
               marginBottom: 24,
             }}
           >
-            List your backroom.
+            List your property.
             <br />
             <span style={{ color: "var(--slate)" }}>Vet your tenant.</span>
             <br />
@@ -303,8 +303,8 @@ function Hero() {
               maxWidth: 520,
             }}
           >
-            Habitat is the calm, professional way to rent out a backroom, cottage or flatlet — with
-            verified tenants, digital leases, and rent collection in one place.
+            Habitat is the calm, professional way to rent out your home — with verified tenants,
+            digital leases, and rent collection in one place.
           </p>
 
           <div style={{ display: "flex", gap: 12, marginBottom: 40 }}>
