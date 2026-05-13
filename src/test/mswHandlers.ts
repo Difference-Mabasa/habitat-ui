@@ -14,7 +14,7 @@ export const handlers = [
       password: string;
       firstName: string;
       surname: string;
-      role: "TENANT" | "LANDLORD" | "AGENT";
+      role: "USER" | "AGENT";
       area?: string;
     };
     return HttpResponse.json(
@@ -35,7 +35,7 @@ export const handlers = [
         email: body.email,
         firstName: "Mock",
         surname: "User",
-        activeRole: "TENANT",
+        activeRole: "USER",
       }),
     );
   }),
@@ -53,7 +53,7 @@ export const handlers = [
         email: "refreshed@example.co.za",
         firstName: "Refreshed",
         surname: "User",
-        activeRole: "TENANT",
+        activeRole: "USER",
       }),
     );
   }),
@@ -73,8 +73,8 @@ export const handlers = [
       email: "sipho@example.co.za",
       firstName: "Sipho",
       surname: "Dlamini",
-      roles: ["TENANT", "LANDLORD", "AGENT", "ADMIN"],
-      activeRole: "TENANT",
+      roles: ["USER", "AGENT", "ADMIN"],
+      activeRole: "USER",
       emailVerified: true,
       area: "Brixton",
       createdAt: "2026-01-01T00:00:00Z",
@@ -88,7 +88,7 @@ export const handlers = [
       email: "sipho@example.co.za",
       firstName: "Sipho",
       surname: "Dlamini",
-      roles: ["TENANT", "LANDLORD", "AGENT", "ADMIN"],
+      roles: ["USER", "AGENT", "ADMIN"],
       activeRole: body.role,
       emailVerified: true,
       area: "Brixton",
@@ -119,7 +119,7 @@ function authResponseFor({
     email,
     firstName,
     surname,
-    roles: ["TENANT", "LANDLORD", "AGENT", "ADMIN"],
+    roles: ["USER", "AGENT", "ADMIN"],
     activeRole,
   };
 }

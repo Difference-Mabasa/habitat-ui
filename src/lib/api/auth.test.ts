@@ -14,18 +14,18 @@ describe("api/auth", () => {
       password: "password123",
       firstName: "Test",
       surname: "Tester",
-      role: "tenant",
+      role: "user",
     });
-    expect(out.activeRole).toBe("tenant");
-    expect(out.roles).toContain("tenant");
-    expect(out.roles).toContain("landlord");
+    expect(out.activeRole).toBe("user");
+    expect(out.roles).toContain("user");
+    expect(out.roles).toContain("agent");
   });
 
   it("login returns tokens + profile", async () => {
     const out = await api.login({ email: "a@example.co.za", password: "p" });
     expect(out.accessToken).toBe("msw-access-token");
     expect(out.refreshToken).toBe("msw-refresh-token");
-    expect(out.activeRole).toBe("tenant");
+    expect(out.activeRole).toBe("user");
   });
 
   it("refresh sends the refresh token", async () => {
@@ -42,15 +42,15 @@ describe("api/auth", () => {
           email: "x@example.co.za",
           firstName: "Refresh",
           surname: "Tester",
-          roles: ["TENANT"],
-          activeRole: "TENANT",
+          roles: ["USER"],
+          activeRole: "USER",
         });
       }),
     );
     const out = await api.refresh("rt-value");
     expect(seenBody).toEqual({ refreshToken: "rt-value" });
     expect(out.accessToken).toBe("new-acc");
-    expect(out.activeRole).toBe("tenant");
+    expect(out.activeRole).toBe("user");
   });
 
   it("logout posts the refresh token when provided", async () => {
@@ -83,7 +83,7 @@ describe("api/auth", () => {
     const authedApi = createAuthApi(authedClient);
     const out = await authedApi.me();
     expect(out.email).toBe("sipho@example.co.za");
-    expect(out.activeRole).toBe("tenant");
+    expect(out.activeRole).toBe("user");
   });
 
   it("me rejects with ApiError when unauthenticated", async () => {
@@ -100,16 +100,16 @@ describe("api/auth", () => {
           email: "x@example.co.za",
           firstName: "Switch",
           surname: "Tester",
-          roles: ["TENANT", "LANDLORD"],
-          activeRole: "LANDLORD",
+          roles: ["USER", "AGENT"],
+          activeRole: "AGENT",
           emailVerified: true,
           createdAt: "2026-01-01T00:00:00Z",
         });
       }),
     );
-    const out = await api.switchActiveRole("landlord");
-    expect(payload).toEqual({ role: "LANDLORD" });
-    expect(out.activeRole).toBe("landlord");
+    const out = await api.switchActiveRole("agent");
+    expect(payload).toEqual({ role: "AGENT" });
+    expect(out.activeRole).toBe("agent");
   });
 
   it("authResponseToSessionUser projects the right fields", async () => {

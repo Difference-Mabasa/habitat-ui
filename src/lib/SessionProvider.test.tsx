@@ -30,8 +30,8 @@ describe("SessionProvider", () => {
           id: "u-1",
           name: "Sipho",
           email: "sipho@example.co.za",
-          roles: ["tenant"],
-          activeRole: "tenant",
+          roles: ["user"],
+          activeRole: "user",
         },
         tokens: {
           accessToken: "a",
@@ -87,7 +87,7 @@ describe("SessionProvider", () => {
         password: "password123",
         firstName: "New",
         surname: "User",
-        role: "tenant",
+        role: "user",
       });
     });
     expect(result.current.status).toBe("authenticated");
@@ -118,12 +118,12 @@ describe("SessionProvider", () => {
     await act(async () => {
       await result.current.login({ email: "a@example.co.za", password: "p" });
     });
-    expect(result.current.user?.activeRole).toBe("tenant");
+    expect(result.current.user?.activeRole).toBe("user");
 
     await act(async () => {
-      await result.current.switchActiveRole("landlord");
+      await result.current.switchActiveRole("agent");
     });
-    expect(result.current.user?.activeRole).toBe("landlord");
+    expect(result.current.user?.activeRole).toBe("agent");
   });
 
   it("switchActiveRole is a no-op when the user doesn't own that role", async () => {
@@ -135,8 +135,8 @@ describe("SessionProvider", () => {
           id: "u-1",
           name: "Limited",
           email: "l@example.co.za",
-          roles: ["tenant"],
-          activeRole: "tenant",
+          roles: ["user"],
+          activeRole: "user",
         },
         tokens: {
           accessToken: "a",
@@ -151,7 +151,7 @@ describe("SessionProvider", () => {
     await act(async () => {
       await result.current.switchActiveRole("admin"); // not owned
     });
-    expect(result.current.user?.activeRole).toBe("tenant"); // unchanged
+    expect(result.current.user?.activeRole).toBe("user"); // unchanged
   });
 
   it("setSession accepts a pre-built AuthResponse and persists it", () => {
@@ -166,8 +166,8 @@ describe("SessionProvider", () => {
         email: "manual@example.co.za",
         firstName: "Manual",
         surname: "User",
-        roles: ["tenant"],
-        activeRole: "tenant",
+        roles: ["user"],
+        activeRole: "user",
       });
     });
     expect(result.current.user?.email).toBe("manual@example.co.za");
@@ -195,7 +195,7 @@ describe("SessionProvider", () => {
           password: "p",
           firstName: "Dup",
           surname: "Tester",
-          role: "tenant",
+          role: "user",
         }),
       ).rejects.toMatchObject({ status: 409 });
     });
@@ -217,7 +217,7 @@ describe("SessionProvider", () => {
       ),
     );
     await act(async () => {
-      await expect(result.current.switchActiveRole("landlord")).rejects.toMatchObject({
+      await expect(result.current.switchActiveRole("agent")).rejects.toMatchObject({
         status: 403,
       });
     });
@@ -228,7 +228,7 @@ describe("SessionProvider", () => {
     const { result } = renderHook(() => useSession(), { wrapper });
     // No login.
     await act(async () => {
-      await result.current.switchActiveRole("tenant");
+      await result.current.switchActiveRole("user");
     });
     expect(result.current.user).toBeNull();
   });
@@ -250,7 +250,7 @@ describe("SessionProvider", () => {
     window.localStorage.setItem(
       SESSION_STORAGE_KEY,
       JSON.stringify({
-        user: { id: "u", name: "X", email: "x@x.co", roles: ["tenant"], activeRole: "tenant" },
+        user: { id: "u", name: "X", email: "x@x.co", roles: ["user"], activeRole: "user" },
         // tokens missing on purpose — load() should accept (older shape), but
         // save() will drop the key when we explicitly clear it.
       }),
@@ -284,8 +284,8 @@ describe("SessionProvider", () => {
           id: "00000000-0000-0000-0000-000000000001",
           email: "a@example.co.za",
           firstName: "Sipho", surname: "Dlamini",
-          roles: ["TENANT"],
-          activeRole: "TENANT",
+          roles: ["USER"],
+          activeRole: "USER",
           emailVerified: true,
           createdAt: "2026-01-01T00:00:00Z",
         });
@@ -299,8 +299,8 @@ describe("SessionProvider", () => {
           userId: "00000000-0000-0000-0000-000000000001",
           email: "a@example.co.za",
           firstName: "Sipho", surname: "Dlamini",
-          roles: ["TENANT"],
-          activeRole: "TENANT",
+          roles: ["USER"],
+          activeRole: "USER",
         }),
       ),
     );
@@ -317,7 +317,7 @@ describe("SessionProvider", () => {
     // the refresh path; this one verifies the 401 retry path. Trigger by
     // calling switchActiveRole which goes through the same client.
     await act(async () => {
-      await result.current.switchActiveRole("tenant");
+      await result.current.switchActiveRole("user");
     });
 
     // attempts > 0 means we did hit /me — but switchActiveRole goes to a
@@ -353,8 +353,8 @@ describe("SessionProvider", () => {
         userId: "00000000-0000-0000-0000-000000000001",
         email: "a@example.co.za",
         firstName: "Sipho", surname: "Dlamini",
-        roles: ["tenant"],
-        activeRole: "tenant",
+        roles: ["user"],
+        activeRole: "user",
       });
     });
 
@@ -382,8 +382,8 @@ describe("SessionProvider", () => {
           userId: "00000000-0000-0000-0000-000000000001",
           email: "a@example.co.za",
           firstName: "Sipho", surname: "Dlamini",
-          roles: ["TENANT"],
-          activeRole: "TENANT",
+          roles: ["USER"],
+          activeRole: "USER",
         });
       }),
     );
@@ -398,8 +398,8 @@ describe("SessionProvider", () => {
         userId: "00000000-0000-0000-0000-000000000001",
         email: "a@example.co.za",
         firstName: "Sipho", surname: "Dlamini",
-        roles: ["tenant"],
-        activeRole: "tenant",
+        roles: ["user"],
+        activeRole: "user",
       });
     });
 

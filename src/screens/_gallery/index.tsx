@@ -6,7 +6,7 @@ import Badge from "@/components/Badge";
 import Icon, { type IconName } from "@/components/Icon";
 import { ROUTES, GROUP_LABEL, type RouteGroup } from "@/routes";
 import { useTheme, ACCENT_OPTIONS } from "@/hooks/useTheme";
-import { DEMO_CREDENTIALS, useSession, type Role } from "@/lib/session";
+import { DEMO_CREDENTIALS, useSession, type NavRole } from "@/lib/session";
 
 interface ShortcutTile {
   icon: IconName;
@@ -202,9 +202,12 @@ export default function DevHome() {
             ) : null}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-            {(Object.keys(DEMO_CREDENTIALS) as Role[]).map((r) => {
-              const active = session.user?.activeRole === r;
+            {(Object.keys(DEMO_CREDENTIALS) as NavRole[]).map((r) => {
+              // The button is "active" when the signed-in user's auth role
+              // matches this workspace's default — collapses the two USER
+              // workspaces (tenant, landlord) onto whichever one signed in.
               const creds = DEMO_CREDENTIALS[r];
+              const active = session.user?.activeRole === creds.defaultActiveRole;
               return (
                 <button
                   key={r}

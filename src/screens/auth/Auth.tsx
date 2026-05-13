@@ -2,24 +2,21 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "@/components/Logo";
 import IconButton from "@/components/IconButton";
-import Button from "@/components/Button";
-import Input from "@/components/Input";
-import FormField from "@/components/FormField";
-import Checkbox from "@/components/Checkbox";
-import Card from "@/components/Card";
-import Eyebrow from "@/components/Eyebrow";
-import Icon from "@/components/Icon";
 import { useSession } from "@/lib/session";
 import { ApiError } from "@/lib/api/client";
 
 type Mode = "login" | "register";
-type Role = "tenant" | "landlord" | "agent";
+type RegisterRole = "user" | "agent";
 
 /**
  * /auth and /register render the same screen. Only the eyebrow over the
  * hero ("WELCOME BACK" vs "JOIN HABITAT") and the right-hand form change
  * between modes; the espresso panel, the hero, the subtitle, and the
  * footer line are shared.
+ *
+ * Proportions aligned with the original backroom-ui auth screens —
+ * fixed 420px left panel, 52px hero, 36px form heading, 15px inputs —
+ * which fit a typical laptop screen without scrolling.
  */
 export default function Auth() {
   const location = useLocation();
@@ -29,8 +26,7 @@ export default function Auth() {
     <div
       style={{
         minHeight: "100vh",
-        display: "grid",
-        gridTemplateColumns: "1fr 1.4fr",
+        display: "flex",
         background: "var(--paper)",
       }}
     >
@@ -46,9 +42,10 @@ function PitchPanel({ mode }: { mode: Mode }) {
   return (
     <div
       style={{
+        flex: "0 0 420px",
         background: "radial-gradient(120% 80% at 80% 20%, #4A2410 0%, #2A1709 45%, #1E0F06 100%)",
         color: "var(--paper)",
-        padding: "56px 64px",
+        padding: "40px 48px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -75,19 +72,19 @@ function PitchPanel({ mode }: { mode: Mode }) {
       </div>
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <span
             aria-hidden="true"
             style={{
-              width: 10,
-              height: 10,
+              width: 8,
+              height: 8,
               background: "var(--accent)",
               transform: "rotate(45deg)",
             }}
           />
           <span
             style={{
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 700,
               letterSpacing: "0.18em",
               color: "var(--accent)",
@@ -96,7 +93,15 @@ function PitchPanel({ mode }: { mode: Mode }) {
             {mode === "login" ? "WELCOME BACK" : "JOIN HABITAT"}
           </span>
         </div>
-        <h1 className="display" style={{ fontSize: 88, color: "var(--paper)", margin: "0 0 28px" }}>
+        <h1
+          className="display"
+          style={{
+            fontSize: 52,
+            lineHeight: 1.05,
+            color: "var(--paper)",
+            margin: "0 0 24px",
+          }}
+        >
           YOUR SPOT
           <br />
           IS WAITING.
@@ -104,9 +109,9 @@ function PitchPanel({ mode }: { mode: Mode }) {
         <p
           style={{
             fontSize: 15,
-            lineHeight: 1.6,
-            maxWidth: 360,
-            color: "rgba(247,239,226,0.7)",
+            lineHeight: 1.65,
+            maxWidth: 300,
+            color: "rgba(247,239,226,0.55)",
             margin: 0,
           }}
         >
@@ -131,7 +136,221 @@ function PitchPanel({ mode }: { mode: Mode }) {
   );
 }
 
-// ── Right: login form ────────────────────────────────────────────────────
+// ── Shared form wrapper + primitives ─────────────────────────────────────
+
+function FormPanel({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 24px",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: 420 }}>{children}</div>
+    </div>
+  );
+}
+
+function FormHeading({ title, switchPrompt, switchLabel, switchTo }: {
+  title: string;
+  switchPrompt: string;
+  switchLabel: string;
+  switchTo: string;
+}) {
+  return (
+    <>
+      <h2
+        className="display"
+        style={{
+          fontSize: 36,
+          color: "var(--ink)",
+          margin: "0 0 6px",
+          letterSpacing: "0.01em",
+        }}
+      >
+        {title}
+      </h2>
+      <p style={{ fontSize: 14, color: "var(--slate)", margin: "0 0 24px" }}>
+        {switchPrompt}{" "}
+        <Link to={switchTo} style={{ color: "var(--accent)", fontWeight: 600 }}>
+          {switchLabel}
+        </Link>
+      </p>
+    </>
+  );
+}
+
+function Divider() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        margin: "20px 0",
+        color: "var(--slate)",
+        fontSize: 12,
+        fontWeight: 500,
+        letterSpacing: "0.05em",
+        textTransform: "uppercase",
+      }}
+    >
+      <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
+      or
+      <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
+    </div>
+  );
+}
+
+function GoogleButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        padding: 12,
+        background: "#fff",
+        border: "1.5px solid var(--hairline-strong)",
+        borderRadius: 8,
+        fontSize: 15,
+        fontWeight: 600,
+        color: "var(--ink)",
+        fontFamily: "inherit",
+        cursor: "pointer",
+      }}
+    >
+      <GoogleLogo />
+      <span>Continue with Google</span>
+    </button>
+  );
+}
+
+function FieldLabel({ children, labelRight }: { children: React.ReactNode; labelRight?: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+      <label
+        style={{
+          fontSize: 13,
+          fontWeight: 600,
+          color: "var(--ink)",
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+        }}
+      >
+        {children}
+      </label>
+      {labelRight}
+    </div>
+  );
+}
+
+function TextInput({
+  type,
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+  invalid,
+  paddingRight,
+}: {
+  type: "email" | "text" | "password";
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  autoComplete?: string;
+  invalid?: boolean;
+  paddingRight?: number;
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      autoComplete={autoComplete}
+      style={{
+        width: "100%",
+        boxSizing: "border-box",
+        padding: paddingRight ? `13px ${paddingRight}px 13px 16px` : "13px 16px",
+        border: `1.5px solid ${invalid ? "var(--danger)" : "var(--hairline-strong)"}`,
+        borderRadius: 8,
+        fontSize: 15,
+        fontFamily: "inherit",
+        background: "#fff",
+        color: "var(--ink)",
+        outline: "none",
+      }}
+    />
+  );
+}
+
+function FieldError({ children }: { children: React.ReactNode }) {
+  return (
+    <span role="alert" style={{ display: "block", fontSize: 12, color: "var(--danger)", marginTop: 6 }}>
+      {children}
+    </span>
+  );
+}
+
+function SubmitButton({ disabled, label, loadingLabel, loading }: {
+  disabled?: boolean;
+  label: string;
+  loadingLabel: string;
+  loading: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      style={{
+        width: "100%",
+        padding: 14,
+        background: disabled ? "color-mix(in oklch, var(--accent) 65%, transparent)" : "var(--accent)",
+        color: "#fff",
+        border: "none",
+        borderRadius: 8,
+        fontFamily: "inherit",
+        fontSize: 18,
+        fontWeight: 700,
+        letterSpacing: "0.05em",
+        textTransform: "uppercase",
+        cursor: disabled ? "not-allowed" : "pointer",
+        marginTop: 4,
+      }}
+    >
+      {loading ? loadingLabel : label}
+    </button>
+  );
+}
+
+function FormErrorBanner({ message }: { message: string }) {
+  return (
+    <div
+      role="alert"
+      style={{
+        background: "color-mix(in oklch, var(--danger) 8%, transparent)",
+        border: "1px solid color-mix(in oklch, var(--danger) 25%, transparent)",
+        borderRadius: 8,
+        padding: "12px 16px",
+        fontSize: 13,
+        color: "var(--danger)",
+        marginBottom: 16,
+      }}
+    >
+      {message}
+    </div>
+  );
+}
+
+// ── Login form ───────────────────────────────────────────────────────────
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -141,125 +360,97 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const completeSignIn = async () => {
     try {
       await login({ email, password });
       navigate(from ?? "/tenant-portal", { replace: true });
     } catch {
-      // error is exposed via session.error — re-render handles UX.
+      // error is exposed via session.error.
     }
   };
 
   return (
-    <div
-      style={{
-        padding: "56px 80px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: 440 }}>
-        <h2 className="display" style={{ fontSize: 56, color: "var(--ink)", margin: "0 0 6px" }}>
-          SIGN IN
-        </h2>
-        <p style={{ fontSize: 14, color: "var(--slate)", margin: "0 0 28px" }}>
-          No account?{" "}
-          <Link to="/register" style={{ color: "var(--accent)", fontWeight: 600 }}>
-            Create one free
-          </Link>
-        </p>
+    <FormPanel>
+      <FormHeading
+        title="Sign in"
+        switchPrompt="No account?"
+        switchLabel="Create one free"
+        switchTo="/register"
+      />
 
-        <Button
-          variant="secondary"
-          onClick={() => navigate("/auth/oauth2/callback")}
-          style={{
-            width: "100%",
-            height: 52,
-            justifyContent: "center",
-            fontSize: 14,
-            textTransform: "none",
-            fontWeight: 500,
-            marginBottom: 24,
-            background: "#fff",
-          }}
-        >
-          <GoogleLogo />
-          <span>Continue with Google</span>
-        </Button>
+      <GoogleButton onClick={() => navigate("/auth/oauth2/callback")} />
+      <Divider />
 
-        <Divider />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void completeSignIn();
+        }}
+      >
+        {error ? <FormErrorBanner message={error} /> : null}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <FormGroup label="Email address">
-            <Input
-              type="email"
-              placeholder="you@example.com"
-              style={{ height: 48 }}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </FormGroup>
-          <FormGroup
-            label="Password"
+        <div style={{ marginBottom: 16 }}>
+          <FieldLabel>Email address</FieldLabel>
+          <TextInput
+            type="email"
+            value={email}
+            onChange={setEmail}
+            placeholder="you@example.com"
+            autoComplete="email"
+          />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <FieldLabel
             labelRight={
-              <Link to="/forgot-password" style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}>
+              <Link
+                to="/forgot-password"
+                style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, textTransform: "none" }}
+              >
                 Forgot?
               </Link>
             }
           >
-            <div style={{ position: "relative" }}>
-              <Input
-                type="password"
-                style={{ height: 48, paddingRight: 44 }}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-              <IconButton
-                icon="eye"
-                label="Show password"
-                size="sm"
-                style={{
-                  position: "absolute",
-                  right: 6,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "var(--slate)",
-                }}
-              />
-            </div>
-          </FormGroup>
-          {error ? (
-            <div role="alert" style={{ fontSize: 13, color: "var(--danger)" }}>
-              {error}
-            </div>
-          ) : null}
-          <Button
-            variant="accent"
-            onClick={() => void completeSignIn()}
-            disabled={status === "loading"}
-            style={{
-              height: 56,
-              justifyContent: "center",
-              marginTop: 8,
-              fontSize: 14,
-              letterSpacing: "0.16em",
-              fontWeight: 700,
-            }}
-          >
-            {status === "loading" ? "SIGNING IN…" : "SIGN IN"}
-          </Button>
+            Password
+          </FieldLabel>
+          <div style={{ position: "relative" }}>
+            <TextInput
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={setPassword}
+              autoComplete="current-password"
+              paddingRight={44}
+            />
+            <IconButton
+              icon="eye"
+              label={showPassword ? "Hide password" : "Show password"}
+              size="sm"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: 6,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--slate)",
+              }}
+            />
+          </div>
         </div>
-      </div>
-    </div>
+
+        <SubmitButton
+          disabled={status === "loading"}
+          loading={status === "loading"}
+          label="Sign in"
+          loadingLabel="Signing in…"
+        />
+      </form>
+    </FormPanel>
   );
 }
 
-// ── Right: register form ─────────────────────────────────────────────────
+// ── Register form ────────────────────────────────────────────────────────
 
 interface FieldErrors {
   firstName?: string;
@@ -291,26 +482,27 @@ function validateRegistration(values: {
   return errors;
 }
 
-const ROLES: { id: Role; title: string; body: string; icon: "home" | "key" | "users" }[] = [
-  { id: "tenant", title: "I'm renting", body: "Browse spots, apply, sign a lease.", icon: "home" },
-  { id: "landlord", title: "I have a property", body: "List a cottage, flat, or studio.", icon: "key" },
-  { id: "agent", title: "I'm an agent", body: "Match tenants on behalf of landlords.", icon: "users" },
+const ROLE_OPTIONS: { id: RegisterRole; label: string; emoji: string }[] = [
+  { id: "user", label: "Tenant or landlord", emoji: "🏠" },
+  { id: "agent", label: "Independent agent", emoji: "🤝" },
 ];
 
 function RegisterForm() {
   const navigate = useNavigate();
   const { register, error, status } = useSession();
-  const [role, setRole] = useState<Role>("tenant");
+  const [role, setRole] = useState<RegisterRole>("user");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [surname, setSurname] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  const homeForRole: Record<Role, string> = {
-    tenant: "/onboarding",
-    landlord: "/landlord-onboarding",
+  // USER auth role can take either workspace; AGENT lands on the agent
+  // overview. Both still respect ?from=… on the URL when present elsewhere.
+  const homeForRole: Record<RegisterRole, string> = {
+    user: "/onboarding",
     agent: "/agent-overview",
   };
 
@@ -345,247 +537,189 @@ function RegisterForm() {
     }
   };
 
-  return (
-    <div
-      style={{
-        padding: "48px 80px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: 480 }}>
-        <h2 className="display" style={{ fontSize: 56, color: "var(--ink)", margin: "0 0 6px" }}>
-          CREATE ACCOUNT
-        </h2>
-        <p style={{ fontSize: 14, color: "var(--slate)", margin: "0 0 28px" }}>
-          Have one?{" "}
-          <Link to="/auth" style={{ color: "var(--accent)", fontWeight: 600 }}>
-            Sign in
-          </Link>
-        </p>
+  const showBanner = error && Object.keys(fieldErrors).length === 0;
 
-        <Eyebrow style={{ marginBottom: 10 }}>I want to…</Eyebrow>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 24 }}>
-          {ROLES.map((r) => (
+  return (
+    <FormPanel>
+      <FormHeading
+        title="Create account"
+        switchPrompt="Already have one?"
+        switchLabel="Sign in"
+        switchTo="/auth"
+      />
+
+      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+        {ROLE_OPTIONS.map((opt) => {
+          const active = role === opt.id;
+          return (
             <button
-              key={r.id}
+              key={opt.id}
               type="button"
-              onClick={() => setRole(r.id)}
+              onClick={() => setRole(opt.id)}
               style={{
-                padding: 14,
-                borderRadius: 10,
-                border: `1px solid ${role === r.id ? "var(--accent)" : "var(--hairline)"}`,
-                background:
-                  role === r.id ? "color-mix(in oklch, var(--accent) 6%, var(--surface))" : "var(--surface)",
-                textAlign: "left",
-                cursor: "pointer",
+                flex: 1,
+                padding: "12px 8px",
+                border: `1.5px solid ${active ? "var(--accent)" : "var(--hairline-strong)"}`,
+                borderRadius: 8,
+                background: active ? "color-mix(in oklch, var(--accent) 6%, var(--surface))" : "#fff",
+                color: active ? "var(--accent-hover)" : "var(--slate)",
                 fontFamily: "inherit",
-                color: "var(--ink)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
               }}
             >
-              <Icon name={r.icon} size={18} style={{ color: role === r.id ? "var(--accent)" : "var(--slate)" }} />
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{r.title}</div>
-              <div style={{ fontSize: 11, color: "var(--slate)", lineHeight: 1.4 }}>{r.body}</div>
+              <span style={{ marginRight: 6 }}>{opt.emoji}</span>
+              {opt.label}
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <FormField label="First name" required error={fieldErrors.firstName}>
-              <Input
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Your first name"
-                style={{ height: 44 }}
-                autoComplete="given-name"
-              />
-            </FormField>
-            <FormField label="Surname" required error={fieldErrors.surname}>
-              <Input
-                value={surname}
-                onChange={(e) => setSurname(e.target.value)}
-                placeholder="Your surname"
-                style={{ height: 44 }}
-                autoComplete="family-name"
-              />
-            </FormField>
-          </div>
-          <FormField
-            label="Email"
-            required
-            helper="We'll send a one-tap verification link."
-            error={fieldErrors.email}
-          >
-            <Input
-              type="email"
-              placeholder="you@example.co.za"
-              style={{ height: 44 }}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </FormField>
-          <FormField label="Password" required helper="Min 8 chars." error={fieldErrors.password}>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              style={{ height: 44 }}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </FormField>
-          {/* Top-level banner — only shows when the API throws something
-              that didn't map to a specific field (network down, 500, etc.). */}
-          {error && Object.keys(fieldErrors).length === 0 ? (
-            <div role="alert" style={{ fontSize: 13, color: "var(--danger)" }}>
-              {error}
-            </div>
-          ) : null}
+      <GoogleButton onClick={() => navigate("/auth/oauth2/callback")} />
+      <Divider />
 
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void completeRegister();
+        }}
+      >
+        {showBanner ? <FormErrorBanner message={error} /> : null}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
           <div>
-            <Card padding={14} style={{ background: "var(--surface-2)" }}>
-              <Checkbox
-                checked={acceptTerms}
-                onChange={(e) => setAcceptTerms(e.target.checked)}
-                label={
-                  <span style={{ fontSize: 13 }}>
-                    I accept Habitat's{" "}
-                    <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
-                      terms of service
-                    </Link>{" "}
-                    and{" "}
-                    <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
-                      POPIA notice
-                    </Link>
-                    .
-                  </span>
-                }
-              />
-            </Card>
-            {fieldErrors.acceptTerms ? (
-              <div role="alert" style={{ fontSize: 12, color: "var(--danger)", marginTop: 6 }}>
-                {fieldErrors.acceptTerms}
-              </div>
-            ) : null}
+            <FieldLabel>First name</FieldLabel>
+            <TextInput
+              type="text"
+              value={firstName}
+              onChange={setFirstName}
+              placeholder="Sipho"
+              autoComplete="given-name"
+              invalid={!!fieldErrors.firstName}
+            />
+            {fieldErrors.firstName ? <FieldError>{fieldErrors.firstName}</FieldError> : null}
           </div>
-
-          <Button
-            variant="accent"
-            disabled={status === "loading"}
-            onClick={() => void completeRegister()}
-            style={{
-              height: 56,
-              justifyContent: "center",
-              fontSize: 14,
-              letterSpacing: "0.16em",
-              fontWeight: 700,
-              marginTop: 6,
-            }}
-          >
-            {status === "loading" ? "CREATING ACCOUNT…" : "CREATE ACCOUNT"}
-          </Button>
-
-          <Divider />
-
-          <Button
-            variant="secondary"
-            onClick={() => navigate("/auth/oauth2/callback")}
-            style={{
-              width: "100%",
-              height: 48,
-              justifyContent: "center",
-              fontSize: 14,
-              textTransform: "none",
-              fontWeight: 500,
-              background: "#fff",
-            }}
-          >
-            <GoogleLogo />
-            <span>Continue with Google</span>
-          </Button>
+          <div>
+            <FieldLabel>Surname</FieldLabel>
+            <TextInput
+              type="text"
+              value={surname}
+              onChange={setSurname}
+              placeholder="Dlamini"
+              autoComplete="family-name"
+              invalid={!!fieldErrors.surname}
+            />
+            {fieldErrors.surname ? <FieldError>{fieldErrors.surname}</FieldError> : null}
+          </div>
         </div>
-      </div>
-    </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <FieldLabel>Email address</FieldLabel>
+          <TextInput
+            type="email"
+            value={email}
+            onChange={setEmail}
+            placeholder="you@example.com"
+            autoComplete="email"
+            invalid={!!fieldErrors.email}
+          />
+          {fieldErrors.email ? <FieldError>{fieldErrors.email}</FieldError> : null}
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <FieldLabel>Password</FieldLabel>
+          <div style={{ position: "relative" }}>
+            <TextInput
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={setPassword}
+              placeholder="••••••••"
+              autoComplete="new-password"
+              invalid={!!fieldErrors.password}
+              paddingRight={44}
+            />
+            <IconButton
+              icon="eye"
+              label={showPassword ? "Hide password" : "Show password"}
+              size="sm"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: 6,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--slate)",
+              }}
+            />
+          </div>
+          {fieldErrors.password ? <FieldError>{fieldErrors.password}</FieldError> : null}
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              fontSize: 13,
+              color: "var(--slate)",
+              lineHeight: 1.5,
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+              style={{ marginTop: 2, accentColor: "var(--accent)" }}
+            />
+            <span>
+              I accept Habitat's{" "}
+              <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
+                terms of service
+              </Link>{" "}
+              and{" "}
+              <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
+                POPIA notice
+              </Link>
+              .
+            </span>
+          </label>
+          {fieldErrors.acceptTerms ? <FieldError>{fieldErrors.acceptTerms}</FieldError> : null}
+        </div>
+
+        <SubmitButton
+          disabled={status === "loading"}
+          loading={status === "loading"}
+          label="Create account"
+          loadingLabel="Creating account…"
+        />
+      </form>
+    </FormPanel>
   );
 }
 
-// ── Shared bits ──────────────────────────────────────────────────────────
-
-function Divider() {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 14,
-        margin: "0 0 24px",
-        color: "var(--slate)",
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: "0.16em",
-      }}
-    >
-      <div style={{ flex: 1, height: 1, background: "var(--hairline-strong)" }} />
-      OR
-      <div style={{ flex: 1, height: 1, background: "var(--hairline-strong)" }} />
-    </div>
-  );
-}
-
-function FormGroup({
-  label,
-  labelRight,
-  children,
-}: {
-  label: string;
-  labelRight?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-        <label
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-          }}
-        >
-          {label}
-        </label>
-        {labelRight}
-      </div>
-      {children}
-    </div>
-  );
-}
+// ── Google brand mark ────────────────────────────────────────────────────
 
 function GoogleLogo() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
       <path
-        fill="#4285F4"
-        d="M22.6 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h6c-.3 1.4-1 2.6-2.2 3.4v2.8h3.6c2.1-2 3.2-4.8 3.2-8.2z"
+        fill="#EA4335"
+        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
       />
       <path
-        fill="#34A853"
-        d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.8c-1 .7-2.3 1.1-3.7 1.1-2.8 0-5.3-1.9-6.1-4.5H2.2v2.8C4 19.9 7.7 23 12 23z"
+        fill="#4285F4"
+        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
       />
       <path
         fill="#FBBC05"
-        d="M5.9 14.1c-.2-.7-.3-1.4-.3-2.1s.1-1.4.3-2.1V7.1H2.2C1.4 8.6 1 10.3 1 12s.4 3.4 1.2 4.9l3.7-2.8z"
+        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
       />
       <path
-        fill="#EA4335"
-        d="M12 5.5c1.6 0 3 .5 4.1 1.6l3.1-3.1C17.5 2.1 15 1 12 1 7.7 1 4 4.1 2.2 7.1l3.7 2.8C6.7 7.4 9.2 5.5 12 5.5z"
+        fill="#34A853"
+        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
       />
     </svg>
   );

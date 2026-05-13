@@ -53,14 +53,17 @@ export interface AuthApi {
 }
 
 /**
- * Maps the API's uppercase Role enum (TENANT / LANDLORD / AGENT / ADMIN /
- * SUPER_ADMIN) to the UI's lowercase Role union ("tenant" | "landlord" |
- * "agent" | "admin"). SUPER_ADMIN collapses to "admin" on the UI side.
+ * Maps the API's uppercase Role enum (USER / AGENT / ADMIN / SUPER_ADMIN)
+ * to the UI's lowercase Role union ("user" | "agent" | "admin"). SUPER_ADMIN
+ * collapses to "admin" on the UI side. Any unknown / legacy value (e.g. data
+ * encountered before the V4 collapse migration) is mapped to "user" as a
+ * safe default rather than throwing — the UI keeps rendering.
  */
 function toUiRole(apiRole: string): Role {
   const key = apiRole.toLowerCase();
   if (key === "super_admin") return "admin";
-  return key as Role;
+  if (key === "user" || key === "agent" || key === "admin") return key;
+  return "user";
 }
 
 function toApiRole(uiRole: Role): string {

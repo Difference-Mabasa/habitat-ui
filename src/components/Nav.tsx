@@ -8,7 +8,7 @@ import Eyebrow from "./Eyebrow";
 import Badge from "./Badge";
 import NotificationDrawer, { type NotificationItem } from "./NotificationDrawer";
 import type { ChatDirectMessage } from "./ChatDrawer";
-import { useSession } from "@/lib/session";
+import { useSession, type Role } from "@/lib/session";
 import { useViewport } from "@/hooks/useViewport";
 
 export type NavRole = "tenant" | "landlord" | "agent" | "admin";
@@ -46,15 +46,22 @@ interface WorkspaceItem {
   icon: IconName;
   label: string;
   to: string;
+  /** The visual / nav context this workspace represents. */
   role: NavRole;
+  /** The auth role to activate when the user enters this workspace. */
+  authRole: Role;
   hint?: string;
 }
 
 const WORKSPACES: WorkspaceItem[] = [
-  { icon: "home", label: "My Rental", to: "/tenant-portal", role: "tenant", hint: "Tenant dashboard" },
-  { icon: "key", label: "Landlord dashboard", to: "/landlord-dashboard", role: "landlord", hint: "Properties · payouts · tenants" },
-  { icon: "users", label: "Agent workspace", to: "/agent-overview", role: "agent", hint: "Marketplace · mandates" },
-  { icon: "shield", label: "Admin queue", to: "/admin", role: "admin", hint: "Moderation · trust & safety" },
+  // "Tenant" and "Landlord" share the same auth role — `user` — and only
+  // differ in which dashboard they land on. Agent + Admin map 1:1 to their
+  // own auth roles. `role` is the workspace context for nav styling;
+  // `authRole` is what session.switchActiveRole() is called with.
+  { icon: "home",   label: "My Rental",          to: "/tenant-portal",      role: "tenant",   authRole: "user",  hint: "Tenant dashboard" },
+  { icon: "key",    label: "Landlord dashboard", to: "/landlord-dashboard", role: "landlord", authRole: "user",  hint: "Properties · payouts · tenants" },
+  { icon: "users",  label: "Agent workspace",    to: "/agent-overview",     role: "agent",    authRole: "agent", hint: "Marketplace · mandates" },
+  { icon: "shield", label: "Admin queue",        to: "/admin",              role: "admin",    authRole: "admin", hint: "Moderation · trust & safety" },
 ];
 
 interface MenuItem {
@@ -352,7 +359,7 @@ export default function Nav({
                     to={w.to}
                     role="menuitem"
                     onClick={() => {
-                      void session.switchActiveRole(w.role);
+                      void session.switchActiveRole(w.authRole);
                       setOpenMenu(false);
                     }}
                     style={{

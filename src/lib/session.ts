@@ -1,6 +1,28 @@
 import { createContext, useContext } from "react";
 
-export type Role = "tenant" | "landlord" | "agent" | "admin";
+/**
+ * Auth role attached to a user's identity. Aligned with backroom-api's
+ * post-R-1 UserRole: only USER, AGENT, ADMIN remain (SUPER_ADMIN
+ * collapses to "admin" on this side).
+ *
+ * "tenant" and "landlord" are NOT roles — they're computed states from
+ * the data model. A user is a tenant if they hold a lease; a landlord
+ * if they manage a property. Both fall under {@link Role} = "user".
+ *
+ * For workspace / section context inside <Nav>, screens, and route
+ * guards, use the {@link NavRole} type below.
+ */
+export type Role = "user" | "agent" | "admin";
+
+/**
+ * Workspace / section context. Independent of the auth {@link Role} —
+ * a single `Role = "user"` person may navigate the "tenant" workspace
+ * (My Rental) and the "landlord" workspace (My Listings) in the same
+ * session. The nav prop typed `role` historically uses these values;
+ * we keep that type alive so screens like `<Nav role="tenant" />`
+ * remain consumable without renaming.
+ */
+export type NavRole = "tenant" | "landlord" | "agent" | "admin";
 
 export interface SessionUser {
   id: string;
@@ -36,8 +58,8 @@ export interface RegisterPayload {
   password: string;
   firstName: string;
   surname: string;
-  /** Self-registration only supports the three non-privileged roles. */
-  role: "tenant" | "landlord" | "agent";
+  /** Self-registration only supports the non-privileged roles. */
+  role: "user" | "agent";
   area?: string;
 }
 
@@ -83,32 +105,36 @@ export function useSession(): SessionContextValue {
  * API using these credentials so the prototype dev experience matches
  * production: there is no longer a fake "signIn(user)" shortcut.
  *
- * The seed migration (V2__seed_demo_users.sql) creates exactly these four
- * users with password `habitat123`.
+ * The seed migration creates these four users with password `habitat123`.
+ * The map is keyed by {@link NavRole} (workspace) rather than {@link Role}
+ * (auth role) because after the role collapse "Tenant" (Sipho) and
+ * "Landlord" (Thandi) both have the same auth role `USER` — what
+ * distinguishes them in the dev gallery is which workspace they're
+ * demoing.
  */
 export interface DemoCredential {
   email: string;
   password: string;
   firstName: string;
   surname: string;
-  /** The activeRole the seeded user has by default. */
+  /** The auth role the seeded user holds. */
   defaultActiveRole: Role;
 }
 
-export const DEMO_CREDENTIALS: Record<Role, DemoCredential> = {
+export const DEMO_CREDENTIALS: Record<NavRole, DemoCredential> = {
   tenant: {
     email: "sipho@example.co.za",
     password: "habitat123",
     firstName: "Sipho",
     surname: "Dlamini",
-    defaultActiveRole: "tenant",
+    defaultActiveRole: "user",
   },
   landlord: {
     email: "thandi@example.co.za",
     password: "habitat123",
     firstName: "Thandi",
     surname: "Mokoena",
-    defaultActiveRole: "landlord",
+    defaultActiveRole: "user",
   },
   agent: {
     email: "naledi@vilakazi.co.za",
