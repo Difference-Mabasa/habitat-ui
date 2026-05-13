@@ -7,6 +7,7 @@ import IconButton from "@/components/IconButton";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import Badge, { type BadgeTone } from "@/components/Badge";
+import EmptyState from "@/components/EmptyState";
 import KeyValueRow from "@/components/KeyValueRow";
 import PageHeader from "@/components/PageHeader";
 import ViewingCalendarGrid, { type CalendarEvent } from "./ViewingCalendarGrid";
@@ -40,13 +41,7 @@ const DAYS = [
   { label: "Sun", date: "20" },
 ];
 
-const EVENTS: CalendarEvent[] = [
-  { id: "e1", day: 0, start: 10, duration: 1, title: "Studio · Melville", who: "Sipho Dlamini", confirmed: true },
-  { id: "e2", day: 1, start: 14, duration: 1, title: "Cottage · Caroline", who: "Lerato P.", confirmed: true },
-  { id: "e3", day: 2, start: 11, duration: 1.5, title: "Flatlet · Brixton", who: "Mxolisi N.", confirmed: false },
-  { id: "e4", day: 4, start: 9, duration: 1, title: "Studio · Melville", who: "Aisha M.", confirmed: true },
-  { id: "e5", day: 5, start: 13, duration: 2, title: "Open house · Caroline", who: "5 booked", confirmed: true, group: true },
-];
+const EVENTS: CalendarEvent[] = [];
 
 interface PendingRequest {
   name: string;
@@ -55,15 +50,7 @@ interface PendingRequest {
   proposedTime?: string;
 }
 
-const PENDING: PendingRequest[] = [
-  { name: "Mxolisi N.", when: "Wed 16 · 11:00 · Flatlet Brixton", state: "PENDING" },
-  { name: "Bongi T.", when: "Sat 19 · 13:00 · Open house", state: "APPROVED" },
-  { name: "Sipho D.", when: "Sat 24 · 09:00 · Studio Melville", state: "ALTERNATIVE_PROPOSED", proposedTime: "Sat 24 · 11:30 (open-house window)" },
-  { name: "Lerato P.", when: "Mon 02 Jun · 16:00 · Garden Cottage", state: "ALTERNATIVE_ACCEPTED", proposedTime: "Tue 03 Jun · 17:00" },
-  { name: "Aisha M.", when: "Fri 18 · 15:00 · Backroom Vilakazi", state: "ALTERNATIVE_DECLINED" },
-  { name: "Pieter K.", when: "Thu 17 · 10:00 · Loft Maboneng", state: "DECLINED" },
-  { name: "Naledi K.", when: "Wed 16 · 14:00 · Studio Brixton", state: "CANCELLED" },
-];
+const PENDING: PendingRequest[] = [];
 
 export default function Viewings() {
   const ws = useWorkspace();
@@ -94,6 +81,9 @@ export default function Viewings() {
           <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 12 }}>Request states</Eyebrow>
+              {PENDING.length === 0 ? (
+                <EmptyState icon="calendar" size="sm" title="No viewing requests" />
+              ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {PENDING.map((p, i) => {
                   const meta = REQUEST_STATE_META[p.state];
@@ -139,14 +129,15 @@ export default function Viewings() {
                   );
                 })}
               </div>
+              )}
             </Card>
 
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 12 }}>This week</Eyebrow>
-              <KeyValueRow label="Booked viewings" value="9" />
-              <KeyValueRow label="Open slots" value="14" />
-              <KeyValueRow label="Alt. times pending" value="1" tone="accent" />
-              <KeyValueRow label="Show rate" value="89%" tone="success" divider={false} />
+              <KeyValueRow label="Booked viewings" value="0" />
+              <KeyValueRow label="Open slots" value="0" />
+              <KeyValueRow label="Alt. times pending" value="0" />
+              <KeyValueRow label="Show rate" value="—" divider={false} />
             </Card>
           </aside>
         </div>

@@ -4,11 +4,14 @@ import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import Avatar from "@/components/Avatar";
 
-const NEEDS_YOU: { icon: IconName; tone: "warn" | "accent" | "neutral"; title: string; sub: string }[] = [
-  { icon: "info", tone: "warn", title: "Maintenance: geyser at Vilakazi", sub: "Quote pending · 2 days old" },
-  { icon: "user", tone: "accent", title: "New applicant for Mofolo (score 84)", sub: "Sent 12 min ago" },
-  { icon: "check", tone: "neutral", title: "Lease ready to sign · Diepkloof", sub: "Awaiting tenant" },
-];
+interface NeedsRow {
+  icon: IconName;
+  tone: "warn" | "accent" | "neutral";
+  title: string;
+  sub: string;
+}
+
+const NEEDS_YOU: NeedsRow[] = [];
 
 const QUICK_ADD: [IconName, string][] = [
   ["plus", "Spot"],
@@ -24,12 +27,7 @@ const TAB_BAR: { icon: IconName; label: string; active?: boolean }[] = [
   { icon: "cash", label: "Money" },
 ];
 
-const HIGHLIGHTS: [string, string][] = [
-  ["✓", "Affordability: pays ≤ 28% of income"],
-  ["✓", "Stable employer · 3yrs"],
-  ["✓", "Previous landlord rated 5★"],
-  ["—", "First-time on Habitat"],
-];
+const HIGHLIGHTS: [string, string][] = [];
 
 export default function LandlordMobile() {
   return (
@@ -48,12 +46,12 @@ export default function LandlordMobile() {
         <div style={{ padding: "44px 20px 16px" }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div>
-              <Eyebrow>Today · 12 May</Eyebrow>
+              <Eyebrow>Today</Eyebrow>
               <div className="display" style={{ fontSize: 26 }}>
-                HEY, NALEDI
+                HEY
               </div>
             </div>
-            <Avatar name="Naledi M" size="md" tone="neutral" />
+            <Avatar name="" size="md" tone="neutral" />
           </div>
         </div>
 
@@ -61,57 +59,72 @@ export default function LandlordMobile() {
           <Card padding={16} style={{ background: "var(--ink)", color: "var(--paper)", borderColor: "var(--ink)" }}>
             <Eyebrow style={{ color: "var(--accent)" }}>This week's payouts</Eyebrow>
             <div className="display tabular" style={{ fontSize: 36, color: "var(--paper)", marginTop: 4 }}>
-              R 28,400
+              R 0
             </div>
             <div style={{ fontSize: 12, color: "rgba(247,239,226,0.6)" }}>
-              8 of 8 spots paid · next payout Thu
+              No payouts yet
             </div>
           </Card>
 
-          <Eyebrow style={{ marginTop: 18, marginBottom: 8 }}>Needs you · 3</Eyebrow>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {NEEDS_YOU.map((n, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: 12,
-                  background: "var(--surface-2)",
-                  borderRadius: 10,
-                  display: "flex",
-                  gap: 12,
-                }}
-              >
+          <Eyebrow style={{ marginTop: 18, marginBottom: 8 }}>Needs you · {NEEDS_YOU.length}</Eyebrow>
+          {NEEDS_YOU.length === 0 ? (
+            <div
+              style={{
+                padding: 14,
+                background: "var(--surface-2)",
+                borderRadius: 10,
+                fontSize: 12,
+                color: "var(--slate)",
+                textAlign: "center",
+              }}
+            >
+              Nothing needs you right now.
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {NEEDS_YOU.map((n, i) => (
                 <div
+                  key={i}
                   style={{
-                    width: 36,
-                    height: 36,
+                    padding: 12,
+                    background: "var(--surface-2)",
                     borderRadius: 10,
-                    background:
-                      n.tone === "warn"
-                        ? "var(--warn-soft)"
-                        : n.tone === "accent"
-                          ? "var(--accent-soft)"
-                          : "var(--surface-3)",
-                    color:
-                      n.tone === "warn"
-                        ? "var(--warn)"
-                        : n.tone === "accent"
-                          ? "var(--accent)"
-                          : "var(--slate)",
-                    display: "grid",
-                    placeItems: "center",
-                    flexShrink: 0,
+                    display: "flex",
+                    gap: 12,
                   }}
                 >
-                  <Icon name={n.icon} size={16} />
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background:
+                        n.tone === "warn"
+                          ? "var(--warn-soft)"
+                          : n.tone === "accent"
+                            ? "var(--accent-soft)"
+                            : "var(--surface-3)",
+                      color:
+                        n.tone === "warn"
+                          ? "var(--warn)"
+                          : n.tone === "accent"
+                            ? "var(--accent)"
+                            : "var(--slate)",
+                      display: "grid",
+                      placeItems: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon name={n.icon} size={16} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{n.title}</div>
+                    <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>{n.sub}</div>
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{n.title}</div>
-                  <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>{n.sub}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <Eyebrow style={{ marginTop: 18, marginBottom: 8 }}>Quick add</Eyebrow>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
@@ -149,21 +162,21 @@ export default function LandlordMobile() {
       <Phone>
         <div style={{ padding: "44px 20px 14px", display: "flex", alignItems: "center", gap: 12 }}>
           <Icon name="arrL" size={20} />
-          <div style={{ fontWeight: 600 }}>Applicant · Vilakazi St</div>
+          <div style={{ fontWeight: 600 }}>Applicant</div>
         </div>
 
         <div style={{ padding: 18 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <Avatar
-              name="Sipho Khumalo"
+              name=""
               size="lg"
               tone="neutral"
               style={{ width: 56, height: 56, fontSize: 18 }}
             />
             <div>
-              <div style={{ fontWeight: 600 }}>Sipho Khumalo · 30</div>
+              <div style={{ fontWeight: 600 }}>—</div>
               <div style={{ fontSize: 12, color: "var(--slate)" }}>
-                Soweto · Discovery employee · 3 yrs
+                No applicant selected
               </div>
             </div>
           </div>
@@ -175,25 +188,31 @@ export default function LandlordMobile() {
             <Eyebrow style={{ color: "var(--accent)" }}>Applicant score</Eyebrow>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <div className="display tabular" style={{ fontSize: 44, color: "var(--accent)" }}>
-                84
+                —
               </div>
               <div style={{ color: "var(--slate)" }}>/ 100</div>
             </div>
             <div style={{ fontSize: 12, color: "var(--slate)" }}>
-              ID verified · 24 mo on-time rent · employed
+              No score yet
             </div>
           </Card>
 
           <div style={{ marginTop: 18 }}>
             <Eyebrow style={{ marginBottom: 8 }}>Highlights</Eyebrow>
-            {HIGHLIGHTS.map(([t, l]) => (
-              <div key={l} style={{ display: "flex", gap: 10, padding: "8px 0", fontSize: 13 }}>
-                <span style={{ fontWeight: 700, color: t === "✓" ? "var(--success)" : "var(--slate)" }}>
-                  {t}
-                </span>
-                <span>{l}</span>
+            {HIGHLIGHTS.length === 0 ? (
+              <div style={{ fontSize: 12, color: "var(--slate)", padding: "8px 0" }}>
+                No highlights to show.
               </div>
-            ))}
+            ) : (
+              HIGHLIGHTS.map(([t, l]) => (
+                <div key={l} style={{ display: "flex", gap: 10, padding: "8px 0", fontSize: 13 }}>
+                  <span style={{ fontWeight: 700, color: t === "✓" ? "var(--success)" : "var(--slate)" }}>
+                    {t}
+                  </span>
+                  <span>{l}</span>
+                </div>
+              ))
+            )}
           </div>
 
           <div style={{ display: "flex", gap: 8, marginTop: 22 }}>
@@ -245,7 +264,7 @@ export default function LandlordMobile() {
               fontFamily: "inherit",
             }}
           >
-            WhatsApp Sipho
+            WhatsApp applicant
           </button>
         </div>
       </Phone>

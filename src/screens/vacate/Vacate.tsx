@@ -19,8 +19,8 @@ const REASONS = [
 ];
 
 export default function Vacate() {
-  const [reason, setReason] = useState("Moving for work");
-  const [ack, setAck] = useState(true);
+  const [reason, setReason] = useState("");
+  const [ack, setAck] = useState(false);
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -35,9 +35,9 @@ export default function Vacate() {
           <div style={{ display: "flex", flexDirection: "column", gap: 18, fontSize: 14 }}>
             <div>
               <Eyebrow style={{ marginBottom: 6 }}>Move-out date</Eyebrow>
-              <Input type="date" defaultValue="2026-07-31" style={{ height: 48 }} />
+              <Input type="date" defaultValue="" style={{ height: 48 }} />
               <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 6 }}>
-                Earliest legal date based on 60-day notice: 11 July 2026
+                Earliest legal date is 60 days from today.
               </div>
             </div>
 
@@ -77,7 +77,7 @@ export default function Vacate() {
                   lineHeight: 1.7,
                 }}
               >
-                <li>Naledi gets your notice immediately via WhatsApp + email.</li>
+                <li>Your landlord gets your notice immediately via WhatsApp + email.</li>
                 <li>We schedule a move-out inspection 1 day before your last day.</li>
                 <li>Your deposit + interest is reconciled within 14 days.</li>
                 <li>Refund hits your bank within 7 working days after that.</li>

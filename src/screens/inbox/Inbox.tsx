@@ -47,23 +47,7 @@ interface InboxThread {
   dmRole?: "Applicant" | "Tenant" | "Landlord" | "Agent" | "Contractor" | "System";
 }
 
-const THREADS: InboxThread[] = [
-  // Building chat — pinned-feel, auto-joined community
-  { id: "c1", kind: "community", name: "Melville Mews", initials: "MM", subline: "Melville · Building", lastMessage: "Lerato: insurance for backroom-sized policies?", lastTime: "2m", unread: 4, members: 312, online: 18, description: "Tenants of the Mews block at 14 Main Rd.", joined: true, myRole: "member", communityType: "Building", autoJoined: true, area: "Melville" },
-  // Direct messages
-  { id: "dm-t1", kind: "dm", name: "Sipho Dlamini", initials: "SD", subline: "Re: Studio · Melville", lastMessage: "Yes, Saturday 11am works perfectly.", lastTime: "9:42", unread: 2, dmRole: "Applicant" },
-  { id: "dm-t2", kind: "dm", name: "Thandi Mokoena", initials: "TM", subline: "Lease for Studio · Melville", lastMessage: "Lease is ready. Sign at your earliest.", lastTime: "8:14", unread: 1, dmRole: "Landlord" },
-  // Community
-  { id: "c2", kind: "community", name: "Brixton Renters", initials: "BR", subline: "Brixton · Area", lastMessage: "Sipho: Drinks on me. Backup gas burner.", lastTime: "23m", unread: 0, members: 184, online: 12, description: "Two-year-old neighbourhood network. Pet-sitting, second-hand furniture, loadshedding tips.", joined: true, myRole: "moderator", communityType: "Area", area: "Brixton" },
-  // DM
-  { id: "dm-t3", kind: "dm", name: "PlumberPro · Sipho M.", initials: "PP", subline: "MNT-0421 · Geyser leaking", lastMessage: "On site at 16:00 today. Need water off 30 min.", lastTime: "Yesterday", unread: 0, dmRole: "Contractor" },
-  // Community
-  { id: "c3", kind: "community", name: "Caroline Cottages", initials: "CC", subline: "Brixton · Building", lastMessage: "Thandi: Reminder — building inspection Thursday 10am.", lastTime: "1h", unread: 1, members: 67, online: 4, description: "Three-property cottage cluster on Caroline St.", joined: true, myRole: "member", communityType: "Building", area: "Brixton" },
-  // DM
-  { id: "dm-t4", kind: "dm", name: "Lerato Ndlovu", initials: "LN", subline: "Re: Cottage · Caroline", lastMessage: "Thanks for accepting. Deposit tomorrow.", lastTime: "Tue", unread: 0, dmRole: "Tenant" },
-  { id: "dm-t5", kind: "dm", name: "Lebo Properties", initials: "LP", subline: "Mandate · Q1 statement", lastMessage: "March statement attached. R3,952 collected.", lastTime: "Mon", unread: 0, dmRole: "Agent" },
-  { id: "dm-t6", kind: "dm", name: "Habitat Support", initials: "HB", subline: "FICA verification approved", lastMessage: "Your tenant Sipho Dlamini's FICA documents are verified.", lastTime: "12 Mar", unread: 0, dmRole: "System" },
-];
+const THREADS: InboxThread[] = [];
 
 interface MessageItem {
   id: string;
@@ -75,51 +59,9 @@ interface MessageItem {
   hasMedia?: boolean;
 }
 
-const MESSAGES_BY_THREAD: Record<string, MessageItem[]> = {
-  "dm-t1": [
-    { id: "m1", name: "Sipho Dlamini", time: "14:22", body: "Hi Thandi! I just submitted my application for the studio. Long-time renter, FICA-verified, looking for a quiet spot near work." },
-    { id: "m2", name: "You", time: "16:01", body: "Hi Sipho — thanks. Your score looks great. Are you available Saturday 11am for a viewing?", own: true },
-    { id: "m3", name: "Sipho Dlamini", time: "16:08", body: "Yes, Saturday 11am works perfectly. Should I bring anything?" },
-    { id: "m4", name: "You", time: "16:12", body: "Just a copy of your last 3 payslips if you have them.", own: true },
-  ],
-  "dm-t2": [
-    { id: "m1", name: "Thandi Mokoena", time: "8:00", body: "Hi — lease is ready for Studio · Melville. I've signed pages 1–11 on my side." },
-    { id: "m2", name: "Thandi Mokoena", time: "8:14", body: "Sign at your earliest. Move-in date stays 1 May." },
-  ],
-  c1: [
-    { id: "m1", name: "Mandla K.", time: "Yesterday", body: "Bin collection moved to Wednesdays this week." },
-    { id: "m2", name: "Lerato P.", time: "9:14", body: "Council notice for the water shutoff tomorrow 09:00–14:00.", hasMedia: true, pinned: true },
-    { id: "m3", name: "You", time: "9:42", body: "Thanks Lerato. Anyone planning a Saturday braai?", own: true },
-    { id: "m4", name: "Aisha B.", time: "10:02", body: "I'm in. Bringing the meat if someone handles drinks." },
-  ],
-  c2: [
-    { id: "m1", name: "Lerato P.", time: "Yesterday", body: "Anyone using BetterBond's tenant insurance?" },
-    { id: "m2", name: "Mandla K.", time: "9:14", body: "Heads up — water shutoff on Caroline St tomorrow 09:00–14:00.", hasMedia: true, pinned: true },
-    { id: "m3", name: "You", time: "9:42", body: "Anyone planning a Saturday braai? I've got a spare gazebo.", own: true },
-    { id: "m4", name: "Aisha B.", time: "10:02", body: "I'm in. Bringing the meat." },
-    { id: "m5", name: "Sipho D.", time: "10:18", body: "Drinks on me. Bringing a backup gas burner." },
-  ],
-  c3: [
-    { id: "m1", name: "Thandi M.", time: "1h", body: "Reminder: building inspection Thursday 10am. Geyser cupboard access only." },
-    { id: "m2", name: "You", time: "1h", body: "Got it Thandi, leaving the key with Aisha.", own: true },
-  ],
-};
+const MESSAGES_BY_THREAD: Record<string, MessageItem[]> = {};
 
-const MEMBERS_BY_COMMUNITY: Record<string, { init: string; name: string; role: "admin" | "moderator" | "member" }[]> = {
-  c1: [
-    { init: "LP", name: "Lerato P.", role: "admin" },
-    { init: "MK", name: "Mandla K.", role: "moderator" },
-    { init: "AB", name: "Aisha B.", role: "member" },
-    { init: "TM", name: "Thandi M.", role: "member" },
-  ],
-  c2: [
-    { init: "LP", name: "Lerato P.", role: "admin" },
-    { init: "MK", name: "Mandla K.", role: "moderator" },
-    { init: "SD", name: "Sipho D.", role: "moderator" },
-    { init: "AB", name: "Aisha B.", role: "member" },
-    { init: "NJ", name: "Nthabi J.", role: "member" },
-  ],
-};
+const MEMBERS_BY_COMMUNITY: Record<string, { init: string; name: string; role: "admin" | "moderator" | "member" }[]> = {};
 
 const ROLE_TONE: Record<"admin" | "moderator" | "member", BadgeTone> = {
   admin: "danger",
@@ -775,9 +717,9 @@ function ThreadPane({
                 <Card padding={14}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                     <Eyebrow>Join requests</Eyebrow>
-                    <Badge tone="warn">2</Badge>
+                    <Badge tone="neutral">0</Badge>
                   </div>
-                  <div style={{ fontSize: 12, color: "var(--slate)" }}>Sipho Dlamini, Naledi Khumalo</div>
+                  <div style={{ fontSize: 12, color: "var(--slate)" }}>No pending requests.</div>
                 </Card>
               ) : null}
 

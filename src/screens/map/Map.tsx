@@ -2,9 +2,6 @@ import Nav from "@/components/Nav";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
-import Card from "@/components/Card";
-import Photo from "@/components/Photo";
-import PriceDisplay from "@/components/PriceDisplay";
 import MapPin from "@/components/MapPin";
 
 interface Pin {
@@ -22,24 +19,9 @@ interface Cluster {
   count: number;
 }
 
-const PINS: Pin[] = [
-  { id: "p1", xPct: 22, yPct: 40, rent: 3800, hot: false },
-  { id: "p2", xPct: 28, yPct: 32, rent: 4400, hot: true },
-  { id: "p3", xPct: 35, yPct: 48, rent: 5200, hot: false },
-  { id: "p4", xPct: 42, yPct: 30, rent: 6100, hot: false },
-  { id: "p5", xPct: 48, yPct: 52, rent: 4900, hot: true },
-  { id: "p6", xPct: 55, yPct: 38, rent: 5800, hot: false },
-  { id: "p7", xPct: 62, yPct: 60, rent: 7200, hot: false },
-  { id: "p8", xPct: 68, yPct: 28, rent: 4200, hot: false },
-  { id: "p9", xPct: 75, yPct: 44, rent: 5500, hot: true },
-  { id: "p10", xPct: 82, yPct: 56, rent: 6800, hot: false },
-];
+const PINS: Pin[] = [];
 
-const CLUSTERS: Cluster[] = [
-  { id: "c1", xPct: 18, yPct: 22, count: 14 },
-  { id: "c2", xPct: 88, yPct: 34, count: 23 },
-  { id: "c3", xPct: 30, yPct: 70, count: 8 },
-];
+const CLUSTERS: Cluster[] = [];
 
 export default function MapView() {
   return (
@@ -148,7 +130,7 @@ export default function MapView() {
             <input
               className="input"
               placeholder="Search Melville, Brixton…"
-              defaultValue="Melville · 5km"
+              defaultValue=""
               style={{
                 paddingLeft: 36,
                 height: 40,
@@ -169,7 +151,7 @@ export default function MapView() {
             leftIcon="sliders"
             style={{ background: "var(--paper)", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
           >
-            R3k–R7k · 1+ bed · 4 more
+            Filters
           </Button>
           <div style={{ flex: 1 }} />
           <Button
@@ -216,47 +198,6 @@ export default function MapView() {
           />
         </div>
 
-        {/* Floating result card */}
-        <Card
-          padding={14}
-          style={{
-            position: "absolute",
-            bottom: 24,
-            left: 24,
-            width: 360,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-            display: "flex",
-            gap: 14,
-            zIndex: 2,
-          }}
-        >
-          <Photo ratio="auto" label="" style={{ width: 100, height: 80, borderRadius: 6, flexShrink: 0 }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: 4,
-              }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 600 }}>Sunlit cottage · Caroline</div>
-              <PriceDisplay amount={4400} period="" size="sm" />
-            </div>
-            <div style={{ fontSize: 11, color: "var(--slate)", marginBottom: 8 }}>
-              1 bed · 1 bath · 38 m² · 1.2 km
-            </div>
-            <div style={{ display: "flex", gap: 6 }}>
-              <Button variant="ghost" size="sm" leftIcon="heart" style={{ height: 26, fontSize: 11 }}>
-                Save
-              </Button>
-              <Button variant="accent" size="sm" style={{ height: 26, fontSize: 11 }}>
-                View
-              </Button>
-            </div>
-          </div>
-        </Card>
-
         {/* Result count chip */}
         <div style={{ position: "absolute", bottom: 24, right: 24, zIndex: 2 }}>
           <div
@@ -273,7 +214,7 @@ export default function MapView() {
             }}
           >
             <Icon name="pin" size={12} />
-            47 spots in this area
+            {PINS.length} spots in this area
             <button
               type="button"
               className="btn btn--ghost btn--sm"

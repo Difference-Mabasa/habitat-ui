@@ -9,19 +9,19 @@ interface PushNotif {
 }
 
 const PUSH: PushNotif[] = [
-  { title: "New applicant · score 84", body: "Sipho K. applied for Vilakazi St. ID-verified, employed 3 yrs." },
-  { title: "Lease ready to sign", body: "Naledi sent your lease for 23 Vilakazi St. Tap to review." },
-  { title: "Rent received · R 3,450", body: "May rent from Sipho cleared. Funds release tomorrow." },
-  { title: "Viewing in 1 hour", body: "Backroom at Vilakazi St with Naledi · 14:00. Tap for directions." },
-  { title: "Score boosted +20 pts", body: "3 more on-time rents → unlock TPN's 'Excellent' tier." },
+  { title: "New applicant · score {{score}}", body: "{{applicant_name}} applied for {{property}}. ID-verified, employed {{years}} yrs." },
+  { title: "Lease ready to sign", body: "{{landlord_name}} sent your lease for {{property}}. Tap to review." },
+  { title: "Rent received · R {{amount}}", body: "{{month}} rent from {{tenant_name}} cleared. Funds release tomorrow." },
+  { title: "Viewing in 1 hour", body: "{{property}} with {{host_name}} · {{time}}. Tap for directions." },
+  { title: "Score boosted +{{points}} pts", body: "{{n}} more on-time rents → unlock TPN's 'Excellent' tier." },
 ];
 
 const SMS = [
-  "Habitat:New applicant Sipho K. (score 84). Reply YES to invite to a viewing, INFO for details, STOP to opt out.",
-  "Habitat:Your viewing is confirmed for Sat 14 May, 14:00, 23 Vilakazi St. Reply CANCEL to reschedule. Help: 0618229100",
-  "Habitat:Rent R 3,450 not yet received. Pay by 12 May to avoid R 250 fee. Pay now: hb.co.za/p/4891",
-  "Habitat:Your deposit refund of R 3,602 was sent to FNB •••2114. Allow 2–3 working days. Ref: HB-RFD-1124",
-  "Habitat:1-time code 481209. Don't share. We will never ask for this.",
+  "Habitat:New applicant {{applicant_name}} (score {{score}}). Reply YES to invite to a viewing, INFO for details, STOP to opt out.",
+  "Habitat:Your viewing is confirmed for {{date}}, {{time}}, {{property_address}}. Reply CANCEL to reschedule. Help: {{support_phone}}",
+  "Habitat:Rent R {{amount}} not yet received. Pay by {{due_date}} to avoid R {{fee}} fee. Pay now: {{pay_link}}",
+  "Habitat:Your deposit refund of R {{amount}} was sent to {{bank}} •••{{last4}}. Allow 2–3 working days. Ref: {{ref}}",
+  "Habitat:1-time code {{otp}}. Don't share. We will never ask for this.",
 ];
 
 const PREFS: [string, boolean, boolean, boolean][] = [

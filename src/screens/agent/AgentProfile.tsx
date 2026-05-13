@@ -5,30 +5,32 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 import Hairline from "@/components/Hairline";
-import Photo from "@/components/Photo";
 import Tabs from "@/components/Tabs";
 import RatingDisplay from "@/components/RatingDisplay";
 import KeyValueRow from "@/components/KeyValueRow";
 
 const FEES = {
-  landlord: { type: "PERCENT_OF_ANNUAL" as const, value: "8%", note: "of annual rent · once-off on placement" },
-  tenant: { value: "R 800", note: "once-off admin (FICA + lease)" },
+  landlord: { type: "PERCENT_OF_ANNUAL" as const, value: "—", note: "" },
+  tenant: { value: "—", note: "" },
 };
 
-const AREAS = ["Soweto", "Diepkloof", "Orlando West", "Pimville", "Mofolo"];
+const AREAS: string[] = [];
 
-const SOCIALS: { kind: "WhatsApp" | "Instagram" | "TikTok"; handle: string; href: string }[] = [
-  { kind: "WhatsApp", handle: "+27 82 184 4421", href: "https://wa.me/27821844421" },
-  { kind: "Instagram", handle: "@naledi.mokoena.props", href: "https://instagram.com/naledi.mokoena.props" },
-  { kind: "TikTok", handle: "@vilakaziprops", href: "https://tiktok.com/@vilakaziprops" },
-];
+interface Social {
+  kind: "WhatsApp" | "Instagram" | "TikTok";
+  handle: string;
+  href: string;
+}
+
+const SOCIALS: Social[] = [];
 
 const STATS: [string, string][] = [
-  ["Active listings", "14"],
-  ["Avg. response", "1.4 h"],
-  ["Filled this year", "32"],
-  ["Member since", "2022"],
+  ["Active listings", "0"],
+  ["Avg. response", "—"],
+  ["Filled this year", "0"],
+  ["Member since", "—"],
 ];
 
 interface Listing {
@@ -39,17 +41,12 @@ interface Listing {
   badge?: "new";
 }
 
-const LISTINGS: Listing[] = [
-  { id: "l1", title: "Backroom · Vilakazi St", price: "R 3,450", area: "Orlando West" },
-  { id: "l2", title: "Cottage · Mofolo North", price: "R 4,800", area: "Mofolo", badge: "new" },
-  { id: "l3", title: "Bachelor flat · Pimville", price: "R 3,950", area: "Pimville" },
-  { id: "l4", title: "Backroom · Diepkloof Z2", price: "R 2,850", area: "Diepkloof" },
-];
+const LISTINGS: Listing[] = [];
 
 const TABS = [
-  { id: "listings", label: "Listings · 14" },
+  { id: "listings", label: "Listings" },
   { id: "about", label: "About" },
-  { id: "reviews", label: "Reviews · 127" },
+  { id: "reviews", label: "Reviews" },
 ];
 
 export default function AgentProfile() {
@@ -99,17 +96,14 @@ export default function AgentProfile() {
               boxShadow: "var(--shadow-md)",
             }}
           >
-            NM
+            —
           </div>
           <div style={{ flex: 1, paddingBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
               <h1 className="display" style={{ fontSize: 38, margin: 0 }}>
-                NALEDI MOKOENA
+                —
               </h1>
-              <Badge tone="success" leftIcon="check">
-                Verified
-              </Badge>
-              <Badge tone="neutral">PPRA · FFC-022831</Badge>
+              <Badge tone="neutral">Unverified</Badge>
             </div>
             <div
               style={{
@@ -122,20 +116,16 @@ export default function AgentProfile() {
               }}
             >
               <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Icon name="pin" size={14} /> Soweto · Diepkloof · Orlando
+                <Icon name="pin" size={14} /> —
               </span>
               <span>·</span>
-              <span>
-                Agent at <strong style={{ color: "var(--ink)" }}>Vilakazi Property Co.</strong>
-              </span>
-              <span>·</span>
-              <RatingDisplay rating={4.8} count={127} size="sm" />
+              <RatingDisplay rating={0} count={0} size="sm" />
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, paddingBottom: 12, flexShrink: 0 }}>
             <Button variant="secondary">Save agent</Button>
             <Button variant="accent" leftIcon="chat">
-              Message Naledi
+              Message agent
             </Button>
           </div>
         </div>
@@ -172,58 +162,65 @@ export default function AgentProfile() {
             </div>
 
             {/* Listings grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
-              {LISTINGS.map((l) => (
-                <Card key={l.id} padding={0} style={{ overflow: "hidden" }}>
-                  <Photo label="Backroom · Soweto" ratio="16/10" style={{ borderRadius: 0 }} />
-                  <div style={{ padding: 16 }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 15 }}>{l.title}</div>
-                        <div style={{ fontSize: 12, color: "var(--slate)" }}>{l.area}</div>
+            {LISTINGS.length === 0 ? (
+              <Card padding={20}>
+                <EmptyState
+                  icon="home"
+                  title="No listings yet"
+                  description="This agent has no active listings."
+                />
+              </Card>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
+                {LISTINGS.map((l) => (
+                  <Card key={l.id} padding={0} style={{ overflow: "hidden" }}>
+                    <div style={{ padding: 16 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 15 }}>{l.title}</div>
+                          <div style={{ fontSize: 12, color: "var(--slate)" }}>{l.area}</div>
+                        </div>
+                        <div className="mono" style={{ fontWeight: 600, fontSize: 14 }}>
+                          {l.price}
+                        </div>
                       </div>
-                      <div className="mono" style={{ fontWeight: 600, fontSize: 14 }}>
-                        {l.price}
-                      </div>
+                      {l.badge === "new" ? (
+                        <div style={{ marginTop: 10 }}>
+                          <Badge tone="accent">New today</Badge>
+                        </div>
+                      ) : null}
                     </div>
-                    {l.badge === "new" ? (
-                      <div style={{ marginTop: 10 }}>
-                        <Badge tone="accent">New today</Badge>
-                      </div>
-                    ) : null}
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Card padding={20}>
               <div className="display" style={{ fontSize: 20, marginBottom: 6 }}>
-                ABOUT NALEDI
+                ABOUT
               </div>
               <p style={{ fontSize: 13, color: "var(--slate)", lineHeight: 1.6, margin: 0 }}>
-                10 years managing properties across Soweto and the surrounds. Specialises in single rooms,
-                cottages, and short-stay rentals for working families.
+                —
               </p>
               <Hairline style={{ margin: "16px 0" }} />
               <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 13 }}>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <Icon name="chat" size={14} style={{ color: "var(--slate)" }} /> Speaks Zulu, Sotho,
-                  English
+                  <Icon name="chat" size={14} style={{ color: "var(--slate)" }} /> Languages: —
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <Icon name="clock" size={14} style={{ color: "var(--slate)" }} /> Active Mon–Sat, 7am–7pm
+                  <Icon name="clock" size={14} style={{ color: "var(--slate)" }} /> Availability: —
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <Icon name="shield" size={14} style={{ color: "var(--success)" }} /> ID & bank verified
+                  <Icon name="shield" size={14} style={{ color: "var(--slate)" }} /> Verification pending
                 </div>
               </div>
             </Card>
@@ -260,39 +257,47 @@ export default function AgentProfile() {
 
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 10 }}>Areas covered</Eyebrow>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {AREAS.map((a) => (
-                  <span
-                    key={a}
-                    style={{
-                      fontSize: 12,
-                      padding: "4px 10px",
-                      background: "var(--surface-2)",
-                      borderRadius: 999,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <Icon name="pin" size={11} /> {a}
-                  </span>
-                ))}
-              </div>
+              {AREAS.length === 0 ? (
+                <div style={{ fontSize: 12, color: "var(--slate)" }}>No areas listed yet.</div>
+              ) : (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {AREAS.map((a) => (
+                    <span
+                      key={a}
+                      style={{
+                        fontSize: 12,
+                        padding: "4px 10px",
+                        background: "var(--surface-2)",
+                        borderRadius: 999,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      <Icon name="pin" size={11} /> {a}
+                    </span>
+                  ))}
+                </div>
+              )}
             </Card>
 
             <Card padding={20}>
-              <Eyebrow style={{ marginBottom: 10 }}>Connect with Naledi</Eyebrow>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {SOCIALS.map((s) => (
-                  <div
-                    key={s.kind}
-                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}
-                  >
-                    <span style={{ color: "var(--slate)" }}>{s.kind}</span>
-                    <span className="mono" style={{ fontSize: 12 }}>{s.handle}</span>
-                  </div>
-                ))}
-              </div>
+              <Eyebrow style={{ marginBottom: 10 }}>Connect</Eyebrow>
+              {SOCIALS.length === 0 ? (
+                <div style={{ fontSize: 12, color: "var(--slate)" }}>No contact details on file.</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {SOCIALS.map((s) => (
+                    <div
+                      key={s.kind}
+                      style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}
+                    >
+                      <span style={{ color: "var(--slate)" }}>{s.kind}</span>
+                      <span className="mono" style={{ fontSize: 12 }}>{s.handle}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <Button variant="ghost" size="sm" rightIcon="arrUR" style={{ marginTop: 12, width: "100%", justifyContent: "center" }}>
                 Open agency page
               </Button>
@@ -303,10 +308,9 @@ export default function AgentProfile() {
               style={{ background: "var(--surface-2)", borderColor: "transparent" }}
             >
               <Eyebrow>Recent review</Eyebrow>
-              <p style={{ fontSize: 13, lineHeight: 1.5, margin: "10px 0", fontStyle: "italic" }}>
-                "Replied to my WhatsApp the same evening. Lease was sorted in 3 days. Recommend."
-              </p>
-              <div style={{ fontSize: 12, color: "var(--slate)" }}>— Thabo K. · April 2026</div>
+              <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 10 }}>
+                No reviews yet.
+              </div>
             </Card>
           </aside>
         </div>

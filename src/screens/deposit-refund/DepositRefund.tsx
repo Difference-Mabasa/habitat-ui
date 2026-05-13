@@ -22,18 +22,17 @@ interface Deduction {
   evidence: string;
 }
 
-const DEPOSIT_HELD = 6800;
+const DEPOSIT_HELD = 0;
 
-const PRESET_DEDUCTIONS: Omit<Deduction, "id">[] = [
-  { reason: "Damage to interior wall (Bedroom)", amount: "850", evidence: "Photo 04 of tenant inspection" },
-  { reason: "Replacement of broken blind", amount: "320", evidence: "Photo 11 of tenant inspection" },
-];
+const PRESET_DEDUCTIONS: Omit<Deduction, "id">[] = [];
 
-const TENANT_FLAGS = [
-  { room: "Bedroom", note: "Hole in wall ~30cm wide near light switch.", photo: "photo-04.jpg" },
-  { room: "Living area", note: "Blind broken at top rail.", photo: "photo-11.jpg" },
-  { room: "Kitchen", note: "Stove top scratched (minor).", photo: "photo-07.jpg" },
-];
+interface TenantFlag {
+  room: string;
+  note: string;
+  photo: string;
+}
+
+const TENANT_FLAGS: TenantFlag[] = [];
 
 export default function DepositRefund() {
   const navigate = useNavigate();
@@ -70,7 +69,7 @@ export default function DepositRefund() {
     }
     toast.success(
       outcome === "full"
-        ? "Full deposit refund issued to Sipho."
+        ? "Full deposit refund issued to the tenant."
         : outcome === "withhold"
           ? "Deposit withheld. Tenant has 7 days to contest."
           : `R ${refund.toLocaleString("en-ZA")} refunded · R ${totalDeductions.toLocaleString("en-ZA")} deducted.`,
@@ -83,7 +82,7 @@ export default function DepositRefund() {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Lease end · Deposit refund"
-          title="Decide Sipho's refund"
+          title="Decide the deposit refund"
           subtitle="Held in Habitat's trust account. Habitat releases your portion to the tenant once you submit — they have 7 days to contest line items."
           badges={
             <>
@@ -97,43 +96,48 @@ export default function DepositRefund() {
           <main style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Card padding={20}>
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <Avatar name="Sipho Dlamini" size="lg" tone="neutral" />
+                <Avatar name="Tenant" size="lg" tone="neutral" />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 16, fontWeight: 600 }}>Sipho Dlamini</div>
+                  <div style={{ fontSize: 16, fontWeight: 600 }}>—</div>
                   <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>
-                    Studio · Melville · 12 months · ended 28 Apr 2026
+                    Tenant and lease details load from the closed lease.
                   </div>
                 </div>
-                <Badge tone="success" leftIcon="check">FICA verified</Badge>
               </div>
             </Card>
 
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 12 }}>Tenant's move-out inspection</Eyebrow>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {TENANT_FLAGS.map((f) => (
-                  <div
-                    key={f.room}
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      padding: 12,
-                      border: "1px solid var(--hairline)",
-                      borderRadius: 8,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Icon name="info" size={14} style={{ color: "var(--warn)", flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600 }}>{f.room}</div>
-                      <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>{f.note}</div>
+              {TENANT_FLAGS.length === 0 ? (
+                <div style={{ fontSize: 12, color: "var(--slate)", padding: "10px 0" }}>
+                  No inspection items flagged yet.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {TENANT_FLAGS.map((f) => (
+                    <div
+                      key={f.room}
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        padding: 12,
+                        border: "1px solid var(--hairline)",
+                        borderRadius: 8,
+                        alignItems: "center",
+                      }}
+                    >
+                      <Icon name="info" size={14} style={{ color: "var(--warn)", flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{f.room}</div>
+                        <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>{f.note}</div>
+                      </div>
+                      <span className="mono" style={{ fontSize: 11, color: "var(--slate-2)" }}>
+                        {f.photo}
+                      </span>
                     </div>
-                    <span className="mono" style={{ fontSize: 11, color: "var(--slate-2)" }}>
-                      {f.photo}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </Card>
 
             <Card padding={20}>

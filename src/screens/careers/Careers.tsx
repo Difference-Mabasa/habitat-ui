@@ -4,6 +4,7 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 
 interface Role {
   id: string;
@@ -13,15 +14,7 @@ interface Role {
   type: string;
 }
 
-const ROLES: Role[] = [
-  { id: "r1", team: "Engineering", title: "Senior backend engineer", location: "Cape Town / hybrid", type: "Full-time" },
-  { id: "r2", team: "Engineering", title: "Mobile engineer (React Native)", location: "Remote · SA", type: "Full-time" },
-  { id: "r3", team: "Design", title: "Senior product designer", location: "Cape Town / Joburg", type: "Full-time" },
-  { id: "r4", team: "Ops", title: "Field ops lead · Soweto", location: "Soweto · on-site", type: "Full-time" },
-  { id: "r5", team: "Ops", title: "Trust & safety analyst", location: "Cape Town", type: "Full-time" },
-  { id: "r6", team: "Growth", title: "Performance marketer", location: "Remote · SA", type: "Contract" },
-  { id: "r7", team: "Customer", title: "Bilingual support (Zulu + Eng)", location: "Joburg", type: "Full-time" },
-];
+const ROLES: Role[] = [];
 
 const VALUES: { icon: IconName; title: string; body: string }[] = [
   { icon: "bolt", title: "Move with urgency", body: "Tenants need homes today. We ship daily, not yearly." },
@@ -44,15 +37,14 @@ export default function Careers() {
       <Nav role="tenant" />
 
       <div style={{ padding: "64px 32px 32px", maxWidth: 1100, margin: "0 auto" }}>
-        <Eyebrow>We're hiring · {ROLES.length} open roles</Eyebrow>
+        <Eyebrow>{ROLES.length === 0 ? "Careers" : `${ROLES.length} open roles`}</Eyebrow>
         <h1 className="display" style={{ fontSize: 120, lineHeight: 0.92, margin: "16px 0 24px" }}>
           BUILD WITH
           <br />
           HABITAT.
         </h1>
         <p style={{ fontSize: 17, color: "var(--slate)", maxWidth: 580, lineHeight: 1.5 }}>
-          27 people. 9 cities. One mission: fix renting for the 65% of South Africans nobody else is
-          building for.
+          One mission: fix renting for the South Africans nobody else is building for.
         </p>
       </div>
 
@@ -85,30 +77,38 @@ export default function Careers() {
           OPEN ROLES
         </h2>
         <Card padding={0} style={{ overflow: "hidden", marginBottom: 48 }}>
-          {ROLES.map((r, i) => (
-            <div
-              key={r.id}
-              style={{
-                padding: "18px 24px",
-                display: "grid",
-                gridTemplateColumns: "120px 1fr 1fr 100px 80px",
-                gap: 14,
-                alignItems: "center",
-                borderTop: i ? "1px solid var(--hairline)" : "none",
-                cursor: "pointer",
-              }}
-            >
-              <Badge tone="neutral">{r.team}</Badge>
-              <div style={{ fontWeight: 600, fontSize: 15 }}>{r.title}</div>
-              <div style={{ fontSize: 13, color: "var(--slate)" }}>{r.location}</div>
-              <div className="mono" style={{ fontSize: 12, color: "var(--slate)" }}>
-                {r.type}
+          {ROLES.length === 0 ? (
+            <EmptyState
+              icon="users"
+              title="No open roles right now"
+              description="Check back soon — we add new positions regularly."
+            />
+          ) : (
+            ROLES.map((r, i) => (
+              <div
+                key={r.id}
+                style={{
+                  padding: "18px 24px",
+                  display: "grid",
+                  gridTemplateColumns: "120px 1fr 1fr 100px 80px",
+                  gap: 14,
+                  alignItems: "center",
+                  borderTop: i ? "1px solid var(--hairline)" : "none",
+                  cursor: "pointer",
+                }}
+              >
+                <Badge tone="neutral">{r.team}</Badge>
+                <div style={{ fontWeight: 600, fontSize: 15 }}>{r.title}</div>
+                <div style={{ fontSize: 13, color: "var(--slate)" }}>{r.location}</div>
+                <div className="mono" style={{ fontSize: 12, color: "var(--slate)" }}>
+                  {r.type}
+                </div>
+                <Button variant="ghost" size="sm" rightIcon="arrR" style={{ justifySelf: "end" }}>
+                  Apply
+                </Button>
               </div>
-              <Button variant="ghost" size="sm" rightIcon="arrR" style={{ justifySelf: "end" }}>
-                Apply
-              </Button>
-            </div>
-          ))}
+            ))
+          )}
         </Card>
 
         <Card padding={36} style={{ background: "var(--ink)", color: "var(--paper)" }}>

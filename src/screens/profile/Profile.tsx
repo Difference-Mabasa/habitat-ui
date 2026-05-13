@@ -19,6 +19,7 @@ import Alert from "@/components/Alert";
 import KeyValueRow from "@/components/KeyValueRow";
 import ProgressBar from "@/components/ProgressBar";
 import SubNav, { type SubNavItem } from "@/components/SubNav";
+import EmptyState from "@/components/EmptyState";
 
 type SectionId =
   | "profile"
@@ -54,9 +55,9 @@ const INTERESTS = [
 ];
 
 const VERIFICATIONS: { label: string; ok: boolean }[] = [
-  { label: "Email", ok: true },
-  { label: "Phone", ok: true },
-  { label: "ID & FICA", ok: true },
+  { label: "Email", ok: false },
+  { label: "Phone", ok: false },
+  { label: "ID & FICA", ok: false },
   { label: "Affordability", ok: false },
 ];
 
@@ -68,11 +69,7 @@ interface ReferenceRow {
   status: "Verified" | "Awaiting reply" | "Sent" | "Declined";
 }
 
-const REFERENCES: ReferenceRow[] = [
-  { id: "r1", type: "Previous landlord", name: "Mxolisi Ndlovu", contact: "+27 82 ••• 1102", status: "Verified" },
-  { id: "r2", type: "Employer", name: "Discovery Health · HR", contact: "hr@discovery.co.za", status: "Awaiting reply" },
-  { id: "r3", type: "Character", name: "Naledi Mokoena", contact: "+27 71 ••• 2230", status: "Sent" },
-];
+const REFERENCES: ReferenceRow[] = [];
 
 const STATUS_TONE: Record<ReferenceRow["status"], BadgeTone> = {
   Verified: "success",
@@ -90,12 +87,7 @@ interface SessionRow {
   current?: boolean;
 }
 
-const SESSIONS: SessionRow[] = [
-  { id: "s1", device: "MacBook Pro · Chrome", os: "macOS 15.4", location: "Joburg, ZA", lastActive: "Now", current: true },
-  { id: "s2", device: "iPhone 14 · Safari", os: "iOS 18.2", location: "Joburg, ZA", lastActive: "2 hours ago" },
-  { id: "s3", device: "iPad Air · Habitat app", os: "iPadOS 18.1", location: "Cape Town, ZA", lastActive: "3 days ago" },
-  { id: "s4", device: "Pixel 7 · Habitat app", os: "Android 15", location: "Joburg, ZA", lastActive: "1 week ago" },
-];
+const SESSIONS: SessionRow[] = [];
 
 type NotifEvent =
   | "Viewing confirmed"
@@ -108,12 +100,12 @@ type NotifEvent =
   | "Tips & insights";
 
 const NOTIF_INITIAL: Record<NotifEvent, { push: boolean; email: boolean; sms: boolean }> = {
-  "Viewing confirmed": { push: true, email: true, sms: true },
-  "Application update": { push: true, email: true, sms: false },
-  "Lease ready": { push: true, email: true, sms: true },
-  "Payment receipt": { push: true, email: true, sms: false },
-  "Payment due": { push: true, email: true, sms: true },
-  "New message": { push: true, email: false, sms: false },
+  "Viewing confirmed": { push: false, email: false, sms: false },
+  "Application update": { push: false, email: false, sms: false },
+  "Lease ready": { push: false, email: false, sms: false },
+  "Payment receipt": { push: false, email: false, sms: false },
+  "Payment due": { push: false, email: false, sms: false },
+  "New message": { push: false, email: false, sms: false },
   "Community activity": { push: false, email: false, sms: false },
   "Tips & insights": { push: false, email: false, sms: false },
 };
@@ -127,8 +119,8 @@ interface ConsentRow {
 }
 
 const CONSENTS: ConsentRow[] = [
-  { id: "c1", scope: "Profile data processing (POPIA core)", granted: true, ref: "HB-CONS-04201", when: "12 Mar 2024" },
-  { id: "c2", scope: "Credit check (Experian)", granted: true, ref: "HB-CONS-04212", when: "14 Mar 2024" },
+  { id: "c1", scope: "Profile data processing (POPIA core)", granted: false, ref: "—", when: "—" },
+  { id: "c2", scope: "Credit check (Experian)", granted: false, ref: "—", when: "—" },
   { id: "c3", scope: "TPN rental history reporting", granted: false, ref: "—", when: "—" },
   { id: "c4", scope: "Marketing & product updates", granted: false, ref: "—", when: "—" },
 ];
@@ -139,14 +131,12 @@ export default function Profile() {
   const { isSm } = useViewport();
   const formCols = isSm ? "1fr" : "1fr 1fr";
   const [section, setSection] = useState<SectionId>("profile");
-  const [interests, setInterests] = useState<string[]>(["Coffee lover", "Hiking", "Working professional", "Cooking"]);
-  const [bio, setBio] = useState(
-    "Senior software engineer at Discovery. Quiet, tidy, no pets, work hybrid in Sandton. Looking for a 12-month lease in Brixton or Westdene.",
-  );
+  const [interests, setInterests] = useState<string[]>([]);
+  const [bio, setBio] = useState("");
   const [notifs, setNotifs] = useState(NOTIF_INITIAL);
   const [feeType, setFeeType] = useState<"FIXED" | "PERCENT_OF_ANNUAL">("PERCENT_OF_ANNUAL");
   const [agentBio, setAgentBio] = useState("");
-  const [areas, setAreas] = useState<string[]>(["Orlando West", "Diepkloof"]);
+  const [areas, setAreas] = useState<string[]>([]);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const toggleInterest = (i: string) => {
@@ -160,11 +150,10 @@ export default function Profile() {
     setNotifs({ ...notifs, [event]: { ...notifs[event], [key]: value } });
 
   const completion = useMemo(() => {
-    // mock completion calc — bio + interests + work + 3 verified items
-    let pct = 30; // baseline (name, email, phone)
+    let pct = 0;
     if (bio.length > 20) pct += 15;
     if (interests.length >= 3) pct += 10;
-    pct += VERIFICATIONS.filter((v) => v.ok).length * 10; // 3 ok → +30
+    pct += VERIFICATIONS.filter((v) => v.ok).length * 10;
     return Math.min(100, pct);
   }, [bio, interests]);
 
@@ -199,22 +188,22 @@ export default function Profile() {
                   <Eyebrow style={{ marginBottom: 14 }}>Basic information</Eyebrow>
                   <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
                     <FormField label="First name" required>
-                      <Input defaultValue="Sipho" />
+                      <Input defaultValue="" />
                     </FormField>
                     <FormField label="Last name" required>
-                      <Input defaultValue="Dlamini" />
+                      <Input defaultValue="" />
                     </FormField>
                     <FormField label="Phone" helper="SA mobile · we'll send a one-time code if changed.">
-                      <Input defaultValue="+27 82 184 4421" />
+                      <Input defaultValue="" />
                     </FormField>
                     <FormField label="Email" helper="Cannot be changed — contact support to update.">
-                      <Input defaultValue="sipho@discovery.co.za" readOnly />
+                      <Input defaultValue="" readOnly />
                     </FormField>
                     <FormField label="Date of birth">
-                      <Input type="date" defaultValue="1985-05-12" />
+                      <Input type="date" defaultValue="" />
                     </FormField>
                     <FormField label="ID number" helper="Used for FICA verification only.">
-                      <Input defaultValue="8504010012088" className="mono" />
+                      <Input defaultValue="" className="mono" />
                     </FormField>
                   </div>
                 </Card>
@@ -256,14 +245,14 @@ export default function Profile() {
                   <Eyebrow style={{ marginBottom: 14 }}>Work &amp; education</Eyebrow>
                   <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
                     <FormField label="Job title">
-                      <Input defaultValue="Senior software engineer" />
+                      <Input defaultValue="" />
                     </FormField>
                     <FormField label="Employer / institution">
-                      <Input defaultValue="Discovery Health" />
+                      <Input defaultValue="" />
                     </FormField>
                     <FormField label="Employment type">
                       <Select
-                        defaultValue="EMPLOYED"
+                        defaultValue=""
                         options={[
                           { value: "EMPLOYED", label: "Employed" },
                           { value: "SELF_EMPLOYED", label: "Self-employed" },
@@ -275,13 +264,13 @@ export default function Profile() {
                       />
                     </FormField>
                     <FormField label="Years in current role">
-                      <Input type="number" defaultValue="3" />
+                      <Input type="number" defaultValue="" />
                     </FormField>
                     <FormField label="Highest qualification">
-                      <Input defaultValue="BSc Computer Science, UCT" />
+                      <Input defaultValue="" />
                     </FormField>
                     <FormField label="Languages spoken">
-                      <Input defaultValue="English, Zulu, Sotho" />
+                      <Input defaultValue="" />
                     </FormField>
                   </div>
                 </Card>
@@ -293,16 +282,16 @@ export default function Profile() {
                   </p>
                   <div style={{ display: "grid", gridTemplateColumns: formCols, gap: 16 }}>
                     <FormField label="Street address">
-                      <Input defaultValue="42 Marshall St" />
+                      <Input defaultValue="" />
                     </FormField>
                     <FormField label="Suburb">
-                      <Input defaultValue="Brixton" />
+                      <Input defaultValue="" />
                     </FormField>
                     <FormField label="City">
-                      <Input defaultValue="Johannesburg" />
+                      <Input defaultValue="" />
                     </FormField>
                     <FormField label="Postcode">
-                      <Input defaultValue="2092" className="mono" />
+                      <Input defaultValue="" className="mono" />
                     </FormField>
                   </div>
                 </Card>
@@ -361,14 +350,14 @@ export default function Profile() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                     <div>
                       <Eyebrow style={{ marginBottom: 4 }}>Score</Eyebrow>
-                      <div style={{ fontSize: 22, fontWeight: 600 }}>84 / 100</div>
+                      <div style={{ fontSize: 22, fontWeight: 600 }}>— / 100</div>
                       <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>
-                        Computed from payslips · refreshed 14 May 2026
+                        Connect a source to compute your affordability score.
                       </div>
                     </div>
-                    <Badge tone="success">Strong</Badge>
+                    <Badge tone="neutral">Not computed</Badge>
                   </div>
-                  <ProgressBar value={84} tone="success" />
+                  <ProgressBar value={0} tone="accent" />
                 </Card>
 
                 <Card padding={24}>
@@ -386,9 +375,9 @@ export default function Profile() {
 
                 <Card padding={24}>
                   <Eyebrow style={{ marginBottom: 14 }}>Manual proof</Eyebrow>
-                  <KeyValueRow label="Payslips (3 mo)" value="3 of 3 uploaded · verified" tone="success" divider />
-                  <KeyValueRow label="Bank statements (3 mo)" value="Not uploaded" tone="warn" divider />
-                  <KeyValueRow label="Employment letter" value="1 file · verified" tone="success" divider={false} />
+                  <KeyValueRow label="Payslips (3 mo)" value="Not uploaded" divider />
+                  <KeyValueRow label="Bank statements (3 mo)" value="Not uploaded" divider />
+                  <KeyValueRow label="Employment letter" value="Not uploaded" divider={false} />
                   <Button variant="ghost" size="sm" leftIcon="upload" style={{ marginTop: 16 }}>
                     Replace or add documents
                   </Button>
@@ -408,6 +397,13 @@ export default function Profile() {
                     <div style={{ fontSize: 14, fontWeight: 600 }}>References on file</div>
                     <Button variant="accent" size="sm" leftIcon="plus">Request a reference</Button>
                   </div>
+                  {REFERENCES.length === 0 ? (
+                    <EmptyState
+                      icon="users"
+                      title="No references yet"
+                      description="Request one from a previous landlord, employer, or character contact."
+                    />
+                  ) : null}
                   {REFERENCES.map((r, i) => (
                     <div
                       key={r.id}
@@ -492,7 +488,7 @@ export default function Profile() {
                         Tenant fee <span style={{ color: "var(--slate)", fontWeight: 400 }}>· charged when a tenant asks you to find them a place</span>
                       </div>
                       <FormField label="Fixed amount (R)" helper="Leave blank if you don't charge tenants.">
-                        <Input type="number" defaultValue="800" />
+                        <Input type="number" defaultValue="" />
                       </FormField>
                     </div>
 
@@ -522,7 +518,7 @@ export default function Profile() {
                       >
                         <Input
                           type="number"
-                          defaultValue={feeType === "PERCENT_OF_ANNUAL" ? "8" : "2000"}
+                          defaultValue=""
                         />
                       </FormField>
                     </div>
@@ -676,6 +672,13 @@ export default function Profile() {
                   <div style={{ fontSize: 14, fontWeight: 600 }}>Active sessions · {SESSIONS.length}</div>
                   <Button variant="ghost" size="sm" leftIcon="logout">Sign out everywhere else</Button>
                 </div>
+                {SESSIONS.length === 0 ? (
+                  <EmptyState
+                    icon="clock"
+                    title="No active sessions"
+                    description="Sign in from another device and it will appear here."
+                  />
+                ) : null}
                 {SESSIONS.map((s, i) => (
                   <div
                     key={s.id}
@@ -780,15 +783,15 @@ export default function Profile() {
           >
             <Card padding={20} style={{ textAlign: "center" }}>
               <Avatar
-                name="Sipho Dlamini"
+                name=""
                 size="lg"
                 tone="neutral"
                 style={{ width: 88, height: 88, fontSize: 28, margin: "0 auto 12px" }}
               />
               <Button variant="ghost" size="sm" leftIcon="upload">Change photo</Button>
-              <div style={{ fontSize: 16, fontWeight: 600, marginTop: 12 }}>Sipho Dlamini</div>
+              <div style={{ fontSize: 16, fontWeight: 600, marginTop: 12 }}>—</div>
               <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>
-                Tenant · sipho@discovery.co.za
+                Tenant
               </div>
 
               <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--hairline)" }}>

@@ -5,6 +5,7 @@ import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import Hairline from "@/components/Hairline";
+import EmptyState from "@/components/EmptyState";
 
 interface Factor {
   icon: IconName;
@@ -12,24 +13,18 @@ interface Factor {
   tone: "good" | "warn";
 }
 
-const FACTORS: Factor[] = [
-  { icon: "check", label: "24 months of on-time rent", tone: "good" },
-  { icon: "check", label: "0 disputes or evictions", tone: "good" },
-  { icon: "check", label: "FICA-verified employment", tone: "good" },
-  { icon: "info", label: "Short credit history (under 3 yrs)", tone: "warn" },
-  { icon: "info", label: "1 missed Edgars payment in 2023", tone: "warn" },
-];
+const FACTORS: Factor[] = [];
 
-const SCORE = 678;
+const SCORE: number | null = null;
 const MAX = 850;
-const PCT = ((SCORE - 300) / (MAX - 300)) * 100;
+const PCT = 0;
 
 export default function Credit() {
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
       <Nav role="tenant" />
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 32px" }}>
-        <Eyebrow>TPN credit check · refreshed 1 May 2026</Eyebrow>
+        <Eyebrow>TPN credit check</Eyebrow>
         <h1 className="display" style={{ fontSize: 56, margin: "8px 0 24px" }}>
           YOUR RENTAL SCORE
         </h1>
@@ -42,17 +37,17 @@ export default function Credit() {
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                   <div
                     className="display tabular"
-                    style={{ fontSize: 88, color: "var(--success)", lineHeight: 1 }}
+                    style={{ fontSize: 88, color: "var(--slate)", lineHeight: 1 }}
                   >
-                    {SCORE}
+                    {SCORE ?? "—"}
                   </div>
                   <div style={{ fontSize: 16, color: "var(--slate)" }}>/ {MAX}</div>
                 </div>
                 <div style={{ marginTop: 8 }}>
-                  <Badge tone="success">GOOD · paid as agreed</Badge>
+                  <Badge tone="neutral">No score yet</Badge>
                 </div>
               </div>
-              <Icon name="shield" size={42} style={{ color: "var(--success)" }} />
+              <Icon name="shield" size={42} style={{ color: "var(--slate)" }} />
             </div>
 
             <div
@@ -105,29 +100,38 @@ export default function Credit() {
             <Hairline style={{ margin: "24px 0" }} />
 
             <Eyebrow style={{ marginBottom: 10 }}>What's affecting your score</Eyebrow>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {FACTORS.map((f) => (
-                <div
-                  key={f.label}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "10px 12px",
-                    background: "var(--surface-2)",
-                    borderRadius: 8,
-                    fontSize: 13,
-                  }}
-                >
-                  <Icon
-                    name={f.icon}
-                    size={16}
-                    style={{ color: f.tone === "good" ? "var(--success)" : "var(--warn)" }}
-                  />
-                  <span>{f.label}</span>
-                </div>
-              ))}
-            </div>
+            {FACTORS.length === 0 ? (
+              <EmptyState
+                icon="info"
+                size="sm"
+                title="No score factors yet"
+                description="Your rental score factors will appear here once we've pulled your credit history."
+              />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {FACTORS.map((f) => (
+                  <div
+                    key={f.label}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "10px 12px",
+                      background: "var(--surface-2)",
+                      borderRadius: 8,
+                      fontSize: 13,
+                    }}
+                  >
+                    <Icon
+                      name={f.icon}
+                      size={16}
+                      style={{ color: f.tone === "good" ? "var(--success)" : "var(--warn)" }}
+                    />
+                    <span>{f.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           <aside style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -160,8 +164,7 @@ export default function Credit() {
             </Card>
             <Card padding={22} style={{ background: "var(--surface-2)", borderColor: "transparent" }}>
               <div style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5 }}>
-                Data sourced from TPN Credit Bureau under POPIA consent. Refreshed monthly · last 1 May
-                2026.
+                Data sourced from TPN Credit Bureau under POPIA consent. Refreshed monthly.
               </div>
             </Card>
           </aside>

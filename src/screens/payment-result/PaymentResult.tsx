@@ -19,15 +19,15 @@ const STATE_STYLE: Record<
     icon: "check",
     tone: "success",
     eyebrow: "Payment received",
-    heading: "You're paid up for May",
-    body: "Funds are in escrow and will release to the landlord on the 3rd. Your receipt is on the way to your inbox.",
+    heading: "Your payment went through",
+    body: "Funds are in escrow and will release to the landlord on the scheduled date. A receipt is on the way to your inbox.",
   },
   cancel: {
     icon: "x",
     tone: "warn",
     eyebrow: "Payment cancelled",
     heading: "Nothing went through",
-    body: "You backed out at the gateway. No money moved. Your invoice is still pending — try again before it expires on 5 Jun.",
+    body: "You backed out at the gateway. No money moved. Your invoice is still pending — try again before it expires.",
   },
   error: {
     icon: "info",
@@ -38,25 +38,31 @@ const STATE_STYLE: Record<
   },
 };
 
-const SUCCESS_ROWS = [
-  { label: "Reference", value: "HB-RENT-04250-SD", mono: true },
-  { label: "Method", value: "Card · Visa ••4412" },
-  { label: "Date", value: "12 May 2026 · 18:42 SAST" },
-  { label: "Amount", value: "R 3,450.00" },
-  { label: "Held in escrow until", value: "3 Jun 2026" },
+interface ResultRow {
+  label: string;
+  value: string;
+  mono?: boolean;
+}
+
+const SUCCESS_ROWS: ResultRow[] = [
+  { label: "Reference", value: "—", mono: true },
+  { label: "Method", value: "—" },
+  { label: "Date", value: "—" },
+  { label: "Amount", value: "R 0" },
+  { label: "Held in escrow until", value: "—" },
 ];
 
-const CANCEL_ROWS = [
-  { label: "Invoice", value: "HB-INV-04250-SD", mono: true },
-  { label: "Amount due", value: "R 3,450.00" },
-  { label: "Expires", value: "5 Jun 2026 (24 days)" },
-  { label: "Late fee after", value: "R 250 if unpaid by 1 Jun" },
+const CANCEL_ROWS: ResultRow[] = [
+  { label: "Invoice", value: "—", mono: true },
+  { label: "Amount due", value: "R 0" },
+  { label: "Expires", value: "—" },
+  { label: "Late fee after", value: "—" },
 ];
 
-const ERROR_ROWS = [
-  { label: "Reference", value: "Pending — none assigned", mono: true },
-  { label: "Gateway code", value: "GATEWAY_TIMEOUT", mono: true },
-  { label: "Last attempt", value: "12 May 2026 · 18:38 SAST" },
+const ERROR_ROWS: ResultRow[] = [
+  { label: "Reference", value: "—", mono: true },
+  { label: "Gateway code", value: "—", mono: true },
+  { label: "Last attempt", value: "—" },
 ];
 
 export default function PaymentResult() {
@@ -187,7 +193,7 @@ export default function PaymentResult() {
           <div style={{ marginTop: 16 }}>
             <Alert tone="danger" title="What to do if money left your account">
               Card or EFT payments that fail at the gateway auto-reverse within 24 hours. Keep this page open
-              or screenshot the gateway code <span className="mono">GATEWAY_TIMEOUT</span> — support will need it.
+              or screenshot the gateway code — support will need it.
             </Alert>
           </div>
         ) : null}

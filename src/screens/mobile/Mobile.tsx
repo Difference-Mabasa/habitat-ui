@@ -10,11 +10,14 @@ import Avatar from "@/components/Avatar";
 import Eyebrow from "@/components/Eyebrow";
 import PhoneFrame from "./PhoneFrame";
 
-const BROWSE_LISTINGS: { name: string; area: string; price: string; hot?: boolean }[] = [
-  { name: "Sunlit cottage", area: "Caroline · 1.2km", price: "R 4,400" },
-  { name: "Studio · Melville", area: "Melville · 0.4km", price: "R 5,400", hot: true },
-  { name: "Garden flatlet", area: "Brixton · 2.8km", price: "R 5,200" },
-];
+interface BrowseListing {
+  name: string;
+  area: string;
+  price: string;
+  hot?: boolean;
+}
+
+const BROWSE_LISTINGS: BrowseListing[] = [];
 
 const TAB_BAR: { icon: IconName; label: string; active?: boolean }[] = [
   { icon: "search", label: "Browse" },
@@ -44,7 +47,7 @@ export default function Mobile() {
           {/* Browse */}
           <PhoneFrame label="Browse">
             <div style={{ padding: "12px 16px 8px" }}>
-              <Input leftIcon="search" defaultValue="Melville, Joburg" style={{ height: 38, fontSize: 13 }} />
+              <Input leftIcon="search" defaultValue="" placeholder="Search location" style={{ height: 38, fontSize: 13 }} />
               <div style={{ display: "flex", gap: 6, overflowX: "auto", marginTop: 10 }}>
                 {["Map", "Under R5k", "1+ bed", "Pet", "Solar"].map((c, i) => (
                   <Chip
@@ -125,7 +128,7 @@ export default function Mobile() {
               </div>
             </div>
             <div style={{ padding: 16 }}>
-              <Eyebrow style={{ fontSize: 9, marginBottom: 4 }}>Studio · Melville</Eyebrow>
+              <Eyebrow style={{ fontSize: 9, marginBottom: 4 }}>Listing</Eyebrow>
               <h2
                 style={{
                   fontSize: 18,
@@ -134,17 +137,17 @@ export default function Mobile() {
                   letterSpacing: "-0.01em",
                 }}
               >
-                Light-filled studio with garden access
+                —
               </h2>
               <div style={{ display: "flex", gap: 8, fontSize: 11, color: "var(--slate)", marginBottom: 14 }}>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-                  <Icon name="bed" size={11} /> 1
+                  <Icon name="bed" size={11} /> —
                 </span>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-                  <Icon name="bath" size={11} /> 1
+                  <Icon name="bath" size={11} /> —
                 </span>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-                  <Icon name="sqm" size={11} /> 32m²
+                  <Icon name="sqm" size={11} /> —
                 </span>
               </div>
               <div
@@ -158,24 +161,17 @@ export default function Mobile() {
                   alignItems: "center",
                 }}
               >
-                <Avatar name="Thandi M" size="md" tone="neutral" />
+                <Avatar name="" size="md" tone="neutral" />
                 <div style={{ flex: 1, fontSize: 11 }}>
-                  <div style={{ fontWeight: 600 }}>Thandi · landlord</div>
-                  <div style={{ color: "var(--slate)" }}>★ 4.7 · 18 reviews</div>
+                  <div style={{ fontWeight: 600 }}>—</div>
+                  <div style={{ color: "var(--slate)" }}>Landlord</div>
                 </div>
                 <IconButton icon="chat" label="Message" size="sm" />
               </div>
               <p style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5, margin: "0 0 14px" }}>
-                Top-floor studio with morning light, separate kitchen, and access to a shared garden. 5 min
-                walk to 7th Street.
+                Listing description will appear here.
               </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {["Solar geyser", "Fibre", "Pet OK", "Parking"].map((t) => (
-                  <Chip key={t} style={{ fontSize: 10, height: 24 }}>
-                    {t}
-                  </Chip>
-                ))}
-              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} />
             </div>
             {/* Sticky apply bar */}
             <div
@@ -194,9 +190,9 @@ export default function Mobile() {
             >
               <div>
                 <div className="tabular" style={{ fontSize: 16, fontWeight: 600 }}>
-                  R 5,400
+                  R 0
                 </div>
-                <div style={{ fontSize: 9, color: "var(--slate)" }}>per month · 1 May</div>
+                <div style={{ fontSize: 9, color: "var(--slate)" }}>per month</div>
               </div>
               <Button variant="accent" style={{ flex: 1, justifyContent: "center", height: 38 }}>
                 Apply
@@ -216,9 +212,9 @@ export default function Mobile() {
                   letterSpacing: "-0.01em",
                 }}
               >
-                Studio · Melville
+                —
               </h2>
-              <div style={{ fontSize: 11, color: "var(--slate)" }}>14 months in · 4 to go</div>
+              <div style={{ fontSize: 11, color: "var(--slate)" }}>—</div>
             </div>
             <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: 12 }}>
               <Card
@@ -238,9 +234,9 @@ export default function Mobile() {
                   Next rent due
                 </div>
                 <div className="tabular" style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em" }}>
-                  R 5,400
+                  R 0
                 </div>
-                <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 12 }}>1 May · 26 days</div>
+                <div style={{ fontSize: 11, opacity: 0.7, marginBottom: 12 }}>—</div>
                 <Button
                   variant="accent"
                   style={{
@@ -268,14 +264,13 @@ export default function Mobile() {
                     + New
                   </Button>
                 </div>
-                <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 4 }}>Geyser leaking</div>
-                <div style={{ fontSize: 10, color: "var(--accent)" }}>● Scheduled · today 16:00</div>
+                <div style={{ fontSize: 12, color: "var(--slate)" }}>No open tickets.</div>
               </Card>
               <Card padding={14} style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                <Avatar name="Thandi M" size="md" tone="neutral" />
+                <Avatar name="" size="md" tone="neutral" />
                 <div style={{ flex: 1, fontSize: 11 }}>
-                  <div style={{ fontWeight: 600 }}>Thandi · landlord</div>
-                  <div style={{ color: "var(--slate)" }}>1 unread message</div>
+                  <div style={{ fontWeight: 600 }}>—</div>
+                  <div style={{ color: "var(--slate)" }}>Landlord</div>
                 </div>
                 <Icon name="chevR" size={14} style={{ color: "var(--slate)" }} />
               </Card>

@@ -147,7 +147,7 @@ export default function MoveOut() {
                       rows={5}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Keys are with the building manager. I left the bin liners and bulbs replaced."
+                      placeholder="Keys returned, forwarding address, leftover items…"
                     />
                   </FormField>
 

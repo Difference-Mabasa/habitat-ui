@@ -10,24 +10,19 @@ import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
 import PageHeader from "@/components/PageHeader";
 import KpiTile from "@/components/KpiTile";
+import EmptyState from "@/components/EmptyState";
 
-const AGENTS = [
-  { name: "Naledi Mokoena", role: "Founder · Principal", init: "NM", listings: 14, verified: true },
-  { name: "Thabo Khumalo", role: "Senior agent", init: "TK", listings: 8, verified: true },
-  { name: "Aisha Mahlangu", role: "Agent · Soweto", init: "AM", listings: 5, verified: true },
-  { name: "Pieter van der Berg", role: "Agent · Inner City", init: "PV", listings: 3, verified: false },
-];
+interface AgencyAgent {
+  name: string;
+  role: string;
+  init: string;
+  listings: number;
+  verified: boolean;
+}
 
-const AREAS = [
-  "Soweto",
-  "Diepkloof",
-  "Orlando West",
-  "Maboneng",
-  "Westdene",
-  "Auckland Park",
-  "Brixton",
-  "Yeoville",
-];
+const AGENTS: AgencyAgent[] = [];
+
+const AREAS: string[] = [];
 
 export default function MyAgency() {
   return (
@@ -35,8 +30,7 @@ export default function MyAgency() {
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="My agency"
-          title="Vilakazi Property Co."
-          badges={<Badge tone="success" leftIcon="check">Verified</Badge>}
+          title="Your agency"
           subtitle="Public agency profile — tenants and landlords see this when searching for representation."
           actions={
             <>
@@ -47,10 +41,10 @@ export default function MyAgency() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-          <KpiTile label="Active mandates" value="24" />
-          <KpiTile label="Agents on team" value="4" subText="3 verified" />
-          <KpiTile label="Avg. response" value="1.4 h" valueTone="success" />
-          <KpiTile label="Fees · YTD" value="R 184,200" subText="Across 32 placements" />
+          <KpiTile label="Active mandates" value="0" />
+          <KpiTile label="Agents on team" value="0" subText="—" />
+          <KpiTile label="Avg. response" value="—" />
+          <KpiTile label="Fees · YTD" value="R 0" subText="—" />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 320px", gap: 24 }}>
@@ -59,16 +53,16 @@ export default function MyAgency() {
               <Eyebrow style={{ marginBottom: 14 }}>Identity</Eyebrow>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <FormField label="Trading name" required>
-                  <Input defaultValue="Vilakazi Property Co." />
+                  <Input defaultValue="" placeholder="Your agency name" />
                 </FormField>
                 <FormField label="PPRA registration" helper="Property Practitioners Regulatory Authority">
-                  <Input defaultValue="FFC-022831" className="mono" />
+                  <Input defaultValue="" placeholder="FFC-xxxxxx" className="mono" />
                 </FormField>
                 <FormField label="Company registration">
-                  <Input defaultValue="2018/418229/07" className="mono" />
+                  <Input defaultValue="" placeholder="YYYY/NNNNNN/NN" className="mono" />
                 </FormField>
                 <FormField label="VAT number">
-                  <Input defaultValue="4880291184" className="mono" />
+                  <Input defaultValue="" placeholder="VAT no." className="mono" />
                 </FormField>
               </div>
             </Card>
@@ -77,16 +71,16 @@ export default function MyAgency() {
               <Eyebrow style={{ marginBottom: 14 }}>Contact</Eyebrow>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <FormField label="Office phone">
-                  <Input defaultValue="+27 11 482 8211" />
+                  <Input defaultValue="" placeholder="+27 ..." />
                 </FormField>
                 <FormField label="WhatsApp business">
-                  <Input defaultValue="+27 82 184 4421" />
+                  <Input defaultValue="" placeholder="+27 ..." />
                 </FormField>
                 <FormField label="Email">
-                  <Input defaultValue="hello@vilakazi.co.za" type="email" />
+                  <Input defaultValue="" placeholder="you@example.co.za" type="email" />
                 </FormField>
                 <FormField label="Website">
-                  <Input defaultValue="vilakazi.co.za" />
+                  <Input defaultValue="" placeholder="example.co.za" />
                 </FormField>
               </div>
             </Card>
@@ -96,7 +90,8 @@ export default function MyAgency() {
               <FormField label="Public bio" helper="Shown on your agency page — max 320 chars.">
                 <Textarea
                   rows={4}
-                  defaultValue="A Soweto-born agency placing tenants in verified backrooms, cottages, and family homes since 2018. 4 agents, fluent in Zulu, Sotho, and English. Trust account audited annually."
+                  defaultValue=""
+                  placeholder="Tell tenants and landlords about your agency."
                 />
               </FormField>
             </Card>
@@ -104,8 +99,8 @@ export default function MyAgency() {
             <Card padding={24}>
               <Eyebrow style={{ marginBottom: 14 }}>Areas covered</Eyebrow>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {AREAS.map((a, i) => (
-                  <Chip key={a} active={i < 5} leftIcon="pin">{a}</Chip>
+                {AREAS.map((a) => (
+                  <Chip key={a} leftIcon="pin">{a}</Chip>
                 ))}
                 <Chip leftIcon="plus">Add area</Chip>
               </div>
@@ -116,34 +111,42 @@ export default function MyAgency() {
                 <div style={{ fontSize: 14, fontWeight: 600 }}>Team</div>
                 <Button variant="ghost" size="sm" leftIcon="plus">Invite agent</Button>
               </div>
-              {AGENTS.map((a, i) => (
-                <div
-                  key={a.name}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "auto 1fr auto auto auto",
-                    alignItems: "center",
-                    gap: 16,
-                    padding: "14px 20px",
-                    borderTop: i > 0 ? "1px solid var(--hairline)" : undefined,
-                  }}
-                >
-                  <Avatar name={a.init} size="md" tone="neutral" />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>{a.name}</div>
-                    <div style={{ fontSize: 12, color: "var(--slate)" }}>{a.role}</div>
+              {AGENTS.length === 0 ? (
+                <EmptyState
+                  icon="users"
+                  title="No agents yet"
+                  description="Invite your first agent to start managing properties together."
+                />
+              ) : (
+                AGENTS.map((a, i) => (
+                  <div
+                    key={a.name}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "auto 1fr auto auto auto",
+                      alignItems: "center",
+                      gap: 16,
+                      padding: "14px 20px",
+                      borderTop: i > 0 ? "1px solid var(--hairline)" : undefined,
+                    }}
+                  >
+                    <Avatar name={a.init} size="md" tone="neutral" />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{a.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--slate)" }}>{a.role}</div>
+                    </div>
+                    <div className="tabular" style={{ fontSize: 13, color: "var(--slate)" }}>
+                      {a.listings} listings
+                    </div>
+                    {a.verified ? (
+                      <Badge tone="success" leftIcon="check">Verified</Badge>
+                    ) : (
+                      <Badge tone="warn">Verification pending</Badge>
+                    )}
+                    <Button variant="ghost" size="sm" rightIcon="chevR">Manage</Button>
                   </div>
-                  <div className="tabular" style={{ fontSize: 13, color: "var(--slate)" }}>
-                    {a.listings} listings
-                  </div>
-                  {a.verified ? (
-                    <Badge tone="success" leftIcon="check">Verified</Badge>
-                  ) : (
-                    <Badge tone="warn">Verification pending</Badge>
-                  )}
-                  <Button variant="ghost" size="sm" rightIcon="chevR">Manage</Button>
-                </div>
-              ))}
+                ))
+              )}
             </Card>
           </div>
 
@@ -159,34 +162,36 @@ export default function MyAgency() {
                   display: "grid",
                   placeItems: "center",
                   marginBottom: 12,
+                  color: "var(--slate)",
+                  fontSize: 12,
                 }}
               >
-                <div className="display" style={{ fontSize: 36 }}>VPC</div>
+                No logo uploaded
               </div>
               <Button variant="secondary" size="sm" leftIcon="upload" style={{ width: "100%", justifyContent: "center" }}>
-                Replace logo
+                Upload logo
               </Button>
             </Card>
 
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 10 }}>Fee structure (default)</Eyebrow>
               <FormField label="Landlord — tenant find">
-                <Input defaultValue="1 month rent" />
+                <Input defaultValue="" placeholder="e.g. 1 month rent" />
               </FormField>
               <FormField label="Landlord — full management" helper="Of monthly rent collected">
-                <Input defaultValue="8%" />
+                <Input defaultValue="" placeholder="e.g. 8%" />
               </FormField>
               <FormField label="Tenant — admin fee">
-                <Input defaultValue="R 800 once-off" />
+                <Input defaultValue="" placeholder="e.g. R 0 once-off" />
               </FormField>
             </Card>
 
             <Card padding={20} style={{ background: "var(--surface-2)", borderColor: "transparent" }}>
               <Eyebrow>Trust account</Eyebrow>
-              <p style={{ fontSize: 13, margin: "8px 0 12px", lineHeight: 1.5 }}>
-                FNB Trust · ••••8842 · Audited by Mazars (last: Mar 2026).
+              <p style={{ fontSize: 13, margin: "8px 0 12px", lineHeight: 1.5, color: "var(--slate)" }}>
+                No trust account on file yet.
               </p>
-              <Button variant="ghost" size="sm" rightIcon="chevR">Change bank</Button>
+              <Button variant="ghost" size="sm" rightIcon="chevR">Add bank</Button>
             </Card>
           </aside>
         </div>

@@ -14,20 +14,20 @@ interface Room {
 }
 
 const ROOMS: Room[] = [
-  { name: "Bedroom", done: 4, total: 6, photos: 5 },
-  { name: "Kitchenette", done: 3, total: 4, photos: 2 },
-  { name: "Bathroom (shared)", done: 0, total: 3, photos: 0 },
-  { name: "Exterior & locks", done: 0, total: 2, photos: 0 },
+  { name: "Bedroom", done: 0, total: 0, photos: 0 },
+  { name: "Kitchenette", done: 0, total: 0, photos: 0 },
+  { name: "Bathroom (shared)", done: 0, total: 0, photos: 0 },
+  { name: "Exterior & locks", done: 0, total: 0, photos: 0 },
 ];
 
 type CheckState = "good" | "issue" | "pending";
 
 const CHECKS: { k: string; state: CheckState; note: string | null }[] = [
-  { k: "Walls & paint", state: "good", note: "Move-in photo matches; minor scuff above bed" },
-  { k: "Floor & skirting", state: "good", note: "Clean, no damage" },
-  { k: "Geyser & plumbing", state: "good", note: "Working · last serviced Mar 2026" },
-  { k: "Door locks & keys", state: "good", note: "All 2 keys returned, lock smooth" },
-  { k: "Window & screens", state: "issue", note: "Cracked pane (Tenant noted 14 Apr — landlord agreed)" },
+  { k: "Walls & paint", state: "pending", note: null },
+  { k: "Floor & skirting", state: "pending", note: null },
+  { k: "Geyser & plumbing", state: "pending", note: null },
+  { k: "Door locks & keys", state: "pending", note: null },
+  { k: "Window & screens", state: "pending", note: null },
   { k: "Light fittings", state: "pending", note: null },
 ];
 
@@ -42,7 +42,7 @@ export default function MoveOut() {
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
       <Nav role="tenant" />
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "36px 32px" }}>
-        <Eyebrow>Move-out inspection · 24 May 2026</Eyebrow>
+        <Eyebrow>Move-out inspection</Eyebrow>
         <h1 className="display" style={{ fontSize: 56, margin: "8px 0 24px" }}>
           WALKTHROUGH
         </h1>
@@ -55,7 +55,7 @@ export default function MoveOut() {
                 ROOMS
               </div>
               <div className="mono" style={{ fontSize: 12, color: "var(--slate)", marginTop: 4 }}>
-                7 / 15 checks · 7 photos
+                0 / 0 checks · 0 photos
               </div>
             </div>
             {ROOMS.map((r, i) => (
@@ -94,7 +94,7 @@ export default function MoveOut() {
                   BEDROOM
                 </h2>
                 <div style={{ fontSize: 13, color: "var(--slate)" }}>
-                  Compare against move-in photos from 1 June 2025
+                  Compare against move-in photos
                 </div>
               </div>
               <Button variant="secondary" size="sm">

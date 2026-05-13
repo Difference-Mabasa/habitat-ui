@@ -4,11 +4,11 @@ import Nav from "@/components/Nav";
 import Photo from "@/components/Photo";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
-import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import StatTile from "@/components/StatTile";
 import AreaCard from "@/components/AreaCard";
+import EmptyState from "@/components/EmptyState";
 import Footer from "@/components/Footer";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import { useViewport } from "@/hooks/useViewport";
@@ -68,72 +68,7 @@ interface TopRatedItem {
   distanceKm: number;
 }
 
-const TOP_RATED: TopRatedItem[] = [
-  {
-    data: {
-      id: "tr1",
-      title: "Sunlit Backroom · Vilakazi",
-      area: "Orlando West, Soweto",
-      price: 3450,
-      beds: 1,
-      baths: 1,
-      sqm: 22,
-      type: "Backroom",
-      photoLabel: "backroom · vilakazi st",
-    },
-    rating: 4.9,
-    reviews: 41,
-    distanceKm: 1.2,
-  },
-  {
-    data: {
-      id: "tr2",
-      title: "Garden Cottage · Westdene",
-      area: "Westdene, JHB",
-      price: 5800,
-      beds: 2,
-      baths: 1,
-      sqm: 48,
-      type: "Cottage",
-      photoLabel: "garden cottage · westdene",
-    },
-    rating: 4.8,
-    reviews: 32,
-    distanceKm: 2.4,
-  },
-  {
-    data: {
-      id: "tr3",
-      title: "Studio Flatlet · Melville",
-      area: "Melville, JHB",
-      price: 5400,
-      beds: 1,
-      baths: 1,
-      sqm: 32,
-      type: "Flatlet",
-      photoLabel: "studio · melville",
-    },
-    rating: 4.8,
-    reviews: 28,
-    distanceKm: 3.1,
-  },
-  {
-    data: {
-      id: "tr4",
-      title: "Bachelor flat · Pimville",
-      area: "Pimville, Soweto",
-      price: 3950,
-      beds: 1,
-      baths: 1,
-      sqm: 28,
-      type: "Bachelor",
-      photoLabel: "bachelor · pimville",
-    },
-    rating: 4.7,
-    reviews: 19,
-    distanceKm: 4.6,
-  },
-];
+const TOP_RATED: TopRatedItem[] = [];
 
 type LocationState = "ask" | "granted" | "denied";
 
@@ -186,11 +121,19 @@ function TopRatedNearYou() {
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: topRatedCols, gap: 16 }}>
-          {TOP_RATED.map((item) => (
-            <TopRatedCard key={item.data.id} item={item} showDistance={location === "granted"} />
-          ))}
-        </div>
+        {TOP_RATED.length === 0 ? (
+          <EmptyState
+            icon="home"
+            title="No listings yet"
+            description="Top-rated listings will appear here once they're published."
+          />
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: topRatedCols, gap: 16 }}>
+            {TOP_RATED.map((item) => (
+              <TopRatedCard key={item.data.id} item={item} showDistance={location === "granted"} />
+            ))}
+          </div>
+        )}
 
         <div style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
           <Link to="/browse" style={{ textDecoration: "none" }}>
@@ -378,67 +321,14 @@ function Hero() {
           </div>
 
           <div style={{ display: "flex", gap: 40, paddingTop: 28, borderTop: "1px solid var(--hairline)" }}>
-            <StatTile value="12,400+" label="active listings" />
-            <StatTile value="R 3.2 bn" label="rent processed" />
-            <StatTile value="48 hrs" label="median time-to-listed" />
+            <StatTile value="—" label="active listings" />
+            <StatTile value="—" label="rent processed" />
+            <StatTile value="—" label="median time-to-listed" />
           </div>
         </div>
 
         <div style={{ position: "relative" }}>
           <Photo ratio="4/5" label="Property cover photo" />
-          <Card
-            padding={16}
-            style={{
-              position: "absolute",
-              bottom: 32,
-              left: -32,
-              width: 280,
-              boxShadow: "var(--shadow-lg)",
-            }}
-          >
-            <Eyebrow style={{ marginBottom: 6 }}>Verified tenant</Eyebrow>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  background: "var(--surface-3)",
-                  display: "grid",
-                  placeItems: "center",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 13,
-                  fontWeight: 600,
-                }}
-              >
-                SD
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>Sipho Dlamini</div>
-                <div style={{ fontSize: 11, color: "var(--slate)" }}>FICA · Affordability checked</div>
-              </div>
-              <Icon name="check" size={14} style={{ color: "var(--success)" }} />
-            </div>
-          </Card>
-          <Card
-            padding={14}
-            style={{
-              position: "absolute",
-              top: 24,
-              right: -28,
-              width: 220,
-              boxShadow: "var(--shadow-md)",
-            }}
-          >
-            <Eyebrow style={{ marginBottom: 4 }}>Rent · April</Eyebrow>
-            <div className="tabular" style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em" }}>
-              R 6,800
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
-              <Badge tone="success">Received</Badge>
-              <span style={{ fontSize: 11, color: "var(--slate)" }}>2 hours ago</span>
-            </div>
-          </Card>
         </div>
       </div>
     </section>
@@ -610,15 +500,16 @@ function HowItWorks() {
   );
 }
 
+interface FeaturedArea {
+  name: string;
+  count: number;
+  priceFrom: string;
+}
+
 function FeaturedAreas() {
   const { isSm, isMd } = useViewport();
   const cols = isSm ? "1fr" : isMd ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
-  const areas = [
-    { name: "Brixton", count: 142, priceFrom: "R 4,200" },
-    { name: "Melville", count: 88, priceFrom: "R 5,800" },
-    { name: "Yeoville", count: 207, priceFrom: "R 3,200" },
-    { name: "Westdene", count: 65, priceFrom: "R 4,800" },
-  ];
+  const areas: FeaturedArea[] = [];
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)" }}>
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: isSm ? "56px 20px" : "80px 32px" }}>
@@ -636,17 +527,25 @@ function FeaturedAreas() {
             View all areas <Icon name="arrUR" size={14} />
           </a>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: cols, gap: 16 }}>
-          {areas.map((a) => (
-            <AreaCard
-              key={a.name}
-              name={a.name}
-              count={a.count}
-              priceFrom={a.priceFrom}
-              ratio="3/2"
-            />
-          ))}
-        </div>
+        {areas.length === 0 ? (
+          <EmptyState
+            icon="pin"
+            title="No areas yet"
+            description="Popular suburbs will appear here as listings come online."
+          />
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: cols, gap: 16 }}>
+            {areas.map((a) => (
+              <AreaCard
+                key={a.name}
+                name={a.name}
+                count={a.count}
+                priceFrom={a.priceFrom}
+                ratio="3/2"
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

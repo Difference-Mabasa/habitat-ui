@@ -42,11 +42,11 @@ const AMENITIES = [
 ];
 
 export default function RoomRequest() {
-  const [areas, setAreas] = useState<string[]>(["Westdene", "Auckland Park"]);
-  const [types, setTypes] = useState<string[]>(["Backroom", "Bachelor flat"]);
-  const [amenities, setAmenities] = useState<string[]>(["Own entrance", "Prepaid electricity"]);
+  const [areas, setAreas] = useState<string[]>([]);
+  const [types, setTypes] = useState<string[]>([]);
+  const [amenities, setAmenities] = useState<string[]>([]);
   const [openToAgents, setOpenToAgents] = useState(true);
-  const [moveIn, setMoveIn] = useState("ASAP");
+  const [moveIn, setMoveIn] = useState("");
 
   const toggle = (list: string[], setList: (s: string[]) => void, value: string) =>
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -66,10 +66,10 @@ export default function RoomRequest() {
               <Eyebrow style={{ marginBottom: 14 }}>1 · Budget & timing</Eyebrow>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <FormField label="Budget · min" helper="Rent only (excl. deposit)">
-                  <Input type="text" defaultValue="R 3,000" />
+                  <Input type="text" defaultValue="" placeholder="R 0" />
                 </FormField>
                 <FormField label="Budget · max">
-                  <Input type="text" defaultValue="R 4,200" />
+                  <Input type="text" defaultValue="" placeholder="R 0" />
                 </FormField>
                 <FormField label="Move-in by">
                   <Input
@@ -80,7 +80,7 @@ export default function RoomRequest() {
                   />
                 </FormField>
                 <FormField label="Lease length">
-                  <Input type="text" defaultValue="6–12 months" />
+                  <Input type="text" defaultValue="" placeholder="e.g. 6–12 months" />
                 </FormField>
               </div>
             </Card>
@@ -139,7 +139,8 @@ export default function RoomRequest() {
               >
                 <Textarea
                   rows={4}
-                  defaultValue="Working professional at Discovery. Quiet area preferred, ID + 3 months payslips ready. Moving from Pretoria — happy to view by video first."
+                  defaultValue=""
+                  placeholder="Tell agents about you in a few sentences."
                 />
               </FormField>
             </Card>
@@ -168,16 +169,16 @@ export default function RoomRequest() {
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 12 }}>Live preview</Eyebrow>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <Avatar name="SD" size="md" tone="neutral" />
+                <Avatar name="" size="md" tone="neutral" />
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>You</div>
-                  <div style={{ fontSize: 11, color: "var(--slate)" }}>Posting as Sipho D.</div>
+                  <div style={{ fontSize: 11, color: "var(--slate)" }}>Anonymous to agents</div>
                 </div>
               </div>
-              <KeyValueRow label="Budget" value="R 3,000 – R 4,200" />
+              <KeyValueRow label="Budget" value="R 0 – R 0" />
               <KeyValueRow label="Areas" value={`${areas.length} selected`} />
               <KeyValueRow label="Types" value={`${types.length} selected`} />
-              <KeyValueRow label="Move-in" value={moveIn} />
+              <KeyValueRow label="Move-in" value={moveIn || "—"} />
               <KeyValueRow
                 label="Visible to"
                 value={openToAgents ? "Landlords + agents" : "Landlords only"}

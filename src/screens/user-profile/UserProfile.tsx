@@ -7,7 +7,6 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import Icon from "@/components/Icon";
-import Photo from "@/components/Photo";
 import Tabs from "@/components/Tabs";
 import EmptyState from "@/components/EmptyState";
 import FollowButton from "@/components/FollowButton";
@@ -115,7 +114,7 @@ export default function UserProfile() {
           variant="underline"
           tabs={[
             { id: "posts", label: "Posts", count: authoredPosts.length },
-            ...(showListings ? [{ id: "listings", label: "Listings", count: 3 }] : []),
+            ...(showListings ? [{ id: "listings", label: "Listings", count: 0 }] : []),
             { id: "about", label: "About" },
           ]}
           value={tab}
@@ -139,21 +138,11 @@ export default function UserProfile() {
             ))}
 
           {tab === "listings" && showListings ? (
-            <div style={{ display: "grid", gridTemplateColumns: isSm ? "1fr" : "repeat(3, 1fr)", gap: 16 }}>
-              {[1, 2, 3].map((i) => (
-                <Card key={i} padding={0} style={{ overflow: "hidden" }}>
-                  <Photo ratio="3/2" label={`${user.area} listing ${i}`} />
-                  <div style={{ padding: 14 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
-                      Cottage · {user.area}
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--slate)" }}>
-                      R {(4400 + i * 400).toLocaleString("en-ZA")} / mo · 1 bed
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            <EmptyState
+              icon="home"
+              title="No listings yet"
+              description={`${user.name} hasn't published any listings.`}
+            />
           ) : null}
 
           {tab === "about" ? (
@@ -170,7 +159,7 @@ export default function UserProfile() {
                 <span style={{ color: "var(--slate)" }}>Verified</span>
                 <span>{user.verified ? "Yes · FICA complete" : "Not yet"}</span>
                 <span style={{ color: "var(--slate)" }}>Member since</span>
-                <span>2024</span>
+                <span>—</span>
               </div>
             </Card>
           ) : null}

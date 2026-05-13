@@ -14,9 +14,9 @@ interface Task {
 }
 
 const TASKS: Task[] = [
-  { id: "t1", done: true, label: "List your first property", time: "Done · 3 min" },
-  { id: "t2", done: true, label: "Add 5 photos and pricing", time: "Done · 5 min" },
-  { id: "t3", done: false, label: "Verify your bank account for payouts", time: "~2 min", primary: true },
+  { id: "t1", done: false, label: "List your first property", time: "~3 min", primary: true },
+  { id: "t2", done: false, label: "Add 5 photos and pricing", time: "~5 min" },
+  { id: "t3", done: false, label: "Verify your bank account for payouts", time: "~2 min" },
   { id: "t4", done: false, label: "Set your availability for viewings", time: "~1 min" },
   { id: "t5", done: false, label: "Invite your second agent", time: "Optional" },
 ];
@@ -86,11 +86,11 @@ export default function LandlordOnboarding() {
               />
             ))}
           </div>
-          <Eyebrow style={{ color: "var(--accent)", marginBottom: 14 }}>Welcome aboard, Naledi</Eyebrow>
+          <Eyebrow style={{ color: "var(--accent)", marginBottom: 14 }}>Welcome aboard</Eyebrow>
           <h1 className="display" style={{ fontSize: 72, margin: 0, color: "var(--paper)" }}>
-            YOUR FIRST SPOT
+            LET'S GET YOUR
             <br />
-            IS LIVE.
+            FIRST SPOT LIVE.
           </h1>
           <p
             style={{
@@ -100,8 +100,7 @@ export default function LandlordOnboarding() {
               marginTop: 16,
             }}
           >
-            "Backroom at 23 Vilakazi St" went live 12 minutes ago. Average vacancy in Soweto is 9 days —
-            let's get you tenants.
+            Complete the checklist below to publish your listing and start receiving applications.
           </p>
           <div style={{ marginTop: 24, display: "flex", gap: 10 }}>
             <Button variant="accent">View your listing</Button>

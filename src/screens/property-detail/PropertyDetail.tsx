@@ -12,6 +12,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import PriceDisplay from "@/components/PriceDisplay";
 import RatingDisplay from "@/components/RatingDisplay";
 import AgentCard from "@/components/AgentCard";
+import EmptyState from "@/components/EmptyState";
 import NearbyPlaces from "./NearbyPlaces";
 
 type UnitStatus = "AVAILABLE" | "OCCUPIED" | "UNDER_MAINTENANCE" | "UNLISTED";
@@ -28,13 +29,7 @@ interface Unit {
   available: string | null;
 }
 
-const UNITS: Unit[] = [
-  { id: "u1", name: "Backroom A", price: 4200, beds: 1, baths: 1, sqm: 22, unitStatus: "OCCUPIED", available: null },
-  { id: "u2", name: "Backroom B", price: 4400, beds: 1, baths: 1, sqm: 24, unitStatus: "AVAILABLE", available: "Available now" },
-  { id: "u3", name: "Garden Cottage", price: 6800, beds: 2, baths: 1, sqm: 48, unitStatus: "AVAILABLE", available: "Available 1 May" },
-  { id: "u4", name: "Backroom C", price: 4400, beds: 1, baths: 1, sqm: 22, unitStatus: "UNDER_MAINTENANCE", available: "Available from 1 Jul (geyser replacement)" },
-  { id: "u5", name: "Studio Loft", price: 6200, beds: 1, baths: 1, sqm: 32, unitStatus: "UNLISTED", available: null },
-];
+const UNITS: Unit[] = [];
 
 const UNIT_BADGE: Record<UnitStatus, { tone: "success" | "neutral" | "warn"; label: string }> = {
   AVAILABLE: { tone: "success", label: "Available" },
@@ -43,20 +38,13 @@ const UNIT_BADGE: Record<UnitStatus, { tone: "success" | "neutral" | "warn"; lab
   UNLISTED: { tone: "neutral", label: "Unlisted" },
 };
 
-const AMENITIES: { i: IconName; t: string }[] = [
-  { i: "park", t: "1 parking bay" },
-  { i: "wifi", t: "Fibre ready" },
-  { i: "pet", t: "Pet friendly" },
-  { i: "bolt", t: "Backup power" },
-  { i: "shield", t: "24h security" },
-  { i: "flame", t: "Gas cooker" },
-];
+const AMENITIES: { i: IconName; t: string }[] = [];
 
 const QUICK_STATS: { i: IconName; l: string; v: string }[] = [
-  { i: "home", l: "Property type", v: "Free-standing house" },
-  { i: "users", l: "Units available", v: "2 of 3" },
-  { i: "calendar", l: "Earliest move-in", v: "Now" },
-  { i: "shield", l: "Verified by", v: "Habitat · Mar 2026" },
+  { i: "home", l: "Property type", v: "—" },
+  { i: "users", l: "Units available", v: "—" },
+  { i: "calendar", l: "Earliest move-in", v: "—" },
+  { i: "shield", l: "Verified by", v: "—" },
 ];
 
 type ListingState = "DRAFT" | "LISTED" | "UNLISTED";
@@ -66,13 +54,13 @@ export default function PropertyDetail() {
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
   const ctx = params.get("ctx");
-  const propertyId = params.get("id") ?? "p1";
+  const propertyId = params.get("id") ?? "";
   const canEdit = ctx === "landlord" || ctx === "agent";
   const editHref = `/wizard?edit=${propertyId}${ctx === "agent" ? "&ctx=agent" : ""}`;
   const availableUnits = UNITS.filter((u) => u.unitStatus === "AVAILABLE");
   const listingState: ListingState = "LISTED";
-  const listingSource: "LISTED_BY_OWNER" | "BY_AGENT" = "BY_AGENT";
-  const listingAgent = "Naledi M. · Vilakazi Property Co.";
+  const listingSource = "LISTED_BY_OWNER" as "LISTED_BY_OWNER" | "BY_AGENT";
+  const listingAgent = "";
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -83,9 +71,7 @@ export default function PropertyDetail() {
           <Breadcrumbs
             items={[
               { label: "Browse", href: "/browse" },
-              { label: "Johannesburg", href: "/browse" },
-              { label: "Brixton", href: "/browse" },
-              { label: "Sunlit Property · 12 Caroline St" },
+              { label: "Property" },
             ]}
           />
         </div>
@@ -156,14 +142,14 @@ export default function PropertyDetail() {
                   margin: "0 0 10px",
                 }}
               >
-                Sunlit Property on Caroline
+                Property
               </h1>
               <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--slate)", fontSize: 14 }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Icon name="pin" size={14} /> 12 Caroline St, Brixton, JHB
+                  <Icon name="pin" size={14} /> —
                 </span>
                 <span>·</span>
-                <RatingDisplay rating={4.8} count={32} size="sm" />
+                <RatingDisplay rating={0} count={0} size="sm" />
               </div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
@@ -209,51 +195,44 @@ export default function PropertyDetail() {
 
           <DetailSection title="About this property">
             <p style={{ fontSize: 15, color: "var(--slate)", lineHeight: 1.7, margin: "0 0 12px" }}>
-              A quiet, walled property on a leafy stretch of Caroline Street with three rentable units sharing a
-              north-facing garden and laundry yard. Two minutes' walk to 7th Avenue cafés, ten minutes by car to
-              Wits and Helen Joseph Hospital. The owner lives in the main house.
+              —
             </p>
-            <a
-              href="#"
-              style={{
-                fontSize: 14,
-                color: "var(--ink)",
-                fontWeight: 500,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              Read more <Icon name="chevD" size={14} />
-            </a>
           </DetailSection>
 
           <DetailSection
             title="Units"
-            subtitle={`${availableUnits.length} of ${UNITS.length} available · click a unit for photos &amp; apply`}
+            subtitle={`${availableUnits.length} of ${UNITS.length} available · click a unit for photos & apply`}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {UNITS.map((u) => (
-                <UnitRow key={u.id} unit={u} />
-              ))}
-            </div>
+            {UNITS.length === 0 ? (
+              <EmptyState icon="home" title="No units yet" />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {UNITS.map((u) => (
+                  <UnitRow key={u.id} unit={u} />
+                ))}
+              </div>
+            )}
           </DetailSection>
 
           <DetailSection title="Amenities">
-            <div style={{ display: "grid", gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 14 }}>
-              {AMENITIES.map((a) => (
-                <div
-                  key={a.t}
-                  style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: "var(--ink)" }}
-                >
-                  <Icon name={a.i} size={16} style={{ color: "var(--slate)" }} />
-                  {a.t}
-                </div>
-              ))}
-            </div>
+            {AMENITIES.length === 0 ? (
+              <EmptyState icon="home" title="No amenities listed" />
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 14 }}>
+                {AMENITIES.map((a) => (
+                  <div
+                    key={a.t}
+                    style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: "var(--ink)" }}
+                  >
+                    <Icon name={a.i} size={16} style={{ color: "var(--slate)" }} />
+                    {a.t}
+                  </div>
+                ))}
+              </div>
+            )}
           </DetailSection>
 
-          <DetailSection title="Neighbourhood" subtitle="Nearby places · 12">
+          <DetailSection title="Neighbourhood">
             <NearbyPlaces />
           </DetailSection>
         </main>
@@ -263,7 +242,7 @@ export default function PropertyDetail() {
           <Card padding={24} style={{ position: "sticky", top: 88 }}>
             <Eyebrow style={{ marginBottom: 8 }}>About this property</Eyebrow>
             <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
-              Sunlit Property on Caroline
+              Property
             </div>
             <div style={{ fontSize: 13, color: "var(--slate)", marginBottom: 16 }}>
               {UNITS.length} units · {availableUnits.length} available
@@ -307,9 +286,9 @@ export default function PropertyDetail() {
 
             <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 20, paddingTop: 20 }}>
               <AgentCard
-                name="Thandi Mokoena"
+                name=""
                 role="Landlord"
-                responseTime="responds in ~2 hrs"
+                responseTime=""
                 actions={
                   <Link to="/inbox" aria-label="Message landlord">
                     <IconButton icon="chat" label="Message" variant="secondary" size="sm" />

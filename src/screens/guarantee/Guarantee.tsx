@@ -79,10 +79,10 @@ export default function Guarantee() {
           <Card padding={28} style={{ background: "var(--paper)", color: "var(--ink)" }}>
             <Eyebrow>Your potential coverage</Eyebrow>
             <div className="display tabular" style={{ fontSize: 56, marginTop: 6 }}>
-              R 20,700
+              R 0
             </div>
             <div style={{ fontSize: 13, color: "var(--slate)" }}>
-              Up to 6 months × R 3,450 rent on Vilakazi St
+              Activate to see your coverage
             </div>
             <Hairline style={{ margin: "16px 0" }} />
             <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
@@ -129,7 +129,7 @@ export default function Guarantee() {
         <Card padding={0} style={{ overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", display: "flex", justifyContent: "space-between" }}>
             <div className="mono" style={{ fontSize: 13, color: "var(--slate)" }}>
-              No active claims · 2 properties insured
+              No active claims
             </div>
             <Button variant="ghost" size="sm" rightIcon="arrR">
               Open a claim

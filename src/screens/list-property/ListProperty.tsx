@@ -23,9 +23,9 @@ const PERKS = [
 ];
 
 const SOCIAL_PROOF = [
-  { metric: "9 days", label: "Median time to first tenant" },
-  { metric: "94%", label: "On-time rent · last 12 months" },
-  { metric: "R 156k+", label: "Tenant deposits in escrow today" },
+  { metric: "—", label: "Median time to first tenant" },
+  { metric: "—", label: "On-time rent · last 12 months" },
+  { metric: "R 0", label: "Tenant deposits in escrow today" },
 ];
 
 export default function ListProperty() {
@@ -101,10 +101,10 @@ export default function ListProperty() {
             >
               <Eyebrow>Live now</Eyebrow>
               <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>
-                <span className="tabular">14</span> applicants viewed your listing today
+                <span className="tabular">0</span> applicants viewed your listing today
               </div>
               <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>
-                3 verified · 1 instant-apply ready
+                Listings get traction shortly after going live.
               </div>
             </Card>
           </div>

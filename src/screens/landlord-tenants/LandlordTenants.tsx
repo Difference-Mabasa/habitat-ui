@@ -10,6 +10,7 @@ import Avatar from "@/components/Avatar";
 import Tabs from "@/components/Tabs";
 import PageHeader from "@/components/PageHeader";
 import KpiTile from "@/components/KpiTile";
+import EmptyState from "@/components/EmptyState";
 
 type PaymentState = "current" | "late" | "ending" | "renewed";
 
@@ -27,80 +28,14 @@ interface TenantRow {
   paidStreak: number;
 }
 
-const ROWS: TenantRow[] = [
-  {
-    id: "t1",
-    name: "Sipho Dlamini",
-    init: "SD",
-    email: "sipho@discovery.co.za",
-    property: "Backroom · Vilakazi St",
-    rent: 3450,
-    startedOn: "Mar 2024",
-    nextDue: "1 Jun · R 3,450",
-    state: "current",
-    leaseEnds: "Feb 2027",
-    paidStreak: 14,
-  },
-  {
-    id: "t2",
-    name: "Naledi Khumalo",
-    init: "NK",
-    email: "naledi.k@wits.ac.za",
-    property: "Garden Cottage · Westdene",
-    rent: 5800,
-    startedOn: "Aug 2024",
-    nextDue: "1 Jun · R 5,800",
-    state: "current",
-    leaseEnds: "Jul 2026",
-    paidStreak: 9,
-  },
-  {
-    id: "t3",
-    name: "Lerato Pretorius",
-    init: "LP",
-    email: "lerato.p@gmail.com",
-    property: "Flatlet · Brixton",
-    rent: 5200,
-    startedOn: "Nov 2023",
-    nextDue: "Late · 4 days",
-    state: "late",
-    leaseEnds: "Oct 2026",
-    paidStreak: 0,
-  },
-  {
-    id: "t4",
-    name: "Mxolisi Ndlovu",
-    init: "MN",
-    email: "mxolisi.n@gmail.com",
-    property: "Backroom · Yeoville",
-    rent: 3800,
-    startedOn: "Jun 2023",
-    nextDue: "1 Jun · R 3,800",
-    state: "renewed",
-    leaseEnds: "May 2027",
-    paidStreak: 22,
-  },
-  {
-    id: "t5",
-    name: "Aisha Mahlangu",
-    init: "AM",
-    email: "aisha.m@protonmail.com",
-    property: "Studio · Auckland Park",
-    rent: 4950,
-    startedOn: "Sep 2024",
-    nextDue: "1 Jun · R 4,950",
-    state: "ending",
-    leaseEnds: "31 Aug 2026",
-    paidStreak: 7,
-  },
-];
+const ROWS: TenantRow[] = [];
 
 const FILTERS: { id: PaymentState | "all"; label: string; count: number }[] = [
-  { id: "all", label: "All tenants", count: 5 },
-  { id: "current", label: "Current", count: 2 },
-  { id: "late", label: "Late", count: 1 },
-  { id: "ending", label: "Lease ending ≤60d", count: 1 },
-  { id: "renewed", label: "Renewed", count: 1 },
+  { id: "all", label: "All tenants", count: 0 },
+  { id: "current", label: "Current", count: 0 },
+  { id: "late", label: "Late", count: 0 },
+  { id: "ending", label: "Lease ending ≤60d", count: 0 },
+  { id: "renewed", label: "Renewed", count: 0 },
 ];
 
 const STATE_BADGE: Record<PaymentState, { tone: "success" | "warn" | "danger" | "accent" | "neutral"; label: string }> = {
@@ -138,14 +73,13 @@ export default function LandlordTenants() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-          <KpiTile label="Active tenants" value="5" />
+          <KpiTile label="Active tenants" value="0" />
           <KpiTile
             label="Monthly rent · gross"
             value={`R ${monthlyRent.toLocaleString("en-ZA")}`}
-            valueTone="success"
           />
-          <KpiTile label="Paid on time · last 12m" value="94%" subText="↑ 6 pts vs sector" subTone="success" />
-          <KpiTile label="Leases ending ≤60d" value="1" valueTone="warn" subText="Aisha · Auckland Pk" />
+          <KpiTile label="Paid on time · last 12m" value="—" subText="—" />
+          <KpiTile label="Leases ending ≤60d" value="0" subText="—" />
         </div>
 
         <div style={{ marginBottom: 16 }}>
@@ -157,6 +91,13 @@ export default function LandlordTenants() {
         </div>
 
         <Card padding={0} style={{ overflow: "hidden" }}>
+          {rows.length === 0 ? (
+            <EmptyState
+              icon="users"
+              title="No tenants yet"
+              description="Once a tenant signs a lease, they'll show up here."
+            />
+          ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--surface-2)" }}>
@@ -230,6 +171,7 @@ export default function LandlordTenants() {
               })}
             </tbody>
           </table>
+          )}
         </Card>
       </div>
     </Shell>

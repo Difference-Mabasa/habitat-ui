@@ -4,7 +4,6 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Icon from "@/components/Icon";
 import Eyebrow from "@/components/Eyebrow";
-import Badge from "@/components/Badge";
 import Avatar from "@/components/Avatar";
 import KeyValueRow from "@/components/KeyValueRow";
 import Alert from "@/components/Alert";
@@ -43,14 +42,13 @@ export default function ViewingConfirmed() {
   const location = useLocation();
   const state = (location.state ?? {}) as ConfirmationState;
 
-  const date = state.date ?? "2026-05-24";
-  const slot = state.slot ?? "14:00";
-  const endSlot = addMinutes(slot, 30);
+  const date = state.date ?? null;
+  const slot = state.slot ?? null;
+  const endSlot = slot ? addMinutes(slot, 30) : null;
   const note = state.note?.trim();
-  const property = state.property ?? "Studio Flatlet · Melville";
-  const address = state.address ?? "12 Caroline St, Brixton, JHB";
-  const landlord = state.landlord ?? "Naledi Mokoena";
-  const ref = "HB-V-04532";
+  const property = state.property ?? "—";
+  const address = state.address ?? "—";
+  const ref: string | null = null;
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -90,11 +88,11 @@ export default function ViewingConfirmed() {
                 margin: "8px 0 6px",
               }}
             >
-              {landlord.split(" ")[0]} will confirm shortly
+              The landlord will confirm shortly
             </h1>
             <p style={{ fontSize: 14, color: "var(--slate)", margin: "0 auto", maxWidth: 480, lineHeight: 1.55 }}>
               We've sent your request. Most landlords reply within an hour. You'll get a push and an iCal
-              invite the moment {landlord.split(" ")[0]} confirms — no need to refresh.
+              invite the moment they confirm — no need to refresh.
             </p>
           </div>
 
@@ -106,21 +104,28 @@ export default function ViewingConfirmed() {
             <KeyValueRow
               label="With"
               value={
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  <Avatar name={landlord} size="sm" tone="neutral" />
-                  {landlord}
-                  <Badge tone="success" leftIcon="check">Verified</Badge>
-                </span>
+                state.landlord ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <Avatar name={state.landlord} size="sm" tone="neutral" />
+                    {state.landlord}
+                  </span>
+                ) : (
+                  "—"
+                )
               }
               divider
             />
-            <KeyValueRow label="Date" value={formatLongDate(date)} divider tone="accent" />
+            <KeyValueRow label="Date" value={date ? formatLongDate(date) : "—"} divider tone="accent" />
             <KeyValueRow
               label="Time"
               value={
-                <span className="tabular">
-                  {slot} – {endSlot}
-                </span>
+                slot && endSlot ? (
+                  <span className="tabular">
+                    {slot} – {endSlot}
+                  </span>
+                ) : (
+                  "—"
+                )
               }
               divider
               tone="accent"
@@ -128,7 +133,7 @@ export default function ViewingConfirmed() {
             <KeyValueRow label="Duration" value="30 minutes" divider />
             <KeyValueRow
               label="Reference"
-              value={<span className="mono">{ref}</span>}
+              value={<span className="mono">{ref ?? "—"}</span>}
               divider={Boolean(note)}
             />
             {note ? (
@@ -188,24 +193,24 @@ export default function ViewingConfirmed() {
           >
             <Eyebrow style={{ marginBottom: 12 }}>What happens next</Eyebrow>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <NextStep state="done" icon="check" title="Request sent" body="Just now · ref HB-V-04532" />
+              <NextStep state="done" icon="check" title="Request sent" body="Just now" />
               <NextStep
                 state="active"
                 icon="clock"
-                title={`${landlord.split(" ")[0]} reviews`}
-                body="Usually within an hour. We'll nudge if she hasn't replied in 6h."
+                title="Landlord reviews"
+                body="Usually within an hour. We'll nudge if they haven't replied in 6h."
               />
               <NextStep
                 state="todo"
                 icon="bell"
                 title="Push + iCal invite"
-                body="The moment she confirms — you don't need to refresh."
+                body="The moment they confirm — you don't need to refresh."
               />
               <NextStep
                 state="todo"
                 icon="home"
                 title="Show up"
-                body={`${formatLongDate(date)} · ${slot} · address pinned in the invite.`}
+                body={date && slot ? `${formatLongDate(date)} · ${slot} · address pinned in the invite.` : "Date and address pinned in the invite once confirmed."}
               />
             </div>
           </div>
@@ -215,7 +220,7 @@ export default function ViewingConfirmed() {
           <Alert tone="info" title="Need to change it?">
             You can cancel or reschedule for free until 2 hours before the viewing.{" "}
             <Link to="/inbox" style={{ color: "var(--accent)", fontWeight: 600 }}>
-              Message {landlord.split(" ")[0]}
+              Message the landlord
             </Link>{" "}
             if you need to negotiate a different time.
           </Alert>

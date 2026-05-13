@@ -12,6 +12,7 @@ import PageHeader from "@/components/PageHeader";
 import KeyValueRow from "@/components/KeyValueRow";
 import Toggle from "@/components/Toggle";
 import Alert from "@/components/Alert";
+import EmptyState from "@/components/EmptyState";
 
 const DAYS: { id: string; label: string; default: { open: boolean; from: string; to: string } }[] = [
   { id: "mon", label: "Mon", default: { open: true, from: "09:00", to: "17:00" } },
@@ -30,26 +31,16 @@ interface DayOverride {
   closed: boolean;
 }
 
-const OVERRIDES: DayOverride[] = [
-  { date: "Sat 24 May", reason: "Open house · Vilakazi St", windows: "11:00 – 15:00", closed: false },
-  { date: "Mon 02 Jun", reason: "Public holiday", windows: "—", closed: true },
-  { date: "Wed 11 Jun", reason: "Stock-take · all properties", windows: "After 14:00", closed: false },
-];
+const OVERRIDES: DayOverride[] = [];
 
-const ALT_PROPOSALS = [
-  {
-    tenant: "Sipho Dlamini",
-    requested: "Sat 24 May · 09:00",
-    proposed: "Sat 24 May · 11:30",
-    reason: "Inside open-house window",
-  },
-  {
-    tenant: "Lerato Pretorius",
-    requested: "Mon 02 Jun · 16:00",
-    proposed: "Tue 03 Jun · 17:00",
-    reason: "Mon is a public holiday",
-  },
-];
+interface AltProposal {
+  tenant: string;
+  requested: string;
+  proposed: string;
+  reason: string;
+}
+
+const ALT_PROPOSALS: AltProposal[] = [];
 
 export default function ViewingAvailability() {
   const ws = useWorkspace();
@@ -162,34 +153,42 @@ export default function ViewingAvailability() {
               <div style={{ fontSize: 14, fontWeight: 600 }}>Date overrides</div>
               <Button variant="ghost" size="sm" leftIcon="plus">Add override</Button>
             </div>
-            {OVERRIDES.map((o, i) => (
-              <div
-                key={o.date}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "auto 1fr 180px auto auto",
-                  alignItems: "center",
-                  gap: 16,
-                  padding: "14px 20px",
-                  borderTop: i > 0 ? "1px solid var(--hairline)" : undefined,
-                }}
-              >
-                <Icon name="calendar" size={16} style={{ color: "var(--slate)" }} />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{o.date}</div>
-                  <div style={{ fontSize: 12, color: "var(--slate)" }}>{o.reason}</div>
+            {OVERRIDES.length === 0 ? (
+              <EmptyState
+                icon="calendar"
+                title="No date overrides"
+                description="One-off days that differ from your weekly schedule will appear here."
+              />
+            ) : (
+              OVERRIDES.map((o, i) => (
+                <div
+                  key={o.date}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "auto 1fr 180px auto auto",
+                    alignItems: "center",
+                    gap: 16,
+                    padding: "14px 20px",
+                    borderTop: i > 0 ? "1px solid var(--hairline)" : undefined,
+                  }}
+                >
+                  <Icon name="calendar" size={16} style={{ color: "var(--slate)" }} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{o.date}</div>
+                    <div style={{ fontSize: 12, color: "var(--slate)" }}>{o.reason}</div>
+                  </div>
+                  <div className="mono" style={{ fontSize: 12, color: "var(--slate)" }}>
+                    {o.windows}
+                  </div>
+                  {o.closed ? (
+                    <Badge tone="neutral">Closed</Badge>
+                  ) : (
+                    <Badge tone="accent">Custom window</Badge>
+                  )}
+                  <Button variant="ghost" size="sm">Edit</Button>
                 </div>
-                <div className="mono" style={{ fontSize: 12, color: "var(--slate)" }}>
-                  {o.windows}
-                </div>
-                {o.closed ? (
-                  <Badge tone="neutral">Closed</Badge>
-                ) : (
-                  <Badge tone="accent">Custom window</Badge>
-                )}
-                <Button variant="ghost" size="sm">Edit</Button>
-              </div>
-            ))}
+              ))
+            )}
           </Card>
         )}
 
@@ -199,31 +198,39 @@ export default function ViewingAvailability() {
               When tenants request a slot outside your windows, propose an alternative they can accept or
               decline. Faster than DM-ing back-and-forth.
             </Alert>
-            {ALT_PROPOSALS.map((p) => (
-              <Card key={p.tenant} padding={20}>
-                <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-                  <div style={{ flex: 1, minWidth: 220 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>{p.tenant}</div>
-                    <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>{p.reason}</div>
-                  </div>
-                  <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
-                    <div>
-                      <Eyebrow>Tenant requested</Eyebrow>
-                      <div style={{ fontSize: 13, marginTop: 2 }}>{p.requested}</div>
+            {ALT_PROPOSALS.length === 0 ? (
+              <EmptyState
+                icon="calendar"
+                title="No alternative-time proposals"
+                description="When a tenant requests a slot outside your windows, you'll be able to counter here."
+              />
+            ) : (
+              ALT_PROPOSALS.map((p) => (
+                <Card key={p.tenant} padding={20}>
+                  <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                    <div style={{ flex: 1, minWidth: 220 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{p.tenant}</div>
+                      <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>{p.reason}</div>
                     </div>
-                    <Icon name="arrR" size={14} style={{ color: "var(--slate)" }} />
-                    <div>
-                      <Eyebrow style={{ color: "var(--accent)" }}>Your proposal</Eyebrow>
-                      <div style={{ fontSize: 13, marginTop: 2, fontWeight: 600 }}>{p.proposed}</div>
+                    <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
+                      <div>
+                        <Eyebrow>Tenant requested</Eyebrow>
+                        <div style={{ fontSize: 13, marginTop: 2 }}>{p.requested}</div>
+                      </div>
+                      <Icon name="arrR" size={14} style={{ color: "var(--slate)" }} />
+                      <div>
+                        <Eyebrow style={{ color: "var(--accent)" }}>Your proposal</Eyebrow>
+                        <div style={{ fontSize: 13, marginTop: 2, fontWeight: 600 }}>{p.proposed}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <Button variant="accent" size="sm">Send proposal</Button>
+                      <Button variant="ghost" size="sm">Decline request</Button>
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Button variant="accent" size="sm">Send proposal</Button>
-                    <Button variant="ghost" size="sm">Decline request</Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            )}
           </div>
         )}
       </div>

@@ -39,88 +39,7 @@ interface Viewing {
   altReason?: string;
 }
 
-const VIEWINGS: Viewing[] = [
-  {
-    id: "v1",
-    ref: "HB-V-04532",
-    property: "Studio Flatlet · Melville",
-    address: "12 Caroline St, Brixton, JHB",
-    landlord: "Naledi Mokoena",
-    landlordInit: "NM",
-    date: "Sat 24 May 2026",
-    start: "14:00",
-    end: "14:30",
-    state: "APPROVED",
-    note: "Coming with my partner. Will park on Caroline St.",
-  },
-  {
-    id: "v2",
-    ref: "HB-V-04501",
-    property: "Garden Cottage · Westdene",
-    address: "8 Lawley St, Westdene, JHB",
-    landlord: "Pieter Kruger",
-    landlordInit: "PK",
-    date: "Wed 21 May 2026",
-    start: "10:00",
-    end: "10:30",
-    state: "PENDING",
-  },
-  {
-    id: "v3",
-    ref: "HB-V-04488",
-    property: "Backroom · Vilakazi St",
-    address: "23 Vilakazi St, Orlando West, SOW",
-    landlord: "Thandi Mokoena",
-    landlordInit: "TM",
-    date: "Sat 24 May 2026",
-    start: "09:00",
-    end: "09:30",
-    state: "ALTERNATIVE_PROPOSED",
-    altDate: "Sat 24 May 2026",
-    altStart: "11:30",
-    altEnd: "12:00",
-    altReason: "Open-house slot — same day, just later in the morning.",
-  },
-  {
-    id: "v4",
-    ref: "HB-V-04467",
-    property: "Loft · Maboneng",
-    address: "201 Fox St, Maboneng, JHB",
-    landlord: "Ravi Singh",
-    landlordInit: "RS",
-    date: "Tue 13 May 2026",
-    start: "16:00",
-    end: "16:30",
-    state: "ATTENDED",
-    note: "Going to apply tonight.",
-  },
-  {
-    id: "v5",
-    ref: "HB-V-04412",
-    property: "Bachelor flat · Pimville",
-    address: "Block 4, Pimville Z3, SOW",
-    landlord: "Mxolisi Ndlovu",
-    landlordInit: "MN",
-    date: "Mon 19 May 2026",
-    start: "13:00",
-    end: "13:30",
-    state: "DECLINED",
-    altReason: "Landlord said unit was let between request and reply.",
-  },
-  {
-    id: "v6",
-    ref: "HB-V-04376",
-    property: "Studio · Auckland Park",
-    address: "44 Kingsway, Auckland Park, JHB",
-    landlord: "Lerato Pretorius",
-    landlordInit: "LP",
-    date: "Fri 16 May 2026",
-    start: "17:00",
-    end: "17:30",
-    state: "CANCELLED",
-    altReason: "Cancelled by you — found a closer match.",
-  },
-];
+const VIEWINGS: Viewing[] = [];
 
 const STATE_META: Record<
   ViewingState,
@@ -180,7 +99,7 @@ export default function MyViewings() {
             <KpiTile label="Pending" value={`${counts.PENDING}`} valueTone="warn" subText="awaiting landlord" />
             <KpiTile label="Confirmed" value={`${counts.APPROVED}`} valueTone="success" subText="upcoming this week" />
             <KpiTile label="Alt times to review" value={`${counts.ALTERNATIVE_PROPOSED}`} valueTone="accent" subText="needs your reply" />
-            <KpiTile label="Attended · YTD" value={`${counts.ATTENDED}`} subText="apply rate 80%" subTone="success" />
+            <KpiTile label="Attended · YTD" value={`${counts.ATTENDED}`} subText="this year" />
           </div>
 
           <div style={{ marginBottom: 16 }}>

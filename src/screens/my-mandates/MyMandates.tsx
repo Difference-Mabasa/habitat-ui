@@ -8,6 +8,7 @@ import Avatar from "@/components/Avatar";
 import Tabs from "@/components/Tabs";
 import PageHeader from "@/components/PageHeader";
 import KpiTile from "@/components/KpiTile";
+import EmptyState from "@/components/EmptyState";
 
 type MandateState = "active" | "pending" | "completed" | "revoked";
 
@@ -27,81 +28,14 @@ interface MandateRow {
   origin: "Online" | "Offline" | "Landlord";
 }
 
-const ROWS: MandateRow[] = [
-  {
-    id: "mm1",
-    property: "Backroom · Vilakazi St, Orlando West",
-    landlord: "Thandi Mokoena",
-    landlordInit: "TM",
-    scope: "Full management",
-    fee: "8% of monthly rent",
-    rent: 3450,
-    state: "active",
-    since: "Jan 2024",
-    expires: "Jan 2027",
-    documents: 4,
-    origin: "Online",
-  },
-  {
-    id: "mm2",
-    property: "Garden Cottage · Westdene",
-    landlord: "Pieter Kruger",
-    landlordInit: "PK",
-    scope: "Tenant find only",
-    fee: "1 month rent",
-    rent: 5800,
-    state: "active",
-    since: "Mar 2025",
-    documents: 3,
-    origin: "Online",
-  },
-  {
-    id: "mm3",
-    property: "1-Bed · Maboneng Loft",
-    landlord: "Ravi Singh",
-    landlordInit: "RS",
-    scope: "Letting & inspections",
-    fee: "6% + R 250/inspection",
-    rent: 7800,
-    state: "pending",
-    since: "Awaiting approval",
-    documents: 5,
-    origin: "Offline",
-  },
-  {
-    id: "mm4",
-    property: "Studio · Brixton",
-    landlord: "Nomsa Zungu",
-    landlordInit: "NZ",
-    scope: "Full management",
-    fee: "8% of monthly rent",
-    rent: 4400,
-    state: "completed",
-    since: "Aug 2022 – Mar 2025",
-    documents: 12,
-    origin: "Online",
-  },
-  {
-    id: "mm5",
-    property: "Flatlet · Yeoville",
-    landlord: "Lerato Pretorius",
-    landlordInit: "LP",
-    scope: "Full management",
-    fee: "10% of monthly rent",
-    rent: 5200,
-    state: "revoked",
-    since: "Revoked 2 May 2026",
-    documents: 7,
-    origin: "Landlord",
-  },
-];
+const ROWS: MandateRow[] = [];
 
 const FILTERS: { id: MandateState | "all"; label: string; count: number }[] = [
-  { id: "all", label: "All", count: 5 },
-  { id: "active", label: "Active", count: 2 },
-  { id: "pending", label: "Pending", count: 1 },
-  { id: "completed", label: "Completed", count: 1 },
-  { id: "revoked", label: "Revoked", count: 1 },
+  { id: "all", label: "All", count: 0 },
+  { id: "active", label: "Active", count: 0 },
+  { id: "pending", label: "Pending", count: 0 },
+  { id: "completed", label: "Completed", count: 0 },
+  { id: "revoked", label: "Revoked", count: 0 },
 ];
 
 const STATE_BADGE: Record<MandateState, { tone: "success" | "warn" | "neutral" | "danger"; label: string }> = {
@@ -137,13 +71,13 @@ export default function MyMandates() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-          <KpiTile label="Active" value="2" valueTone="success" />
+          <KpiTile label="Active" value="0" />
           <KpiTile
             label="Rent under management"
             value={`R ${monthlyRent.toLocaleString("en-ZA")}/mo`}
           />
-          <KpiTile label="Pending" value="1" valueTone="warn" subText="oldest: 3 days" />
-          <KpiTile label="Avg. tenure" value="22 mo" subText="across completed" />
+          <KpiTile label="Pending" value="0" subText="—" />
+          <KpiTile label="Avg. tenure" value="—" subText="—" />
         </div>
 
         <div style={{ marginBottom: 16 }}>
@@ -155,6 +89,13 @@ export default function MyMandates() {
         </div>
 
         <Card padding={0} style={{ overflow: "hidden" }}>
+          {rows.length === 0 ? (
+            <EmptyState
+              icon="paper"
+              title="No mandates yet"
+              description="Mandates you take on or send for approval will appear here."
+            />
+          ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--surface-2)" }}>
@@ -215,6 +156,7 @@ export default function MyMandates() {
               })}
             </tbody>
           </table>
+          )}
         </Card>
       </div>
     </AgentShell>

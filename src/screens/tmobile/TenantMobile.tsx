@@ -38,7 +38,7 @@ function Tile({ icon, label, value, sub, tone = "neutral" }: TileProps) {
 }
 
 const QUICK_ACTIONS: [IconName, string][] = [
-  ["chat", "Message Naledi"],
+  ["chat", "Message landlord"],
   ["wrench", "Report a problem"],
   ["paper", "View lease"],
   ["doc", "Get rent receipt"],
@@ -52,9 +52,9 @@ const TAB_BAR: { icon: IconName; label: string; active?: boolean }[] = [
 ];
 
 const BREAKDOWN: [string, string][] = [
-  ["Rent · single room", "R 3,400"],
+  ["Rent · single room", "R 0"],
   ["Water (incl. up to 6 kL)", "R 0"],
-  ["Refuse", "R 50"],
+  ["Refuse", "R 0"],
   ["Maintenance fund", "R 0"],
 ];
 
@@ -73,7 +73,7 @@ export default function TenantMobile() {
       {/* Phone 1: home */}
       <Phone>
         <div style={{ background: "var(--ink)", padding: "44px 20px 20px", color: "var(--paper)" }}>
-          <Eyebrow style={{ color: "rgba(247,239,226,0.6)" }}>Hello Sipho</Eyebrow>
+          <Eyebrow style={{ color: "rgba(247,239,226,0.6)" }}>Hello</Eyebrow>
           <div className="display" style={{ fontSize: 32, color: "var(--paper)", marginTop: 4 }}>
             YOUR SPOT
           </div>
@@ -87,7 +87,7 @@ export default function TenantMobile() {
               color: "rgba(247,239,226,0.7)",
             }}
           >
-            <Icon name="pin" size={14} /> 23 Vilakazi St · day 343
+            <Icon name="pin" size={14} /> No active lease
           </div>
         </div>
 
@@ -104,9 +104,9 @@ export default function TenantMobile() {
             }}
           >
             <div>
-              <Eyebrow style={{ color: "rgba(255,255,255,0.85)" }}>Rent due in 17 days</Eyebrow>
+              <Eyebrow style={{ color: "rgba(255,255,255,0.85)" }}>Rent due</Eyebrow>
               <div className="display tabular" style={{ fontSize: 28, color: "#fff", marginTop: 2 }}>
-                R 3,450
+                R 0
               </div>
             </div>
             <button
@@ -128,9 +128,9 @@ export default function TenantMobile() {
           </Card>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
-            <Tile icon="key" label="Lease" value="343d" sub="left on term" />
-            <Tile icon="shield" label="Deposit" value="R 3,450" sub="held in trust" />
-            <Tile icon="check" label="Score" value="678" sub="+12 vs last mo" tone="accent" />
+            <Tile icon="key" label="Lease" value="—" sub="no active lease" />
+            <Tile icon="shield" label="Deposit" value="R 0" sub="held in trust" />
+            <Tile icon="check" label="Score" value="—" sub="no score yet" tone="accent" />
             <Tile icon="wrench" label="Tickets" value="0" sub="all clear" />
           </div>
 
@@ -168,16 +168,16 @@ export default function TenantMobile() {
         <div style={{ padding: "44px 20px 18px", display: "flex", alignItems: "center", gap: 12 }}>
           <Icon name="arrL" size={20} />
           <div className="display" style={{ fontSize: 22, margin: 0 }}>
-            MAY 2026
+            THIS MONTH
           </div>
         </div>
 
         <div style={{ padding: 18 }}>
           <div className="display tabular" style={{ fontSize: 52, color: "var(--accent)", lineHeight: 1 }}>
-            R 3,450
+            R 0
           </div>
           <div style={{ fontSize: 13, color: "var(--slate)", marginTop: 4 }}>
-            due 1 June 2026 · 17 days away
+            No active lease
           </div>
 
           <div style={{ marginTop: 22 }}>
@@ -210,7 +210,7 @@ export default function TenantMobile() {
               }}
             >
               <span>Total</span>
-              <span className="mono">R 3,450</span>
+              <span className="mono">R 0</span>
             </div>
           </div>
 
@@ -230,7 +230,7 @@ export default function TenantMobile() {
               fontFamily: "inherit",
             }}
           >
-            Pay R 3,450 → FNB
+            Pay rent
           </button>
           <button
             type="button"
@@ -262,8 +262,8 @@ export default function TenantMobile() {
               lineHeight: 1.5,
             }}
           >
-            <strong style={{ color: "var(--ink)" }}>On-time streak: 11 months.</strong> Pay before
-            midnight 1 June to keep it.
+            <strong style={{ color: "var(--ink)" }}>On-time streak: —</strong> Pay before the due
+            date to build your streak.
           </div>
         </div>
       </Phone>

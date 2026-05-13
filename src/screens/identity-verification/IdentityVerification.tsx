@@ -22,10 +22,13 @@ const STEPS = [
   { label: "Review & submit", detail: "Confirm details" },
 ];
 
-const DOC_HISTORY = [
-  { name: "SA ID card · front", uploaded: "12 May 2026 · 18:32", status: "ready" },
-  { name: "SA ID card · back", uploaded: "Not yet", status: "missing" },
-];
+interface DocHistoryEntry {
+  name: string;
+  uploaded: string;
+  status: "ready" | "missing";
+}
+
+const DOC_HISTORY: DocHistoryEntry[] = [];
 
 export default function IdentityVerification() {
   const [step, setStep] = useState(1);
@@ -90,33 +93,39 @@ export default function IdentityVerification() {
                 />
                 <div style={{ marginTop: 20 }}>
                   <Eyebrow style={{ marginBottom: 8 }}>Uploads so far</Eyebrow>
-                  {DOC_HISTORY.map((d, i) => (
-                    <div
-                      key={d.name}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "10px 12px",
-                        borderTop: i > 0 ? "1px solid var(--hairline)" : undefined,
-                      }}
-                    >
-                      <Icon
-                        name={d.status === "ready" ? "check" : "clock"}
-                        size={14}
-                        style={{ color: d.status === "ready" ? "var(--success)" : "var(--warn)" }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 500 }}>{d.name}</div>
-                        <div style={{ fontSize: 11, color: "var(--slate)" }}>{d.uploaded}</div>
-                      </div>
-                      {d.status === "ready" ? (
-                        <Button variant="ghost" size="sm">Replace</Button>
-                      ) : (
-                        <Badge tone="warn">Missing</Badge>
-                      )}
+                  {DOC_HISTORY.length === 0 ? (
+                    <div style={{ fontSize: 12, color: "var(--slate)", padding: "10px 12px" }}>
+                      Nothing uploaded yet.
                     </div>
-                  ))}
+                  ) : (
+                    DOC_HISTORY.map((d, i) => (
+                      <div
+                        key={d.name}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "10px 12px",
+                          borderTop: i > 0 ? "1px solid var(--hairline)" : undefined,
+                        }}
+                      >
+                        <Icon
+                          name={d.status === "ready" ? "check" : "clock"}
+                          size={14}
+                          style={{ color: d.status === "ready" ? "var(--success)" : "var(--warn)" }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: 500 }}>{d.name}</div>
+                          <div style={{ fontSize: 11, color: "var(--slate)" }}>{d.uploaded}</div>
+                        </div>
+                        {d.status === "ready" ? (
+                          <Button variant="ghost" size="sm">Replace</Button>
+                        ) : (
+                          <Badge tone="warn">Missing</Badge>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
                 <div style={{ display: "flex", gap: 8, justifyContent: "space-between", marginTop: 16 }}>
                   <Button variant="ghost" leftIcon="arrL" onClick={() => setStep(0)}>Back</Button>
@@ -176,22 +185,22 @@ export default function IdentityVerification() {
                 <Eyebrow style={{ marginBottom: 14 }}>4 · Confirm & submit</Eyebrow>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                   <FormField label="Full name (as on document)">
-                    <Input defaultValue="Sipho Dlamini" />
+                    <Input placeholder="Full name as it appears on your ID" />
                   </FormField>
                   <FormField label="ID number">
-                    <Input defaultValue="8504010012088" className="mono" />
+                    <Input className="mono" placeholder="13-digit SA ID number" />
                   </FormField>
                   <FormField label="Date of birth">
-                    <Input defaultValue="01 Apr 1985" />
+                    <Input placeholder="DD MMM YYYY" />
                   </FormField>
                   <FormField label="Nationality">
-                    <Input defaultValue="South African" />
+                    <Input placeholder="Nationality" />
                   </FormField>
                 </div>
                 <div style={{ marginTop: 16 }}>
-                  <KeyValueRow label="Document" value="SA ID smart card" divider />
-                  <KeyValueRow label="Pages uploaded" value="2 / 2" divider />
-                  <KeyValueRow label="Selfie liveness" value="Passed" tone="success" divider />
+                  <KeyValueRow label="Document" value="—" divider />
+                  <KeyValueRow label="Pages uploaded" value="0 / 2" divider />
+                  <KeyValueRow label="Selfie liveness" value="—" divider />
                   <KeyValueRow label="Estimated decision" value="Under 60 seconds" tone="accent" divider={false} />
                 </div>
                 <div style={{ display: "flex", gap: 8, justifyContent: "space-between", marginTop: 16 }}>

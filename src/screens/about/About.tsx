@@ -2,31 +2,20 @@ import Nav from "@/components/Nav";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import Photo from "@/components/Photo";
-import Avatar from "@/components/Avatar";
+import EmptyState from "@/components/EmptyState";
 
 const STATS: [string, string][] = [
-  ["Active spots", "12,840"],
-  ["Cities", "9"],
-  ["Tenants moved in", "38,210"],
-  ["Disputes resolved", "98.4%"],
+  ["Active spots", "—"],
+  ["Cities", "—"],
+  ["Tenants moved in", "—"],
+  ["Disputes resolved", "—"],
 ];
 
-const FOUNDERS: [string, string][] = [
-  ["Sipho Khumalo", "CEO · Cape Town"],
-  ["Naledi Mokoena", "COO · Joburg"],
-  ["Thabang Modise", "Head of Legal · Soweto"],
-  ["Karabo Dlamini", "CTO · Cape Town"],
-];
+const FOUNDERS: [string, string][] = [];
 
-const MILESTONES: [string, string, string][] = [
-  ["May 2026", "30k tenants moved in", "Hit 30,000 verified moves across 9 cities."],
-  ["Jan 2026", "Series A · R 48M", "Led by Knife Capital and HAVAÍC."],
-  ["Aug 2025", "PPRA registered", "First informal-rental platform to register as a property practitioner."],
-  ["Mar 2024", "Pre-seed · R 6M", "Backed by E-Squared and Allan Gray E²."],
-  ["Sep 2022", "First lease signed", "Naledi let her backroom on Vilakazi to Thabo. He's still there."],
-];
+const MILESTONES: [string, string, string][] = [];
 
-const PRESS = ["Daily Maverick", "Ventureburn", "TimesLIVE", "Bloomberg Africa"];
+const PRESS: string[] = [];
 
 export default function About() {
   return (
@@ -34,16 +23,16 @@ export default function About() {
       <Nav role="tenant" />
 
       <div style={{ padding: "64px 32px 32px", maxWidth: 1100, margin: "0 auto" }}>
-        <Eyebrow>Habitat · est. 2022</Eyebrow>
+        <Eyebrow>Habitat</Eyebrow>
         <h1 className="display" style={{ fontSize: 120, lineHeight: 0.92, margin: "16px 0 24px" }}>
           OUR JOB IS
           <br />
           YOUR SPOT.
         </h1>
         <p style={{ fontSize: 18, color: "var(--slate)", maxWidth: 640, lineHeight: 1.5 }}>
-          We're a Cape Town team building the rails for South Africa's informal rental market. 1.3
-          million backrooms. R 14B in cash, every month. Zero trust infrastructure. That's the problem
-          we're fixing.
+          We're a Cape Town team building the rails for South Africa's informal rental market.
+          Building trust infrastructure for renting that already happens — just without recourse,
+          contracts, or receipts.
         </p>
       </div>
 
@@ -72,91 +61,58 @@ export default function About() {
           <div>
             <Eyebrow>The story</Eyebrow>
             <h2 className="display" style={{ fontSize: 44, margin: "8px 0 18px" }}>
-              STARTED IN SOWETO.
+              BUILT FOR SA RENTING.
             </h2>
             <p style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 14 }}>
-              In 2022 our co-founder Sipho lost his deposit after a verbal lease in Orlando went
-              sideways. There was no contract, no receipt, no recourse — and no easy way to find the
-              next room either.
+              South Africa's informal rental market runs on verbal agreements, cash, and trust. When
+              the trust breaks, there's no contract, no receipt, and no recourse — and finding the
+              next room means starting from scratch.
             </p>
             <p style={{ fontSize: 15, color: "var(--ink-2)", lineHeight: 1.7 }}>
-              Three years later, Habitat helps over 38,000 tenants and 4,200 verified landlords keep
-              clean records, pay rent on time, and resolve disputes — without lawyers.
+              Habitat helps tenants and verified landlords keep clean records, pay rent on time, and
+              resolve disputes — without lawyers.
             </p>
           </div>
-          <Photo label="Soweto founding team" ratio="4/5" />
+          <Photo label="Founding team" ratio="4/5" />
         </div>
 
         <Eyebrow style={{ marginBottom: 12 }}>Founders & leadership</Eyebrow>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 16,
-            marginBottom: 64,
-          }}
-        >
-          {FOUNDERS.map(([n, r]) => (
-            <Card key={n} padding={20}>
-              <Avatar
-                name={n}
-                size="lg"
-                tone="neutral"
-                shape="square"
-                style={{ width: 60, height: 60, fontSize: 20, marginBottom: 14, borderRadius: 14 }}
-              />
-              <div style={{ fontWeight: 600, fontSize: 15 }}>{n}</div>
-              <div style={{ fontSize: 12, color: "var(--slate)" }}>{r}</div>
-            </Card>
-          ))}
-        </div>
+        {FOUNDERS.length === 0 ? (
+          <Card padding={0} style={{ marginBottom: 64 }}>
+            <EmptyState
+              icon="users"
+              title="Team profiles coming soon"
+              description="Leadership bios will appear here."
+            />
+          </Card>
+        ) : null}
 
         <h3 className="display" style={{ fontSize: 32, marginBottom: 18 }}>
           MILESTONES
         </h3>
-        <Card padding={0} style={{ overflow: "hidden", marginBottom: 64 }}>
-          {MILESTONES.map(([d, t, c], i) => (
-            <div
-              key={d}
-              style={{
-                padding: "18px 24px",
-                display: "grid",
-                gridTemplateColumns: "140px 1fr",
-                borderTop: i ? "1px solid var(--hairline)" : "none",
-              }}
-            >
-              <div className="mono" style={{ fontWeight: 600, color: "var(--slate)" }}>
-                {d}
-              </div>
-              <div>
-                <div style={{ fontWeight: 600 }}>{t}</div>
-                <div style={{ fontSize: 13, color: "var(--slate)", marginTop: 3 }}>{c}</div>
-              </div>
-            </div>
-          ))}
-        </Card>
+        {MILESTONES.length === 0 ? (
+          <Card padding={0} style={{ marginBottom: 64 }}>
+            <EmptyState
+              icon="calendar"
+              title="No milestones to show yet"
+              description="Key dates will be added as the platform grows."
+            />
+          </Card>
+        ) : null}
 
         <h3 className="display" style={{ fontSize: 32, marginBottom: 16 }}>
           IN THE PRESS
         </h3>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 14,
-            paddingBottom: 64,
-          }}
-        >
-          {PRESS.map((p) => (
-            <Card
-              key={p}
-              padding={22}
-              style={{ textAlign: "center", fontWeight: 600, fontSize: 14, color: "var(--slate)" }}
-            >
-              {p}
-            </Card>
-          ))}
-        </div>
+        {PRESS.length === 0 ? (
+          <Card padding={0} style={{ marginBottom: 64 }}>
+            <EmptyState
+              icon="paper"
+              title="No press coverage yet"
+              description="Mentions and articles will appear here."
+            />
+          </Card>
+        ) : null}
+        <div style={{ paddingBottom: 64 }} />
       </div>
     </div>
   );

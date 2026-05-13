@@ -9,6 +9,7 @@ import Input from "@/components/Input";
 import Chip from "@/components/Chip";
 import Tabs from "@/components/Tabs";
 import RatingDisplay from "@/components/RatingDisplay";
+import EmptyState from "@/components/EmptyState";
 
 interface Agency {
   id: string;
@@ -24,87 +25,13 @@ interface Agency {
   featured?: boolean;
 }
 
-const AGENCIES: Agency[] = [
-  {
-    id: "a1",
-    name: "Vilakazi Property Co.",
-    initials: "VPC",
-    bio: "Soweto-born agency placing tenants in backrooms, cottages, and family homes since 2018.",
-    areas: ["Soweto", "Diepkloof", "Orlando West", "Pimville"],
-    agents: 4,
-    mandates: 24,
-    rating: 4.8,
-    reviews: 127,
-    verified: true,
-    featured: true,
-  },
-  {
-    id: "a2",
-    name: "Lebo Properties",
-    initials: "LP",
-    bio: "Full-management specialists across Joburg's inner suburbs. Family-run, 2014.",
-    areas: ["Brixton", "Westdene", "Auckland Park", "Melville"],
-    agents: 6,
-    mandates: 38,
-    rating: 4.6,
-    reviews: 84,
-    verified: true,
-  },
-  {
-    id: "a3",
-    name: "Inner City Lets",
-    initials: "IC",
-    bio: "Maboneng-based, focused on lofts and 1-bed flats for working professionals.",
-    areas: ["Maboneng", "Newtown", "Braamfontein"],
-    agents: 3,
-    mandates: 18,
-    rating: 4.7,
-    reviews: 62,
-    verified: true,
-  },
-  {
-    id: "a4",
-    name: "North Joburg Realty",
-    initials: "NJ",
-    bio: "Sandton, Rosebank, Hyde Park — premium apartments and townhouses.",
-    areas: ["Sandton", "Rosebank", "Hyde Park", "Killarney"],
-    agents: 9,
-    mandates: 52,
-    rating: 4.5,
-    reviews: 211,
-    verified: true,
-  },
-  {
-    id: "a5",
-    name: "Kasi Spaces",
-    initials: "KS",
-    bio: "Township-first agency, transparent fees, fluent in 4 languages.",
-    areas: ["Soweto", "Tembisa", "Alexandra"],
-    agents: 5,
-    mandates: 31,
-    rating: 4.9,
-    reviews: 94,
-    verified: false,
-  },
-  {
-    id: "a6",
-    name: "Eastrand Homes",
-    initials: "EH",
-    bio: "Boksburg / Benoni / Kempton Park — family homes and student rooms near Wits East.",
-    areas: ["Boksburg", "Benoni", "Kempton Park"],
-    agents: 4,
-    mandates: 22,
-    rating: 4.4,
-    reviews: 47,
-    verified: true,
-  },
-];
+const AGENCIES: Agency[] = [];
 
 const FILTERS = [
-  { id: "all", label: "All agencies", count: 6 },
-  { id: "soweto", label: "Soweto", count: 2 },
-  { id: "inner", label: "Inner City", count: 3 },
-  { id: "north", label: "North", count: 1 },
+  { id: "all", label: "All agencies", count: 0 },
+  { id: "soweto", label: "Soweto", count: 0 },
+  { id: "inner", label: "Inner City", count: 0 },
+  { id: "north", label: "North", count: 0 },
 ];
 
 export default function AgencyBrowse() {
@@ -146,7 +73,7 @@ export default function AgencyBrowse() {
           >
             <Icon name="search" size={18} style={{ marginLeft: 12, color: "var(--slate)" }} />
             <Input
-              placeholder="Soweto, Maboneng, North Joburg…"
+              placeholder="Search by area"
               style={{ flex: 1, border: 0, background: "transparent", height: 44 }}
             />
             <Button variant="accent" size="md">Search</Button>
@@ -162,6 +89,13 @@ export default function AgencyBrowse() {
           <Chip leftIcon="sliders">Sort: Rating</Chip>
         </div>
 
+        {AGENCIES.length === 0 ? (
+          <EmptyState
+            icon="search"
+            title="No agencies to show"
+            description="Verified agencies will appear here once they're onboarded."
+          />
+        ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
           {AGENCIES.map((a) => (
             <Card key={a.id} padding={20} interactive style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -232,6 +166,7 @@ export default function AgencyBrowse() {
             </Card>
           ))}
         </div>
+        )}
       </div>
     </div>
   );

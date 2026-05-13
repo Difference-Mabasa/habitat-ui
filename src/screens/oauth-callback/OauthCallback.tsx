@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "@/components/Logo";
-import { DEMO_CREDENTIALS, useSession } from "@/lib/session";
+import { useSession } from "@/lib/session";
 import Card from "@/components/Card";
 import Icon from "@/components/Icon";
 import Button from "@/components/Button";
@@ -13,18 +13,8 @@ import KeyValueRow from "@/components/KeyValueRow";
 type CallbackState = "exchanging" | "success" | "error";
 
 export default function OauthCallback() {
-  const [state, setState] = useState<CallbackState>("success");
-  const { login, user } = useSession();
-
-  // The real OAuth2 exchange endpoint (/auth/oauth2/exchange) lands in
-  // Phase 1c. Until then, the "Success" path falls back to logging the
-  // signed-in tenant demo user in via the standard credentials flow so
-  // the surface still feels real end-to-end.
-  useEffect(() => {
-    if (state === "success" && !user) {
-      void login(DEMO_CREDENTIALS.tenant);
-    }
-  }, [state, user, login]);
+  const [state, setState] = useState<CallbackState>("exchanging");
+  const { user } = useSession();
 
   return (
     <div
@@ -89,7 +79,7 @@ export default function OauthCallback() {
             </div>
             <Eyebrow style={{ color: "var(--success)" }}>Signed in</Eyebrow>
             <h1 style={{ fontSize: 22, fontWeight: 500, letterSpacing: "-0.01em", margin: "8px 0 6px" }}>
-              Welcome back, Sipho
+              {user ? `Welcome back, ${user.name}` : "Welcome back"}
             </h1>
             <p style={{ fontSize: 13, color: "var(--slate)", margin: "0 0 18px", lineHeight: 1.55 }}>
               Redirecting you to <span className="mono">/tenant-portal</span> now. If nothing happens, tap below.

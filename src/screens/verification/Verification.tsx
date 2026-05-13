@@ -13,10 +13,10 @@ import Toggle from "@/components/Toggle";
 import KeyValueRow from "@/components/KeyValueRow";
 
 const STEPS: StepperStep[] = [
-  { label: "Identity", state: "done", detail: "ID 8801235•••083 · matched home affairs" },
-  { label: "Selfie liveness", state: "done", detail: "98% match · processed in 3s" },
-  { label: "Proof of address", state: "active", detail: "Upload a bill or statement (< 3 months)" },
-  { label: "Bank account", state: "todo", detail: "FNB · last 3 digits 114" },
+  { label: "Identity", state: "todo", detail: "Verify your ID with Home Affairs" },
+  { label: "Selfie liveness", state: "todo", detail: "Take a quick selfie to confirm it's you" },
+  { label: "Proof of address", state: "todo", detail: "Upload a bill or statement (< 3 months)" },
+  { label: "Bank account", state: "todo", detail: "Link a bank account for payouts" },
   { label: "Reference check", state: "todo", detail: "Previous landlord + employer" },
 ];
 
@@ -29,11 +29,11 @@ interface DocStatusRow {
 }
 
 const DOC_STATUS: DocStatusRow[] = [
-  { type: "SA_ID", label: "Identity (SA ID)", detail: "Smart card · matched home affairs · 28 Mar 2026", state: "verified", icon: "shield" },
-  { type: "SELFIE", label: "Selfie liveness", detail: "98% match score · processed in 3s", state: "verified", icon: "user" },
-  { type: "POA", label: "Proof of address", detail: "Awaiting upload — bill or statement < 3 months", state: "needs_action", icon: "home" },
-  { type: "BANK", label: "Bank account", detail: "Pending verification — FNB ••114", state: "pending", icon: "cash" },
-  { type: "EMPLOYMENT", label: "Employment", detail: "Letter from Discovery Health · uploaded 28 Mar", state: "pending", icon: "users" },
+  { type: "SA_ID", label: "Identity (SA ID)", detail: "Not started — upload your smart card or green book", state: "todo", icon: "shield" },
+  { type: "SELFIE", label: "Selfie liveness", detail: "Not started — quick selfie check", state: "todo", icon: "user" },
+  { type: "POA", label: "Proof of address", detail: "Awaiting upload — bill or statement < 3 months", state: "todo", icon: "home" },
+  { type: "BANK", label: "Bank account", detail: "Not linked", state: "todo", icon: "cash" },
+  { type: "EMPLOYMENT", label: "Employment", detail: "No documents uploaded", state: "todo", icon: "users" },
   { type: "CREDIT", label: "Credit (TPN)", detail: "Consent required — opens TPN credit history", state: "todo", icon: "trend" },
   { type: "REFERENCES", label: "Previous landlord", detail: "Reference request not yet sent", state: "todo", icon: "key" },
 ];
@@ -220,7 +220,7 @@ export default function Verification() {
 
               <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--hairline)" }}>
                 <KeyValueRow label="Consent timestamp" value={creditConsent || tpnConsent ? "Just now" : "—"} divider={false} />
-                <KeyValueRow label="Consent reference" value={<span className="mono">HB-CONS-04250-SD</span>} divider />
+                <KeyValueRow label="Consent reference" value="—" divider />
                 <KeyValueRow label="Withdraw any time" value="From /profile → Privacy" divider />
               </div>
             </Card>

@@ -2,7 +2,6 @@ import { useState } from "react";
 import Nav from "@/components/Nav";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
-import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import Toggle from "@/components/Toggle";
 import FormField from "@/components/FormField";
@@ -13,7 +12,7 @@ import Alert from "@/components/Alert";
 
 const ITEMS: SubNavItem[] = [
   { id: "notifications", label: "Notifications", icon: "bell" },
-  { id: "bank", label: "Payout bank", icon: "cash", badge: { label: "Verified", tone: "success" } },
+  { id: "bank", label: "Payout bank", icon: "cash" },
   { id: "rent", label: "Rent collection", icon: "trend" },
   { id: "team", label: "Team access", icon: "users" },
   { id: "preferences", label: "Dashboard preferences", icon: "settings" },
@@ -23,13 +22,13 @@ const ITEMS: SubNavItem[] = [
 type ChannelMatrix = Record<string, { push: boolean; email: boolean; sms: boolean }>;
 
 const INITIAL_CHANNELS: ChannelMatrix = {
-  "New applicant": { push: true, email: true, sms: true },
-  "Lease ready to sign": { push: true, email: true, sms: true },
-  "Rent received": { push: true, email: false, sms: true },
-  "Rent late": { push: true, email: true, sms: true },
-  "Viewing booked": { push: true, email: false, sms: false },
-  "Maintenance reported": { push: true, email: true, sms: false },
-  "Mandate request": { push: true, email: true, sms: false },
+  "New applicant": { push: false, email: false, sms: false },
+  "Lease ready to sign": { push: false, email: false, sms: false },
+  "Rent received": { push: false, email: false, sms: false },
+  "Rent late": { push: false, email: false, sms: false },
+  "Viewing booked": { push: false, email: false, sms: false },
+  "Maintenance reported": { push: false, email: false, sms: false },
+  "Mandate request": { push: false, email: false, sms: false },
   "Tips & insights": { push: false, email: false, sms: false },
 };
 
@@ -142,34 +141,16 @@ export default function DashboardSettings() {
                         Where Habitat sends rent after escrow release.
                       </div>
                     </div>
-                    <Badge tone="success" leftIcon="check">Verified · Mar 2024</Badge>
                   </div>
 
                   <div style={{ display: "flex", alignItems: "center", gap: 16, padding: 14, border: "1px solid var(--hairline)", borderRadius: 8 }}>
-                    <div
-                      className="mono"
-                      style={{
-                        width: 56,
-                        height: 36,
-                        background: "var(--ink)",
-                        color: "var(--paper)",
-                        borderRadius: 6,
-                        display: "grid",
-                        placeItems: "center",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        letterSpacing: "0.08em",
-                      }}
-                    >
-                      FNB
-                    </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500 }}>FNB Cheque · ••••3091</div>
+                      <div style={{ fontSize: 14, fontWeight: 500 }}>No bank account on file</div>
                       <div style={{ fontSize: 12, color: "var(--slate)" }}>
-                        Settles T+3 business days · Branch 251 705
+                        Add a payout account to receive rent after escrow release.
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" leftIcon="edit">Change</Button>
+                    <Button variant="ghost" size="sm" leftIcon="plus">Add</Button>
                   </div>
                 </Card>
 

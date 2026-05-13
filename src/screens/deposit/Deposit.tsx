@@ -4,18 +4,14 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 import DepositReturnChecklist, { type DepositItem } from "./DepositReturnChecklist";
 import { totalDeductions } from "@/lib/deposit";
 
-const ITEMS: DepositItem[] = [
-  { id: "d1", area: "Walls", note: "Repaint required (smoke staining lounge ceiling)", cost: 1800, agreed: true },
-  { id: "d2", area: "Carpet", note: "Steam clean — fair wear, no charge", cost: 0, agreed: true },
-  { id: "d3", area: "Stove", note: "Replacement element (burnt during tenancy)", cost: 320, agreed: true },
-  { id: "d4", area: "Garden", note: "Restoration of front bed — disputed", cost: 1200, agreed: false },
-];
+const ITEMS: DepositItem[] = [];
 
-const DEPOSIT = 5400;
-const INTEREST = 162;
+const DEPOSIT = 0;
+const INTEREST = 0;
 
 export default function Deposit() {
   const total = totalDeductions(ITEMS);
@@ -34,7 +30,7 @@ export default function Deposit() {
             marginBottom: 8,
           }}
         >
-          <Eyebrow>Lease ending · 30 Apr 2025</Eyebrow>
+          <Eyebrow>Lease ending</Eyebrow>
           <Badge tone="accent">
             {agreedCount} of {ITEMS.length} items agreed
           </Badge>
@@ -47,7 +43,17 @@ export default function Deposit() {
         </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 360px", gap: 32 }}>
-          <DepositReturnChecklist items={ITEMS} />
+          {ITEMS.length === 0 ? (
+            <Card padding={20}>
+              <EmptyState
+                icon="shield"
+                title="No deposit items yet"
+                description="Inspection items will appear here once your landlord completes the walk-through."
+              />
+            </Card>
+          ) : (
+            <DepositReturnChecklist items={ITEMS} />
+          )}
 
           <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Card padding={20}>

@@ -5,12 +5,15 @@ import Badge from "@/components/Badge";
 import Photo from "@/components/Photo";
 import Input from "@/components/Input";
 import Select from "@/components/Select";
+import EmptyState from "@/components/EmptyState";
 
-const SIMILAR = [
-  { id: "s1", title: "Backroom · Orlando East", price: "R 3,200" },
-  { id: "s2", title: "Cottage · Mofolo", price: "R 4,800" },
-  { id: "s3", title: "Bachelor · Pimville", price: "R 3,950" },
-];
+interface SimilarListing {
+  id: string;
+  title: string;
+  price: string;
+}
+
+const SIMILAR: SimilarListing[] = [];
 
 export default function Waitlist() {
   return (
@@ -19,24 +22,22 @@ export default function Waitlist() {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 32px" }}>
         <Card padding={0} style={{ overflow: "hidden", display: "grid", gridTemplateColumns: "1fr 1fr" }}>
           <Photo
-            label="Backroom · Orlando"
+            label=""
             ratio="auto"
             style={{ minHeight: 420, borderRadius: 0 }}
           />
           <div style={{ padding: 40 }}>
             <Badge tone="neutral">Filled · waitlist open</Badge>
             <h1 className="display" style={{ fontSize: 44, margin: "14px 0 0" }}>
-              BACKROOM ·
-              <br />
-              VILAKAZI ST
+              —
             </h1>
             <div style={{ fontSize: 14, color: "var(--slate)", marginTop: 8 }}>
-              Orlando West · R 3,450/mo · 18m²
+              —
             </div>
 
             <p style={{ fontSize: 14, color: "var(--slate)", marginTop: 22, lineHeight: 1.6 }}>
-              This spot was taken on 1 June. Join the waitlist — if the tenant moves out or doesn't
-              renew, you'll be notified first.
+              This spot is taken. Join the waitlist — if the tenant moves out or doesn't renew, you'll be
+              notified first.
             </p>
 
             <div
@@ -51,12 +52,12 @@ export default function Waitlist() {
               }}
             >
               <div className="display" style={{ fontSize: 36, color: "var(--accent)", lineHeight: 1 }}>
-                3rd
+                —
               </div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>You'd be 3rd in line</div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>Your place in line</div>
                 <div style={{ fontSize: 12, color: "var(--slate)" }}>
-                  17 people waitlisted · avg wait 5–9 months
+                  Join the waitlist to see your position.
                 </div>
               </div>
             </div>
@@ -104,19 +105,29 @@ export default function Waitlist() {
               Browse Orlando
             </Button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-            {SIMILAR.map((s) => (
-              <Card key={s.id} padding={0} style={{ overflow: "hidden" }}>
-                <Photo label={s.title} ratio="16/10" style={{ borderRadius: 0 }} />
-                <div style={{ padding: 14, display: "flex", justifyContent: "space-between" }}>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{s.title}</div>
-                  <div className="mono" style={{ fontWeight: 600 }}>
-                    {s.price}
+          {SIMILAR.length === 0 ? (
+            <Card padding={20}>
+              <EmptyState
+                icon="home"
+                title="No similar listings"
+                description="Similar available spots will appear here."
+              />
+            </Card>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+              {SIMILAR.map((s) => (
+                <Card key={s.id} padding={0} style={{ overflow: "hidden" }}>
+                  <Photo label={s.title} ratio="16/10" style={{ borderRadius: 0 }} />
+                  <div style={{ padding: 14, display: "flex", justifyContent: "space-between" }}>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{s.title}</div>
+                    <div className="mono" style={{ fontWeight: 600 }}>
+                      {s.price}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

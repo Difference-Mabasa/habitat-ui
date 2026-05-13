@@ -36,20 +36,7 @@ const CATEGORY_TONE: Record<PlaceCategory, { color: string; bg: string }> = {
   shopping: { color: "var(--warn)", bg: "var(--warn-soft)" },
 };
 
-const PLACES: Place[] = [
-  { id: "p1", name: "7th Avenue cafés strip", category: "cafes", distance: "240 m", time: "3 min walk", xPct: 48, yPct: 38 },
-  { id: "p2", name: "Father's Coffee · Brixton", category: "cafes", distance: "320 m", time: "4 min walk", xPct: 55, yPct: 32 },
-  { id: "p3", name: "Brixton Library", category: "schools", distance: "550 m", time: "7 min walk", xPct: 32, yPct: 55 },
-  { id: "p4", name: "Wits Main Campus", category: "schools", distance: "3.4 km", time: "8 min drive", xPct: 70, yPct: 18 },
-  { id: "p5", name: "Bus stop · Caroline & 9th", category: "transit", distance: "180 m", time: "2 min walk", xPct: 58, yPct: 50 },
-  { id: "p6", name: "Rea Vaya T2 · High St", category: "transit", distance: "1.2 km", time: "5 min drive", xPct: 18, yPct: 65 },
-  { id: "p7", name: "Helen Joseph Hospital", category: "hospitals", distance: "4.6 km", time: "12 min drive", xPct: 22, yPct: 28 },
-  { id: "p8", name: "Brixton Day Clinic", category: "hospitals", distance: "900 m", time: "11 min walk", xPct: 42, yPct: 72 },
-  { id: "p9", name: "Brixton Cemetery Park", category: "parks", distance: "650 m", time: "8 min walk", xPct: 65, yPct: 70 },
-  { id: "p10", name: "SABC Tower Park", category: "parks", distance: "1.1 km", time: "13 min walk", xPct: 30, yPct: 80 },
-  { id: "p11", name: "Westgate Shopping Centre", category: "shopping", distance: "5.2 km", time: "15 min drive", xPct: 80, yPct: 60 },
-  { id: "p12", name: "Brixton SuperSpar", category: "shopping", distance: "780 m", time: "9 min walk", xPct: 38, yPct: 22 },
-];
+const PLACES: Place[] = [];
 
 export default function NearbyPlaces() {
   const [cat, setCat] = useState<Category>("all");

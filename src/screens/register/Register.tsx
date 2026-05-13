@@ -173,7 +173,7 @@ export default function Register() {
               <Input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Sipho Dlamini"
+                placeholder="Your full name"
                 style={{ height: 44 }}
                 autoComplete="name"
               />

@@ -4,6 +4,7 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge, { type BadgeTone } from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 import Avatar from "@/components/Avatar";
 import Hairline from "@/components/Hairline";
 
@@ -15,12 +16,7 @@ interface Invite {
   state: "paid" | "pending" | "sent";
 }
 
-const INVITED: Invite[] = [
-  { id: "r1", name: "Lerato M.", status: "Signed up", reward: "+R 50", state: "pending" },
-  { id: "r2", name: "Thabo K.", status: "Moved in · Mar 24", reward: "+R 250", state: "paid" },
-  { id: "r3", name: "Naledi S.", status: "Invited", reward: "—", state: "sent" },
-  { id: "r4", name: "Karabo D.", status: "Moved in · Feb 19", reward: "+R 250", state: "paid" },
-];
+const INVITED: Invite[] = [];
 
 const STATE_BADGE: Record<Invite["state"], { tone: BadgeTone; label: string }> = {
   paid: { tone: "success", label: "Paid" },
@@ -28,7 +24,7 @@ const STATE_BADGE: Record<Invite["state"], { tone: BadgeTone; label: string }> =
   sent: { tone: "neutral", label: "Sent" },
 };
 
-const CODE = "SIPHO-R250";
+const CODE = "—";
 
 export default function Referral() {
   return (
@@ -146,18 +142,18 @@ export default function Referral() {
             <div>
               <Eyebrow>Lifetime earned</Eyebrow>
               <div className="display tabular" style={{ fontSize: 64, marginTop: 6 }}>
-                R 500
+                R 0
               </div>
               <div style={{ fontSize: 13, color: "var(--slate)" }}>
-                From 2 successful referrals · paid to FNB •••2114
+                Add a payout method to receive referral rewards.
               </div>
             </div>
             <Hairline />
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
               {[
-                ["Sent", "9"],
-                ["Signed up", "4"],
-                ["Moved in", "2"],
+                ["Sent", "0"],
+                ["Signed up", "0"],
+                ["Moved in", "0"],
               ].map(([label, value]) => (
                 <div key={label} className="mono">
                   <div style={{ fontSize: 26, fontWeight: 600 }}>{value}</div>
@@ -191,56 +187,64 @@ export default function Referral() {
               Export
             </Button>
           </div>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                {["Friend", "Status", "Reward", "Action"].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: "12px 24px",
-                      textAlign: "left",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: "0.14em",
-                      color: "var(--slate)",
-                      background: "var(--surface-2)",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {INVITED.map((r) => {
-                const badge = STATE_BADGE[r.state];
-                return (
-                  <tr key={r.id} style={{ borderTop: "1px solid var(--hairline)" }}>
-                    <td style={{ padding: "16px 24px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <Avatar name={r.name} size="sm" tone="neutral" />
-                        <span style={{ fontWeight: 500 }}>{r.name}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: "16px 24px", color: "var(--slate)", fontSize: 14 }}>
-                      {r.status}
-                    </td>
-                    <td
-                      className="mono"
-                      style={{ padding: "16px 24px", fontWeight: 600, fontSize: 14 }}
+          {INVITED.length === 0 ? (
+            <EmptyState
+              icon="users"
+              title="No invitations yet"
+              description="Share your code and your referrals will appear here."
+            />
+          ) : (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  {["Friend", "Status", "Reward", "Action"].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: "12px 24px",
+                        textAlign: "left",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: "0.14em",
+                        color: "var(--slate)",
+                        background: "var(--surface-2)",
+                        textTransform: "uppercase",
+                      }}
                     >
-                      {r.reward}
-                    </td>
-                    <td style={{ padding: "16px 24px" }}>
-                      <Badge tone={badge.tone}>{badge.label}</Badge>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {INVITED.map((r) => {
+                  const badge = STATE_BADGE[r.state];
+                  return (
+                    <tr key={r.id} style={{ borderTop: "1px solid var(--hairline)" }}>
+                      <td style={{ padding: "16px 24px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <Avatar name={r.name} size="sm" tone="neutral" />
+                          <span style={{ fontWeight: 500 }}>{r.name}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: "16px 24px", color: "var(--slate)", fontSize: 14 }}>
+                        {r.status}
+                      </td>
+                      <td
+                        className="mono"
+                        style={{ padding: "16px 24px", fontWeight: 600, fontSize: 14 }}
+                      >
+                        {r.reward}
+                      </td>
+                      <td style={{ padding: "16px 24px" }}>
+                        <Badge tone={badge.tone}>{badge.label}</Badge>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </Card>
       </div>
     </div>

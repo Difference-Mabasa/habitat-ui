@@ -8,6 +8,7 @@ import Tabs from "@/components/Tabs";
 import PageHeader from "@/components/PageHeader";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 import BriefCard, { type BriefCardData } from "@/components/BriefCard";
 
 type RequestState = "incoming" | "proposed" | "accepted" | "declined";
@@ -19,78 +20,14 @@ interface AgentRequest {
   noteFromTenant?: string;
 }
 
-const REQUESTS: AgentRequest[] = [
-  {
-    brief: {
-      id: "r1",
-      tenant: "Sipho Dlamini",
-      tenantInit: "SD",
-      budgetMin: 3000,
-      budgetMax: 4200,
-      areas: ["Orlando West", "Diepkloof"],
-      moveIn: "by 1 Jun",
-      status: "OPEN",
-      body: "Working professional. Need a backroom with own entrance and prepaid electricity.",
-      posted: "18m",
-    },
-    state: "incoming",
-    noteFromTenant: "Hi Naledi — saw your Vilakazi listings. Would love to view this weekend if you have something matching.",
-  },
-  {
-    brief: {
-      id: "r2",
-      tenant: "Naledi Khumalo",
-      tenantInit: "NK",
-      budgetMin: 5500,
-      budgetMax: 7500,
-      areas: ["Westdene", "Auckland Park"],
-      moveIn: "ASAP",
-      status: "OPEN",
-      body: "Postgrad student. Garden cottage or 1-bed flat, parking, Wi-Fi-ready.",
-      posted: "2h",
-    },
-    state: "proposed",
-    proposedUnit: "Garden Cottage · Westdene",
-  },
-  {
-    brief: {
-      id: "r3",
-      tenant: "Lerato Pretorius",
-      tenantInit: "LP",
-      budgetMin: 4000,
-      budgetMax: 5800,
-      areas: ["Yeoville", "Bellevue"],
-      moveIn: "by 15 Jun",
-      status: "MATCHED",
-      body: "1-bed with secure parking. Pet-friendly (small dog).",
-      posted: "Yesterday",
-    },
-    state: "accepted",
-    proposedUnit: "1-Bed · Bellevue East",
-  },
-  {
-    brief: {
-      id: "r4",
-      tenant: "Mxolisi Ndlovu",
-      tenantInit: "MN",
-      budgetMin: 2800,
-      budgetMax: 3500,
-      areas: ["Pimville"],
-      moveIn: "by 1 Jul",
-      status: "OPEN",
-      body: "Backroom in Pimville, prepaid electricity essential.",
-      posted: "3d",
-    },
-    state: "declined",
-  },
-];
+const REQUESTS: AgentRequest[] = [];
 
 const FILTERS: { id: RequestState | "all"; label: string; count: number }[] = [
-  { id: "all", label: "All", count: 4 },
-  { id: "incoming", label: "Incoming", count: 1 },
-  { id: "proposed", label: "Proposed", count: 1 },
-  { id: "accepted", label: "Accepted", count: 1 },
-  { id: "declined", label: "Declined", count: 1 },
+  { id: "all", label: "All", count: 0 },
+  { id: "incoming", label: "Incoming", count: 0 },
+  { id: "proposed", label: "Proposed", count: 0 },
+  { id: "accepted", label: "Accepted", count: 0 },
+  { id: "declined", label: "Declined", count: 0 },
 ];
 
 export default function AgentRequests() {
@@ -117,10 +54,10 @@ export default function AgentRequests() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-          <KpiTile label="Incoming" value="1" valueTone="accent" subText="needs reply" />
-          <KpiTile label="Awaiting tenant" value="1" subText="proposed Tue 10:30" />
-          <KpiTile label="Accepted" value="1" valueTone="success" subText="this week" />
-          <KpiTile label="Win rate" value="36%" subText="↑ 4 pts vs last 30 days" subTone="success" />
+          <KpiTile label="Incoming" value="0" subText="needs reply" />
+          <KpiTile label="Awaiting tenant" value="0" subText="—" />
+          <KpiTile label="Accepted" value="0" subText="this week" />
+          <KpiTile label="Win rate" value="—" subText="—" />
         </div>
 
         <div style={{ marginBottom: 16 }}>
@@ -131,6 +68,13 @@ export default function AgentRequests() {
           />
         </div>
 
+        {rows.length === 0 ? (
+          <EmptyState
+            icon="chat"
+            title="No requests yet"
+            description="Tenant briefs you propose on or get tagged in will show up here."
+          />
+        ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {rows.map((r) => (
             <div key={r.brief.id}>
@@ -188,6 +132,7 @@ export default function AgentRequests() {
             </div>
           ))}
         </div>
+        )}
       </div>
     </AgentShell>
   );

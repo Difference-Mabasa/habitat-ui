@@ -4,6 +4,7 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge, { type BadgeTone } from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 
 interface Attempt {
   time: string;
@@ -12,11 +13,7 @@ interface Attempt {
   tone: BadgeTone;
 }
 
-const ATTEMPTS: Attempt[] = [
-  { time: "1 May 06:00", method: "EFT debit · FNB •••2114", outcome: "Failed · insufficient funds", tone: "danger" },
-  { time: "1 May 12:30", method: "Retry · same account", outcome: "Failed · insufficient funds", tone: "danger" },
-  { time: "2 May 09:15", method: "Manual EFT · pending", outcome: "Awaiting confirmation", tone: "warn" },
-];
+const ATTEMPTS: Attempt[] = [];
 
 export default function FailedPayment() {
   return (
@@ -42,11 +39,10 @@ export default function FailedPayment() {
             <div style={{ flex: 1 }}>
               <Badge tone="danger">Payment failed</Badge>
               <h1 className="display" style={{ fontSize: 40, margin: "10px 0 6px" }}>
-                MAY RENT DIDN'T GO THROUGH
+                YOUR RENT DIDN'T GO THROUGH
               </h1>
               <p style={{ fontSize: 14, color: "var(--slate)" }}>
-                We tried to debit R 3,450 from FNB •••2114 on 1 May at 06:00. The bank returned:{" "}
-                <strong>"insufficient funds"</strong>.
+                The payment couldn't be processed. Details of the failure will appear here.
               </p>
             </div>
           </div>
@@ -63,9 +59,9 @@ export default function FailedPayment() {
             }}
           >
             <div>
-              <Eyebrow>Late fee timer · 4 days until R 250 fee</Eyebrow>
+              <Eyebrow>Late fee timer</Eyebrow>
               <div className="mono" style={{ fontSize: 22, fontWeight: 600, marginTop: 4 }}>
-                03 d : 14 h : 22 m
+                — d : — h : — m
               </div>
             </div>
             <Icon name="clock" size={32} style={{ color: "var(--accent)" }} />
@@ -76,21 +72,21 @@ export default function FailedPayment() {
               <Eyebrow style={{ color: "var(--accent)" }}>Recommended</Eyebrow>
               <div style={{ fontWeight: 600, marginTop: 6, fontSize: 16 }}>Retry now</div>
               <p style={{ fontSize: 13, color: "var(--slate)", marginTop: 6 }}>
-                Pay R 3,450 from a different account, instant EFT, or card.
+                Pay from a different account, instant EFT, or card.
               </p>
               <Button
                 variant="accent"
                 rightIcon="arrR"
                 style={{ marginTop: 14, width: "100%", justifyContent: "center" }}
               >
-                Pay R 3,450
+                Pay rent
               </Button>
             </div>
             <div style={{ padding: 18, border: "1px solid var(--hairline)", borderRadius: 10 }}>
               <Eyebrow>If you're short this month</Eyebrow>
               <div style={{ fontWeight: 600, marginTop: 6, fontSize: 16 }}>Set up a payment plan</div>
               <p style={{ fontSize: 13, color: "var(--slate)", marginTop: 6 }}>
-                Split into 2 × R 1,725 (8 days apart). Naledi has to approve.
+                Split into two payments. Your landlord has to approve.
               </p>
               <Button variant="secondary" style={{ marginTop: 14, width: "100%", justifyContent: "center" }}>
                 Request payment plan
@@ -103,25 +99,33 @@ export default function FailedPayment() {
         <div style={{ marginTop: 24 }}>
           <Eyebrow style={{ marginBottom: 10 }}>Attempts</Eyebrow>
           <Card padding={0} style={{ overflow: "hidden" }}>
-            {ATTEMPTS.map((a, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: "14px 20px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  borderTop: i ? "1px solid var(--hairline)" : "none",
-                  fontSize: 14,
-                }}
-              >
-                <div className="mono" style={{ fontSize: 13, color: "var(--slate)" }}>
-                  {a.time}
+            {ATTEMPTS.length === 0 ? (
+              <EmptyState
+                icon="clock"
+                title="No attempts logged"
+                description="Payment attempts will appear here."
+              />
+            ) : (
+              ATTEMPTS.map((a, i) => (
+                <div
+                  key={i}
+                  style={{
+                    padding: "14px 20px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    borderTop: i ? "1px solid var(--hairline)" : "none",
+                    fontSize: 14,
+                  }}
+                >
+                  <div className="mono" style={{ fontSize: 13, color: "var(--slate)" }}>
+                    {a.time}
+                  </div>
+                  <div style={{ flex: 1, paddingLeft: 16, fontWeight: 500 }}>{a.method}</div>
+                  <Badge tone={a.tone}>{a.outcome}</Badge>
                 </div>
-                <div style={{ flex: 1, paddingLeft: 16, fontWeight: 500 }}>{a.method}</div>
-                <Badge tone={a.tone}>{a.outcome}</Badge>
-              </div>
-            ))}
+              ))
+            )}
           </Card>
         </div>
       </div>

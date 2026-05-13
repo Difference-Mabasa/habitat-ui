@@ -13,6 +13,7 @@ import PriceDisplay from "@/components/PriceDisplay";
 import KeyValueRow from "@/components/KeyValueRow";
 import AgentCard from "@/components/AgentCard";
 import Alert from "@/components/Alert";
+import EmptyState from "@/components/EmptyState";
 
 type UnitStatus = "AVAILABLE" | "OCCUPIED" | "UNDER_MAINTENANCE" | "UNLISTED";
 
@@ -47,98 +48,7 @@ interface UnitDetail {
   inclusions: string[];
 }
 
-const UNITS: Record<string, UnitDetail> = {
-  u1: {
-    id: "u1",
-    name: "Backroom A",
-    unitNumber: "Unit 1",
-    property: "Sunlit Property on Caroline",
-    propertyId: "p1",
-    address: "12 Caroline St, Brixton, JHB",
-    area: "Brixton",
-    type: "Backroom",
-    furnishing: "Unfurnished",
-    beds: 1,
-    baths: 1,
-    sqm: 22,
-    price: 4200,
-    deposit: 4200,
-    status: "OCCUPIED",
-    availableFrom: null,
-    description:
-      "Detached backroom on the north side of the property with its own entrance, small private patio, and an east-facing window for morning light. Currently let — see Backroom B for an open unit.",
-    floor: "Standalone",
-    inclusions: ["Water included", "Refuse included"],
-    amenities: [
-      { icon: "park", label: "1 parking bay" },
-      { icon: "wifi", label: "Fibre ready" },
-      { icon: "bolt", label: "Prepaid electricity" },
-    ],
-    photos: ["backroom-a · entrance", "backroom-a · interior", "backroom-a · kitchenette", "backroom-a · bath", "backroom-a · patio"],
-  },
-  u2: {
-    id: "u2",
-    name: "Backroom B",
-    unitNumber: "Unit 2",
-    property: "Sunlit Property on Caroline",
-    propertyId: "p1",
-    address: "12 Caroline St, Brixton, JHB",
-    area: "Brixton",
-    type: "Backroom",
-    furnishing: "Partially furnished",
-    beds: 1,
-    baths: 1,
-    sqm: 24,
-    price: 4400,
-    deposit: 4400,
-    status: "AVAILABLE",
-    availableFrom: "Available now",
-    description:
-      "Quiet backroom at the rear of the property with its own entrance off the laundry yard. Comes with a built-in wardrobe and a small kitchenette. Two minutes' walk to 7th Avenue cafés.",
-    floor: "Standalone",
-    inclusions: ["Water included", "Refuse included", "Wi-Fi included (50 Mbps)"],
-    amenities: [
-      { icon: "park", label: "1 parking bay" },
-      { icon: "wifi", label: "Fibre ready" },
-      { icon: "pet", label: "Pets considered" },
-      { icon: "bolt", label: "Prepaid electricity" },
-      { icon: "shield", label: "24h security" },
-      { icon: "flame", label: "Gas stove" },
-    ],
-    photos: ["backroom-b · entrance", "backroom-b · main room", "backroom-b · kitchenette", "backroom-b · bath", "backroom-b · wardrobe"],
-  },
-  u3: {
-    id: "u3",
-    name: "Garden Cottage",
-    unitNumber: "Unit 3",
-    property: "Sunlit Property on Caroline",
-    propertyId: "p1",
-    address: "12 Caroline St, Brixton, JHB",
-    area: "Brixton",
-    type: "Cottage",
-    furnishing: "Unfurnished",
-    beds: 2,
-    baths: 1,
-    sqm: 48,
-    price: 6800,
-    deposit: 6800,
-    status: "AVAILABLE",
-    availableFrom: "Available 1 May",
-    description:
-      "Two-bed garden cottage with its own enclosed yard, separate from the main house. Open-plan kitchen/lounge, full bathroom, and a covered carport.",
-    floor: "Standalone",
-    inclusions: ["Water included", "Refuse included", "Garden maintenance"],
-    amenities: [
-      { icon: "park", label: "Covered carport" },
-      { icon: "wifi", label: "Fibre ready" },
-      { icon: "pet", label: "Pet friendly" },
-      { icon: "bolt", label: "Prepaid electricity" },
-      { icon: "shield", label: "Walled · gated" },
-      { icon: "flame", label: "Gas hob + oven" },
-    ],
-    photos: ["cottage · facade", "cottage · lounge", "cottage · kitchen", "cottage · bedroom", "cottage · garden"],
-  },
-};
+const UNITS: Record<string, UnitDetail> = {};
 
 const UNIT_BADGE: Record<UnitStatus, { tone: BadgeTone; label: string }> = {
   AVAILABLE: { tone: "success", label: "Available" },
@@ -151,8 +61,29 @@ export default function Unit() {
   const [params] = useSearchParams();
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
-  const id = params.get("id") ?? "u2";
-  const unit = UNITS[id] ?? UNITS.u2;
+  const id = params.get("id") ?? "";
+  const unit = UNITS[id];
+
+  if (!unit) {
+    return (
+      <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
+        <Nav role="tenant" />
+        <div style={{ maxWidth: 720, margin: "0 auto", padding: "48px 32px" }}>
+          <EmptyState
+            icon="home"
+            title="Unit not found"
+            description="This unit isn't available right now. Try browsing other spots."
+            actions={
+              <Link to="/browse" style={{ textDecoration: "none" }}>
+                <Button variant="accent">Browse units</Button>
+              </Link>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
   const badge = UNIT_BADGE[unit.status];
   const canApply = unit.status === "AVAILABLE";
 
@@ -167,7 +98,6 @@ export default function Unit() {
           <Breadcrumbs
             items={[
               { label: "Browse", href: "/browse" },
-              { label: "Johannesburg", href: "/browse" },
               { label: unit.area, href: "/browse" },
               { label: unit.property, href: "/property" },
               { label: unit.name },
@@ -401,9 +331,9 @@ export default function Unit() {
 
             <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 20, paddingTop: 20 }}>
               <AgentCard
-                name="Thandi Mokoena"
+                name="Landlord"
                 role="Landlord"
-                responseTime="responds in ~2 hrs"
+                responseTime="—"
                 actions={
                   <Link to="/inbox" aria-label="Message landlord">
                     <IconButton icon="chat" label="Message" variant="secondary" size="sm" />

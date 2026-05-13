@@ -6,9 +6,9 @@ import Eyebrow from "@/components/Eyebrow";
 
 const OFFLINE_AVAILABLE: [IconName, string][] = [
   ["paper", "Lease agreement"],
-  ["doc", "Last 3 rent receipts"],
+  ["doc", "Recent rent receipts"],
   ["pin", "Property address & directions"],
-  ["info", "Emergency contact: Naledi"],
+  ["info", "Emergency contact"],
 ];
 
 export default function Pwa() {
@@ -135,7 +135,7 @@ export default function Pwa() {
               aria-hidden="true"
               style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--warn)" }}
             />
-            Offline · cached 18 min ago
+            Offline · cached recently
           </div>
           <div className="display" style={{ fontSize: 26, marginTop: 12 }}>
             YOUR SPOT
@@ -144,11 +144,11 @@ export default function Pwa() {
 
         <div style={{ padding: "0 18px" }}>
           <Card padding={14} style={{ background: "var(--surface-2)" }}>
-            <Eyebrow>Rent · May 2026</Eyebrow>
+            <Eyebrow>Rent · current month</Eyebrow>
             <div className="display tabular" style={{ fontSize: 28, marginTop: 4 }}>
-              R 3,450
+              R 0
             </div>
-            <div style={{ fontSize: 12, color: "var(--slate)" }}>Due 1 June · cached info</div>
+            <div style={{ fontSize: 12, color: "var(--slate)" }}>Cached info · offline</div>
           </Card>
 
           <div

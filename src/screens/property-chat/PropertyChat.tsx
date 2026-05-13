@@ -11,6 +11,7 @@ import Badge from "@/components/Badge";
 import Avatar from "@/components/Avatar";
 import Alert from "@/components/Alert";
 import MessageBubble from "@/components/MessageBubble";
+import EmptyState from "@/components/EmptyState";
 
 interface CommunityMessage {
   id: string;
@@ -24,33 +25,18 @@ interface CommunityMessage {
   hasMedia?: boolean;
 }
 
-const MESSAGES: CommunityMessage[] = [
-  { id: "m0", name: "Mxolisi K.", time: "Yesterday", body: "Bin collection moved to Wednesdays this week.", older: true },
-  { id: "m1", name: "Lerato P.", time: "9:42", body: "Loadshedding heads up — stage 4 from 18:00 tonight. Solar geyser for sale btw, R3500, almost new.", pinned: true, hasMedia: true },
-  { id: "m2", name: "You", time: "10:11", body: "Thanks Lerato. Anyone know a good locksmith on this side? Front door latch is sticking.", own: true },
-  { id: "m3", name: "Mandla K.", time: "10:14", body: "Use Sipho at Melville Hardware on 7th. Fast and fair." },
-  { id: "m4", name: "Thandi M.", time: "10:32", body: "Reminder: building inspection Thursday 10am. Will only need access to the geyser cupboard.", landlord: true },
-];
+const MESSAGES: CommunityMessage[] = [];
 
-const MEMBERS: { init: string; name: string; role: "admin" | "moderator" | "member" }[] = [
-  { init: "LP", name: "Lerato P.", role: "admin" },
-  { init: "TM", name: "Thandi M.", role: "moderator" },
-  { init: "SD", name: "Sipho D.", role: "moderator" },
-  { init: "MK", name: "Mandla K.", role: "member" },
-  { init: "AB", name: "Aisha B.", role: "member" },
-  { init: "NJ", name: "Nthabi J.", role: "member" },
-  { init: "RT", name: "Ravi T.", role: "member" },
-  { init: "KZ", name: "Kabelo Z.", role: "member" },
-];
+const MEMBERS: { init: string; name: string; role: "admin" | "moderator" | "member" }[] = [];
 
 export default function PropertyChat() {
   const [hovered, setHovered] = useState<string | null>(null);
 
   const community = {
-    name: "Garden Cottage · Brixton",
+    name: "Your building",
     type: "Building chat",
-    members: 12,
-    online: 4,
+    members: 0,
+    online: 0,
   };
 
   return (
@@ -105,11 +91,21 @@ export default function PropertyChat() {
               gap: 12,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <Button variant="ghost" size="sm" leftIcon="chevU">
-                Load older messages
-              </Button>
-            </div>
+            {MESSAGES.length === 0 ? (
+              <EmptyState
+                icon="chat"
+                title="No messages yet"
+                description="Start the conversation with your neighbours."
+              />
+            ) : null}
+
+            {MESSAGES.length > 0 ? (
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <Button variant="ghost" size="sm" leftIcon="chevU">
+                  Load older messages
+                </Button>
+              </div>
+            ) : null}
 
             {MESSAGES.map((m) => (
               <div

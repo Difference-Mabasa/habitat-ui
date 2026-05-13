@@ -4,6 +4,7 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Avatar from "@/components/Avatar";
+import EmptyState from "@/components/EmptyState";
 import PageHeader from "@/components/PageHeader";
 import KpiTile from "@/components/KpiTile";
 
@@ -19,12 +20,7 @@ interface Mandate {
   fee: string;
 }
 
-const MANDATES: Mandate[] = [
-  { id: "m1", property: "Sunlit Cottage · Caroline", agent: "Lebo Properties", agentInit: "LP", scope: "Full management", since: "Jan 2024", rent: "R 4,400", status: "Active", fee: "8%" },
-  { id: "m2", property: "Garden Flatlet · Brixton", agent: "Lebo Properties", agentInit: "LP", scope: "Tenant find only", since: "Mar 2025", rent: "R 5,200", status: "Active", fee: "1 month" },
-  { id: "m3", property: "Studio · Melville", agent: "—", agentInit: "—", scope: "Self-managed", since: "—", rent: "R 5,400", status: "Self", fee: "—" },
-  { id: "m4", property: "Loft · Maboneng", agent: "Inner City Lets", agentInit: "IC", scope: "Full management", since: "Sep 2023", rent: "R 7,800", status: "Ending Apr", fee: "10%" },
-];
+const MANDATES: Mandate[] = [];
 
 const STATUS_BADGE: Record<Mandate["status"], { tone: "success" | "warn" | "neutral"; label: string }> = {
   Active: { tone: "success", label: "Active" },
@@ -50,14 +46,10 @@ export default function Mandates() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 28 }}>
-          <KpiTile label="Properties under mandate" value="3" subText="of 4 total" />
-          <KpiTile
-            label="Agency fees · YTD"
-            value="R 11,840"
-            subText="8.2% of rent collected"
-          />
-          <KpiTile label="Avg vacancy" value="9 days" subText="↓ 4 vs self-managed" subTone="success" />
-          <KpiTile label="Agent satisfaction" value="4.7" subText="Based on 18 reviews" />
+          <KpiTile label="Properties under mandate" value="0" />
+          <KpiTile label="Agency fees · YTD" value="R 0" />
+          <KpiTile label="Avg vacancy" value="—" />
+          <KpiTile label="Agent satisfaction" value="—" />
         </div>
 
         <Card padding={0} style={{ overflow: "hidden" }}>
@@ -82,6 +74,13 @@ export default function Mandates() {
               </Link>
             </div>
           </div>
+          {MANDATES.length === 0 ? (
+            <EmptyState
+              icon="key"
+              title="No mandates"
+              description="Delegate a property to a vetted agent to see it here."
+            />
+          ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--surface-2)" }}>
@@ -146,6 +145,7 @@ export default function Mandates() {
               })}
             </tbody>
           </table>
+          )}
         </Card>
       </div>
     </LandlordShell>

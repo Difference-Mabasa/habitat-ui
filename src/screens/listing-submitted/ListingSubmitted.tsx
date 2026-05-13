@@ -35,17 +35,17 @@ export default function ListingSubmitted() {
   const state = (location.state ?? {}) as SubmittedState;
 
   const mode: Mode = state.mode ?? "self";
-  const propertyName = state.propertyName ?? "Sunlit Property on Caroline";
-  const address = state.address ?? "12 Caroline St, Brixton, Johannesburg";
-  const unitCount = state.unitCount ?? 2;
-  const fromRent = state.fromRent ?? 4200;
+  const propertyName = state.propertyName ?? "Your property";
+  const address = state.address ?? "—";
+  const unitCount = state.unitCount ?? 0;
+  const fromRent = state.fromRent ?? 0;
   const mandateType = state.mandateType ?? "FULL_MANAGEMENT";
-  const agencyFee = state.agencyFee ?? "8";
-  const ownerName = state.ownerName ?? "Thandi Mokoena";
-  const ownerEmail = state.ownerEmail ?? "thandi@example.co.za";
+  const agencyFee = state.agencyFee ?? "—";
+  const ownerName = state.ownerName ?? "The owner";
+  const ownerEmail = state.ownerEmail ?? "—";
   const landlordOnHabitat = state.landlordOnHabitat ?? true;
 
-  const ref = mode === "self" ? "HB-LST-04612" : "HB-MAN-04613";
+  const ref: string | null = null;
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -92,7 +92,7 @@ export default function ListingSubmitted() {
             >
               {mode === "self"
                 ? `${propertyName} is live`
-                : `${ownerName.split(" ")[0]} just needs to approve the mandate`}
+                : `${state.ownerName ? state.ownerName.split(" ")[0] : "The owner"} just needs to approve the mandate`}
             </h1>
             <p style={{ fontSize: 14, color: "var(--slate)", margin: "0 auto", maxWidth: 480, lineHeight: 1.55 }}>
               {mode === "self"
@@ -110,7 +110,11 @@ export default function ListingSubmitted() {
             <KeyValueRow label="Address" value={address} divider />
             <KeyValueRow
               label="Units"
-              value={`${unitCount} unit${unitCount === 1 ? "" : "s"} · from R ${fromRent.toLocaleString("en-ZA")}/mo`}
+              value={
+                unitCount > 0
+                  ? `${unitCount} unit${unitCount === 1 ? "" : "s"} · from R ${fromRent.toLocaleString("en-ZA")}/mo`
+                  : "—"
+              }
               divider
             />
             <KeyValueRow
@@ -124,7 +128,7 @@ export default function ListingSubmitted() {
             />
             <KeyValueRow
               label="Reference"
-              value={<span className="mono">{ref}</span>}
+              value={<span className="mono">{ref ?? "—"}</span>}
               divider={mode === "behalf"}
             />
             {mode === "behalf" ? (
@@ -202,7 +206,7 @@ export default function ListingSubmitted() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {mode === "self" ? (
                 <>
-                  <NextStep state="done" icon="check" title="Listing published" body={`Just now · ref ${ref}`} />
+                  <NextStep state="done" icon="check" title="Listing published" body="Just now" />
                   <NextStep
                     state="active"
                     icon="search"
@@ -224,7 +228,7 @@ export default function ListingSubmitted() {
                 </>
               ) : (
                 <>
-                  <NextStep state="done" icon="check" title="Mandate sent" body={`Just now · ref ${ref}`} />
+                  <NextStep state="done" icon="check" title="Mandate sent" body="Just now" />
                   <NextStep
                     state="active"
                     icon="clock"

@@ -55,10 +55,10 @@ interface ScorePanelRow {
 }
 
 const SCORE_ROWS: ScorePanelRow[] = [
-  { label: "Identity (FICA)", value: 100 },
-  { label: "Affordability", value: 92, hint: "← unlocked just now" },
-  { label: "Credit", value: 78 },
-  { label: "Rental history", value: 70 },
+  { label: "Identity (FICA)", value: 0 },
+  { label: "Affordability", value: 0 },
+  { label: "Credit", value: 0 },
+  { label: "Rental history", value: 0 },
 ];
 
 export default function Onboarding() {
@@ -209,18 +209,18 @@ export default function Onboarding() {
                   borderBottom: "1px solid var(--hairline)",
                 }}
               >
-                <Avatar name="Sipho Dlamini" size="lg" tone="neutral" />
+                <Avatar name="" size="lg" tone="neutral" />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600 }}>Sipho Dlamini</div>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>—</div>
                   <div style={{ fontSize: 12, color: "var(--slate)" }}>
-                    34 · Software engineer · Joburg
+                    Your profile preview will appear here
                   </div>
                 </div>
                 <div
                   className="tabular"
                   style={{ fontSize: 26, fontWeight: 600, color: "var(--accent)" }}
                 >
-                  84
+                  0
                 </div>
               </div>
             </div>

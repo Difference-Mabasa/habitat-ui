@@ -7,6 +7,7 @@ import KpiTile from "@/components/KpiTile";
 import Chip from "@/components/Chip";
 import Badge, { type BadgeTone } from "@/components/Badge";
 import Avatar from "@/components/Avatar";
+import EmptyState from "@/components/EmptyState";
 import PropertyTable, { type PropertyTableRowData } from "@/screens/landlord-dashboard/PropertyTable";
 import ApplicationPipeline, { type PipelineColumn } from "@/screens/landlord-dashboard/ApplicationPipeline";
 
@@ -19,12 +20,7 @@ interface RecentBrief {
   status: "OPEN" | "PROPOSED" | "WON" | "LOST";
 }
 
-const RECENT: RecentBrief[] = [
-  { id: "r1", tenant: "Sipho Dlamini", init: "SD", body: "Backroom · Orlando West · R 3,000–4,200 · by 1 Jun", posted: "18m ago", status: "OPEN" },
-  { id: "r2", tenant: "Naledi Khumalo", init: "NK", body: "Cottage · Westdene · R 5,500–7,500 · ASAP", posted: "2h ago", status: "PROPOSED" },
-  { id: "r3", tenant: "Aisha Mahlangu", init: "AM", body: "Loft · Maboneng · R 6,500–9,000 · by 1 Jun", posted: "Yesterday", status: "WON" },
-  { id: "r4", tenant: "Mxolisi Ndlovu", init: "MN", body: "Bachelor flat · Pimville · R 2,800–3,500 · by 1 Jul", posted: "3d ago", status: "LOST" },
-];
+const RECENT: RecentBrief[] = [];
 
 const STATUS_META: Record<RecentBrief["status"], { tone: BadgeTone; label: string }> = {
   OPEN: { tone: "warn", label: "Open" },
@@ -33,40 +29,13 @@ const STATUS_META: Record<RecentBrief["status"], { tone: BadgeTone; label: strin
   LOST: { tone: "neutral", label: "Lost" },
 };
 
-const PORTFOLIO_ROWS: PropertyTableRowData[] = [
-  { id: "ag1", name: "Studio · Melville", sub: "Melville, JHB", units: 1, occupancyPct: 100, occupancyLabel: "1 of 1", monthlyRent: "R 5,400", apps: 2, state: "LISTED", source: "BY_AGENT", agent: "You", mandate: "Full management", payoutAccount: "Owner: Thandi M." },
-  { id: "ag2", name: "Cottage · Caroline", sub: "Brixton, JHB", units: 1, occupancyPct: 100, occupancyLabel: "1 of 1", monthlyRent: "R 4,400", apps: 0, state: "LISTED", source: "BY_AGENT", agent: "You", mandate: "Full management", payoutAccount: "Owner: Pieter K." },
-  { id: "ag5", name: "Studio · Brixton", sub: "Brixton, JHB", units: 1, occupancyPct: 0, occupancyLabel: "0 of 1", monthlyRent: "R 4,400", apps: 5, state: "LISTED", source: "BY_AGENT", agent: "You", mandate: "Tenant find", payoutAccount: "Owner: Aisha M." },
-  { id: "ag4", name: "Loft · Maboneng", sub: "Maboneng, JHB", units: 1, occupancyPct: 100, occupancyLabel: "1 of 1", monthlyRent: "R 7,800", apps: 1, state: "LISTED", source: "BY_AGENT", agent: "You", mandate: "Full management", payoutAccount: "Owner: Ravi S." },
-];
+const PORTFOLIO_ROWS: PropertyTableRowData[] = [];
 
 const PIPELINE_COLUMNS: PipelineColumn[] = [
-  {
-    title: "New",
-    count: 2,
-    items: [
-      { id: "a1", name: "Sipho Dlamini", unit: "Backroom · Vilakazi", score: 88 },
-      { id: "a2", name: "Lerato Pretorius", unit: "Studio · Brixton", score: 76 },
-    ],
-  },
-  {
-    title: "Vetting",
-    count: 2,
-    items: [
-      { id: "a3", name: "Karabo Mokoena", unit: "Cottage · Caroline", score: 92, sub: "FICA in progress" },
-      { id: "a4", name: "Mpho Sithole", unit: "Studio · Brixton", score: 81, sub: "Credit pulled" },
-    ],
-  },
-  {
-    title: "Interview",
-    count: 1,
-    items: [{ id: "a5", name: "Naledi Khumalo", unit: "Garden Cottage · Westdene", score: 94, sub: "Sat 11:30" }],
-  },
-  {
-    title: "Lease",
-    count: 1,
-    items: [{ id: "a6", name: "Zinhle Maseko", unit: "Loft · Maboneng", score: 90, sub: "Awaiting countersign" }],
-  },
+  { title: "New", count: 0, items: [] },
+  { title: "Vetting", count: 0, items: [] },
+  { title: "Interview", count: 0, items: [] },
+  { title: "Lease", count: 0, items: [] },
 ];
 
 export default function AgentOverview() {
@@ -87,7 +56,7 @@ export default function AgentOverview() {
           <div>
             <Eyebrow>Overview</Eyebrow>
             <h1 style={{ fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", margin: "8px 0 0" }}>
-              Good morning, Naledi
+              Agent overview
             </h1>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -110,26 +79,18 @@ export default function AgentOverview() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
           <KpiTile
             label="Open briefs"
-            value="3"
-            valueTone="accent"
+            value="0"
             subText="in your areas"
-            spark={[2, 1, 2, 3, 2, 3, 3]}
-            sparkTone="accent"
           />
           <KpiTile
             label="Mandates active"
-            value="24"
-            subText="2 ending ≤60d"
-            subTone="warn"
+            value="0"
           />
           <KpiTile
             label="Placements · YTD"
-            value="11"
-            valueTone="success"
-            delta="+3 this month"
-            deltaTone="success"
+            value="0"
           />
-          <KpiTile label="Fees · YTD" value="R 38,400" subText="Avg R 3,490 per placement" />
+          <KpiTile label="Fees · YTD" value="R 0" />
         </div>
 
         {/* Portfolio snapshot — mirrors the landlord Overview's properties card */}
@@ -146,7 +107,7 @@ export default function AgentOverview() {
             <div>
               <div style={{ fontSize: 16, fontWeight: 600 }}>Properties under your mandates</div>
               <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>
-                24 mandates · 21 let · 1 vacant · 2 listing
+                Mandates appear here once they're active.
               </div>
             </div>
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -185,38 +146,46 @@ export default function AgentOverview() {
               <Button variant="ghost" size="sm" rightIcon="arrR">Open job board</Button>
             </Link>
           </div>
-          {RECENT.map((r, i) => {
-            const meta = STATUS_META[r.status];
-            return (
-              <div
-                key={r.id}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "auto 1fr auto auto",
-                  alignItems: "center",
-                  gap: 14,
-                  padding: "14px 24px",
-                  borderTop: i > 0 ? "1px solid var(--hairline)" : undefined,
-                }}
-              >
-                <Avatar name={r.init} size="md" tone="neutral" />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{r.tenant}</div>
-                  <div style={{ fontSize: 11, color: "var(--slate)", marginTop: 2 }}>{r.body}</div>
-                  <div style={{ fontSize: 10, color: "var(--slate-2)", marginTop: 2 }}>{r.posted}</div>
-                </div>
-                <Badge tone={meta.tone}>{meta.label}</Badge>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  rightIcon="chevR"
-                  onClick={() => navigate(r.status === "OPEN" ? "/job-board" : "/agent-requests")}
+          {RECENT.length === 0 ? (
+            <EmptyState
+              icon="search"
+              title="No recent briefs"
+              description="New tenant briefs in your areas will show up here."
+            />
+          ) : (
+            RECENT.map((r, i) => {
+              const meta = STATUS_META[r.status];
+              return (
+                <div
+                  key={r.id}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "auto 1fr auto auto",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: "14px 24px",
+                    borderTop: i > 0 ? "1px solid var(--hairline)" : undefined,
+                  }}
                 >
-                  {r.status === "OPEN" ? "Propose" : "Open"}
-                </Button>
-              </div>
-            );
-          })}
+                  <Avatar name={r.init} size="md" tone="neutral" />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{r.tenant}</div>
+                    <div style={{ fontSize: 11, color: "var(--slate)", marginTop: 2 }}>{r.body}</div>
+                    <div style={{ fontSize: 10, color: "var(--slate-2)", marginTop: 2 }}>{r.posted}</div>
+                  </div>
+                  <Badge tone={meta.tone}>{meta.label}</Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    rightIcon="chevR"
+                    onClick={() => navigate(r.status === "OPEN" ? "/job-board" : "/agent-requests")}
+                  >
+                    {r.status === "OPEN" ? "Propose" : "Open"}
+                  </Button>
+                </div>
+              );
+            })
+          )}
         </Card>
 
         {/* Application pipeline — same shape as the landlord overview */}
@@ -249,27 +218,27 @@ export default function AgentOverview() {
           <Card padding={20}>
             <Eyebrow style={{ marginBottom: 12 }}>This week</Eyebrow>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
-              <span><strong>9</strong> open viewings</span>
-              <span><strong>4</strong> applications under review</span>
-              <span><strong>R 12,200</strong> in rent due to release</span>
+              <span><strong>0</strong> open viewings</span>
+              <span><strong>0</strong> applications under review</span>
+              <span><strong>R 0</strong> in rent due to release</span>
             </div>
           </Card>
           <Card padding={20}>
             <Eyebrow style={{ marginBottom: 12 }}>Response time</Eyebrow>
-            <div className="tabular" style={{ fontSize: 28, fontWeight: 600, color: "var(--success)" }}>
-              42 min
+            <div className="tabular" style={{ fontSize: 28, fontWeight: 600 }}>
+              —
             </div>
             <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 4 }}>
-              Faster than 78% of agents in your areas
+              Median time to first reply
             </div>
           </Card>
           <Card padding={20}>
             <Eyebrow style={{ marginBottom: 12 }}>Win rate</Eyebrow>
             <div className="tabular" style={{ fontSize: 28, fontWeight: 600 }}>
-              36%
+              —
             </div>
-            <div style={{ fontSize: 12, color: "var(--success)", marginTop: 4 }}>
-              ↑ 4 pts vs last 30 days
+            <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 4 }}>
+              Briefs you've won vs proposed
             </div>
           </Card>
         </div>

@@ -3,17 +3,14 @@ import Button from "@/components/Button";
 import Photo from "@/components/Photo";
 import Eyebrow from "@/components/Eyebrow";
 
+type ChatRole = "self" | "host";
+
 interface ChatLine {
-  who: "Sipho" | "Naledi";
+  who: ChatRole;
   msg: string;
 }
 
-const CHAT: ChatLine[] = [
-  { who: "Sipho", msg: "Can you show the geyser?" },
-  { who: "Naledi", msg: "Sure, walking there now" },
-  { who: "Sipho", msg: "What's the prepaid rate?" },
-  { who: "Naledi", msg: "R 2.40/kWh, City Power" },
-];
+const CHAT: ChatLine[] = [];
 
 const CONTROLS: { icon: IconName; label: string }[] = [
   { icon: "mic", label: "Mic" },
@@ -33,7 +30,7 @@ export default function VideoCall() {
       }}
     >
       <Photo
-        label="Naledi · live viewing"
+        label="Live viewing"
         ratio="auto"
         style={{ position: "absolute", inset: 0, borderRadius: 0, minHeight: "100vh" }}
       />
@@ -72,9 +69,9 @@ export default function VideoCall() {
             }}
           />
           <div>
-            <div style={{ fontWeight: 600 }}>Live viewing · Backroom · Vilakazi St</div>
+            <div style={{ fontWeight: 600 }}>Live viewing</div>
             <div className="mono" style={{ fontSize: 12, opacity: 0.7 }}>
-              04:22 · with Naledi M.
+              00:00
             </div>
           </div>
         </div>
@@ -111,7 +108,7 @@ export default function VideoCall() {
         }}
       >
         <Photo
-          label="You · Sipho"
+          label="You"
           ratio="auto"
           style={{ borderRadius: 0, minHeight: 140 }}
         />
@@ -150,30 +147,38 @@ export default function VideoCall() {
         <Eyebrow style={{ color: "rgba(255,255,255,0.7)", marginBottom: 10 }}>
           Notes & questions
         </Eyebrow>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
-          {CHAT.map((line, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: line.who === "Sipho" ? "flex-end" : "flex-start",
-              }}
-            >
-              <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 2 }}>{line.who}</div>
+        {CHAT.length === 0 ? (
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+            No messages yet. Ask questions during the viewing — they'll appear here.
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
+            {CHAT.map((line, i) => (
               <div
+                key={i}
                 style={{
-                  padding: "8px 12px",
-                  background: line.who === "Sipho" ? "var(--accent)" : "rgba(255,255,255,0.15)",
-                  borderRadius: 10,
-                  maxWidth: "85%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: line.who === "self" ? "flex-end" : "flex-start",
                 }}
               >
-                {line.msg}
+                <div style={{ fontSize: 10, opacity: 0.5, marginBottom: 2 }}>
+                  {line.who === "self" ? "You" : "Host"}
+                </div>
+                <div
+                  style={{
+                    padding: "8px 12px",
+                    background: line.who === "self" ? "var(--accent)" : "rgba(255,255,255,0.15)",
+                    borderRadius: 10,
+                    maxWidth: "85%",
+                  }}
+                >
+                  {line.msg}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Control bar */}

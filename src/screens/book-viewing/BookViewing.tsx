@@ -5,7 +5,6 @@ import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
-import Badge from "@/components/Badge";
 import Icon from "@/components/Icon";
 import Stepper from "@/components/Stepper";
 import FormField from "@/components/FormField";
@@ -39,27 +38,8 @@ const STEPS = [
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-/** Hard-coded availability so the mock looks real. Keys: YYYY-MM-DD. */
-const AVAILABILITY: Record<string, TimeSlot[]> = {
-  "2026-05-18": slots(["09:00", "09:30", "10:00", "10:30", "14:00", "14:30"], ["10:00"]),
-  "2026-05-19": slots(["09:00", "09:30", "10:00", "14:00", "14:30", "15:00"]),
-  "2026-05-20": slots(["11:00", "11:30", "14:00", "14:30", "15:00", "15:30"]),
-  "2026-05-21": slots(["09:00", "09:30", "10:00", "10:30", "11:00", "11:30"], ["11:30"]),
-  "2026-05-23": slots(["10:00", "10:30", "11:00", "11:30", "12:00", "13:00", "13:30", "14:00"]),
-  "2026-05-24": slots(["09:00", "09:30", "10:00", "13:00", "13:30", "14:00", "14:30"], ["13:00", "13:30"]),
-  "2026-05-25": slots(["09:30", "10:00", "14:00", "14:30", "15:00", "15:30"]),
-  "2026-05-26": slots(["09:00", "09:30", "10:00", "10:30", "14:00", "14:30", "15:00"]),
-  "2026-05-28": slots(["09:00", "11:00", "11:30", "14:00", "14:30"]),
-  "2026-05-29": slots(["09:00", "09:30", "10:00", "10:30"]),
-  "2026-05-30": slots(["10:00", "10:30", "11:00", "11:30", "12:00"]),
-  "2026-06-01": slots(["09:00", "09:30", "10:00", "10:30", "14:00", "14:30"]),
-  "2026-06-02": slots(["09:00", "09:30", "10:00", "10:30"]),
-  "2026-06-03": slots(["14:00", "14:30", "15:00", "15:30"]),
-};
-
-function slots(times: string[], booked: string[] = []): TimeSlot[] {
-  return times.map((t) => ({ time: t, booked: booked.includes(t) }));
-}
+/** Landlord availability keyed by YYYY-MM-DD. Empty until wired to the API. */
+const AVAILABILITY: Record<string, TimeSlot[]> = {};
 
 function buildMonth(year: number, month: number, todayIso: string): DayCell[] {
   // Monday-first 6-row grid.
@@ -134,9 +114,6 @@ export default function BookViewing() {
         date: selectedDate,
         slot: selectedSlot,
         note,
-        property: "Studio Flatlet · Melville",
-        address: "12 Caroline St, Brixton, JHB",
-        landlord: "Naledi Mokoena",
       },
     });
   };
@@ -161,13 +138,13 @@ export default function BookViewing() {
           </InlineLink>
 
           <div style={{ marginTop: 16, marginBottom: 24 }}>
-            <Eyebrow>Studio · Melville · 12 Caroline St</Eyebrow>
+            <Eyebrow>Property viewing</Eyebrow>
             <h1 style={{ fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", margin: "8px 0 6px" }}>
               Book a viewing
             </h1>
             <p style={{ fontSize: 14, color: "var(--slate)", margin: 0, maxWidth: 560, lineHeight: 1.55 }}>
-              Pick an open date and a 30-minute slot. Naledi confirms within a few hours — you'll get a push
-              and a calendar invite.
+              Pick an open date and a 30-minute slot. The landlord confirms within a few hours — you'll get
+              a push and a calendar invite.
             </p>
           </div>
 
@@ -182,7 +159,7 @@ export default function BookViewing() {
                 No open dates this month
               </div>
               <p style={{ fontSize: 13, color: "var(--slate)", margin: "0 0 16px" }}>
-                Try the next month, or message Naledi to ask for a custom time.
+                Try the next month, or message the landlord to ask for a custom time.
               </p>
               <Button variant="accent" onClick={() => changeMonth(1)}>
                 Try {new Date(year, month + 1, 1).toLocaleDateString("en-ZA", { month: "long" })}
@@ -397,7 +374,7 @@ export default function BookViewing() {
                           rows={3}
                           value={note}
                           onChange={(e) => setNote(e.target.value.slice(0, 240))}
-                          placeholder="Anything Naledi should know before the viewing?"
+                          placeholder="Anything the landlord should know before the viewing?"
                         />
                       </FormField>
                       <div style={{ marginTop: 16, display: "flex", gap: 8, justifyContent: "flex-end" }}>
@@ -411,8 +388,8 @@ export default function BookViewing() {
                     </div>
                   ) : (
                     <Alert tone="info" title="How confirmations work" >
-                      Your viewing isn't booked until Naledi taps Confirm — usually within an hour. We send
-                      you a push and an iCal invite the moment she does.
+                      Your viewing isn't booked until the landlord taps Confirm — usually within an hour. We
+                      send you a push and an iCal invite the moment they do.
                     </Alert>
                   )}
                 </Card>
@@ -421,7 +398,7 @@ export default function BookViewing() {
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <Icon name="calendar" size={18} style={{ color: "var(--slate)" }} />
                     <div style={{ fontSize: 13, color: "var(--slate)" }}>
-                      Tap a green date to see the times Naledi has open that day.
+                      Tap a green date to see the times the landlord has open that day.
                     </div>
                   </div>
                 </Card>
@@ -433,22 +410,18 @@ export default function BookViewing() {
         {/* Sticky property recap */}
         <aside style={{ position: "sticky", top: 88, alignSelf: "start" }}>
           <Card padding={0} style={{ overflow: "hidden" }}>
-            <Photo ratio="16/10" label="studio · melville.jpg" style={{ borderRadius: 0 }} />
+            <Photo ratio="16/10" label="property" style={{ borderRadius: 0 }} />
             <div style={{ padding: 16 }}>
               <Eyebrow style={{ marginBottom: 6 }}>Viewing</Eyebrow>
               <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
-                Studio Flatlet · Melville
+                —
               </div>
               <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 16 }}>
-                32 m² · 1 bed · 1 bath · R 5,400 / mo
+                —
               </div>
               <KeyValueRow
                 label="With"
-                value={
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    Naledi Mokoena <Badge tone="success" leftIcon="check">Verified</Badge>
-                  </span>
-                }
+                value="—"
                 size="sm"
                 divider
               />
@@ -474,7 +447,7 @@ export default function BookViewing() {
             <div style={{ display: "flex", gap: 10 }}>
               <Icon name="shield" size={16} style={{ color: "var(--success)", flexShrink: 0, marginTop: 2 }} />
               <div style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5 }}>
-                Viewings are free. We never share your phone number — Naledi messages you through Habitat.
+                Viewings are free. We never share your phone number — the landlord messages you through Habitat.
               </div>
             </div>
           </Card>

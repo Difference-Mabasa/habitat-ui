@@ -23,21 +23,7 @@ interface Comment {
   likes: number;
 }
 
-const SAMPLE_COMMENTS: Record<string, Comment[]> = {
-  p1: [
-    { id: "c1", authorId: "u-thandi",  body: "Sello did our place too. Reliable.",                 time: "12m", likes: 4 },
-    { id: "c2", authorId: "u-naledi",  body: "Saving this, geyser is on its last leg.",            time: "20m", likes: 1 },
-    { id: "c3", authorId: "u-mxolisi", body: "Does he do Pimville? Trying to find someone local.", time: "1h",  likes: 0 },
-  ],
-  p3: [
-    { id: "c1", authorId: "u-naledi", body: "Confirmed Eskom alert app pinged 18:01 — running fine on UPS.", time: "30m", likes: 6 },
-    { id: "c2", authorId: "u-aisha",  body: "See you Saturday.",                                              time: "45m", likes: 2 },
-  ],
-  p6: [
-    { id: "c1", authorId: "u-thandi", body: "RHA s.5(3)(g). Send me your email, I'll forward the template our agency uses.", time: "1h", likes: 22 },
-    { id: "c2", authorId: "u-ravi",   body: "Document everything in writing. WhatsApp is fine, just keep a paper trail.",   time: "2h", likes: 8 },
-  ],
-};
+const SAMPLE_COMMENTS: Record<string, Comment[]> = {};
 
 export default function PostDetail() {
   const navigate = useNavigate();

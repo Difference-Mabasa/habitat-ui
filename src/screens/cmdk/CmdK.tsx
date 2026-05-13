@@ -8,14 +8,14 @@ interface PaletteRow {
 }
 
 const GO_TO: PaletteRow[] = [
-  { icon: "doc", title: "Applicants · Vilakazi St", sub: "12 applicants", selected: true },
+  { icon: "doc", title: "Applicants", sub: "Landlord view", selected: true },
   { icon: "doc", title: "My applications", sub: "Tenant view" },
   { icon: "doc", title: "Apply for new spot", sub: "Tenant action" },
 ];
 
 const ACTIONS: PaletteRow[] = [
-  { icon: "plus", title: "Approve top applicant", sub: "Sipho K. (84/100)" },
-  { icon: "paper", title: "Generate lease draft", sub: "for Vilakazi St" },
+  { icon: "plus", title: "Approve top applicant", sub: "Landlord action" },
+  { icon: "paper", title: "Generate lease draft", sub: "Landlord action" },
 ];
 
 function Kbd({ children }: { children: React.ReactNode }) {
@@ -90,7 +90,7 @@ export default function CmdK() {
         >
           <Icon name="search" size={20} style={{ color: "var(--slate)" }} />
           <input
-            defaultValue="appli"
+            defaultValue=""
             placeholder="Type a command, search, or go to..."
             style={{
               flex: 1,

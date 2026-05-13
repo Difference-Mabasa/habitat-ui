@@ -15,9 +15,9 @@ interface KycStep {
 }
 
 const STEPS: KycStep[] = [
-  { n: 1, title: "Identity & directors", state: "done", note: "ID verified · Home Affairs match" },
-  { n: 2, title: "Property ownership", state: "active", note: "Upload title deed or registered lease" },
-  { n: 3, title: "Bank account", state: "todo", note: "We deposit rent here · FNB recommended" },
+  { n: 1, title: "Identity & directors", state: "active", note: "Verify your ID with Home Affairs" },
+  { n: 2, title: "Property ownership", state: "todo", note: "Upload title deed or registered lease" },
+  { n: 3, title: "Bank account", state: "todo", note: "We deposit rent here" },
   { n: 4, title: "Tax registration", state: "todo", note: "Optional · adds Tax Verified badge" },
 ];
 
@@ -43,7 +43,7 @@ export default function LandlordKyc() {
               Verified landlords get a green badge, priority placement, and next-day payouts.
             </p>
           </div>
-          <Badge tone="success">1 of 4 steps complete</Badge>
+          <Badge tone="neutral">0 of 4 steps complete</Badge>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 28 }}>

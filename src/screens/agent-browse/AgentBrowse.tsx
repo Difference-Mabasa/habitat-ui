@@ -10,6 +10,7 @@ import Chip from "@/components/Chip";
 import Tabs from "@/components/Tabs";
 import Avatar from "@/components/Avatar";
 import RatingDisplay from "@/components/RatingDisplay";
+import EmptyState from "@/components/EmptyState";
 
 interface AgentRow {
   id: string;
@@ -26,93 +27,12 @@ interface AgentRow {
   feeTenant?: string;
 }
 
-const AGENTS: AgentRow[] = [
-  {
-    id: "ag1",
-    name: "Naledi Mokoena",
-    init: "NM",
-    agency: "Vilakazi Property Co.",
-    areas: ["Soweto", "Diepkloof", "Orlando West"],
-    rating: 4.8,
-    reviews: 127,
-    listings: 14,
-    responseTime: "1.4 h",
-    languages: ["Zulu", "Sotho", "English"],
-    verified: true,
-    feeTenant: "R 800 once-off",
-  },
-  {
-    id: "ag2",
-    name: "Thabo Khumalo",
-    init: "TK",
-    agency: "Vilakazi Property Co.",
-    areas: ["Soweto", "Pimville"],
-    rating: 4.7,
-    reviews: 64,
-    listings: 8,
-    responseTime: "2.1 h",
-    languages: ["Zulu", "English"],
-    verified: true,
-  },
-  {
-    id: "ag3",
-    name: "Pieter van der Berg",
-    init: "PV",
-    agency: "Inner City Lets",
-    areas: ["Maboneng", "Newtown"],
-    rating: 4.5,
-    reviews: 38,
-    listings: 6,
-    responseTime: "3.8 h",
-    languages: ["Afrikaans", "English"],
-    verified: true,
-    feeTenant: "R 950 once-off",
-  },
-  {
-    id: "ag4",
-    name: "Lerato Ndlovu",
-    init: "LN",
-    agency: "Lebo Properties",
-    areas: ["Brixton", "Westdene", "Auckland Park"],
-    rating: 4.9,
-    reviews: 142,
-    listings: 18,
-    responseTime: "0.8 h",
-    languages: ["Sotho", "Zulu", "English"],
-    verified: true,
-  },
-  {
-    id: "ag5",
-    name: "Aisha Mahlangu",
-    init: "AM",
-    agency: "Vilakazi Property Co.",
-    areas: ["Soweto", "Tembisa"],
-    rating: 4.6,
-    reviews: 41,
-    listings: 5,
-    responseTime: "2.4 h",
-    languages: ["Zulu", "Tsonga", "English"],
-    verified: false,
-  },
-  {
-    id: "ag6",
-    name: "Mxolisi Ndlovu",
-    init: "MN",
-    agency: "Kasi Spaces",
-    areas: ["Soweto", "Alexandra"],
-    rating: 4.7,
-    reviews: 77,
-    listings: 11,
-    responseTime: "1.9 h",
-    languages: ["Zulu", "Xhosa", "English"],
-    verified: true,
-  },
-];
+const AGENTS: AgentRow[] = [];
 
 const FILTERS = [
-  { id: "all", label: "All agents", count: 6 },
-  { id: "soweto", label: "Soweto", count: 4 },
-  { id: "inner", label: "Inner City", count: 2 },
+  { id: "all", label: "All agents", count: 0 },
+  { id: "soweto", label: "Soweto", count: 0 },
+  { id: "inner", label: "Inner City", count: 0 },
 ];
 
 const SORTS = [
@@ -178,6 +98,15 @@ export default function AgentBrowse() {
           <Tabs variant="segmented" tabs={SORTS} value={sort} onChange={setSort} />
         </div>
 
+        {AGENTS.length === 0 ? (
+          <Card padding={32}>
+            <EmptyState
+              icon="users"
+              title="No agents to compare"
+              description="Verified agents in your areas will appear here."
+            />
+          </Card>
+        ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
           {AGENTS.map((a) => (
             <Card key={a.id} padding={20} interactive style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -245,6 +174,7 @@ export default function AgentBrowse() {
             </Card>
           ))}
         </div>
+        )}
       </div>
     </div>
   );

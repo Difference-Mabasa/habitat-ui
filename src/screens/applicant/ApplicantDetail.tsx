@@ -13,20 +13,11 @@ import Photo from "@/components/Photo";
 import KeyValueRow from "@/components/KeyValueRow";
 import InlineLink from "@/components/InlineLink";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
+import EmptyState from "@/components/EmptyState";
 
-const SCORE_ITEMS = [
-  { label: "Affordability", value: 92, sub: "Income 4.1× rent" },
-  { label: "Credit", value: 78, sub: "1 closed account" },
-  { label: "Identity", value: 100, sub: "FICA + ID confirmed" },
-  { label: "Rental history", value: 70, sub: "1 ref pending" },
-];
+const SCORE_ITEMS: { label: string; value: number; sub?: string }[] = [];
 
-const DOCUMENTS: { name: string; file: string; ok: boolean; note?: string }[] = [
-  { name: "ID document", file: "id-sa.pdf", ok: true },
-  { name: "Payslips · 3 months", file: "payslips-q1.pdf", ok: true },
-  { name: "Bank statements · 3 months", file: "fnb-statements.pdf", ok: true },
-  { name: "Reference · Previous landlord", file: "reference-form.pdf", ok: false, note: "Awaiting response" },
-];
+const DOCUMENTS: { name: string; file: string; ok: boolean; note?: string }[] = [];
 
 export default function ApplicantDetail() {
   const ws = useWorkspace();
@@ -42,7 +33,7 @@ export default function ApplicantDetail() {
             size="sm"
             tone="slate"
           >
-            Applications · Studio · Melville
+            Applications
           </InlineLink>
         </div>
 
@@ -50,23 +41,16 @@ export default function ApplicantDetail() {
           <main>
             {/* Applicant header */}
             <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 32 }}>
-              <Avatar name="Sipho Dlamini" size="lg" />
+              <Avatar name="" size="lg" />
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                   <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.015em", margin: 0 }}>
-                    Sipho Dlamini
+                    Applicant
                   </h1>
-                  <Badge tone="success" leftIcon="check">
-                    FICA verified
-                  </Badge>
-                  <Badge tone="accent">Score 84</Badge>
+                  <Badge tone="neutral">Score 0</Badge>
                 </div>
                 <div style={{ fontSize: 13, color: "var(--slate)", display: "flex", gap: 12 }}>
-                  <span>34 yrs</span>
-                  <span>·</span>
-                  <span>Software engineer @ Discovery</span>
-                  <span>·</span>
-                  <span>Single, no pets</span>
+                  <span>—</span>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
@@ -93,35 +77,38 @@ export default function ApplicantDetail() {
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 20 }}>
                 <div style={{ fontSize: 16, fontWeight: 600 }}>Tenant score</div>
                 <div className="tabular" style={{ fontSize: 32, fontWeight: 600, letterSpacing: "-0.02em" }}>
-                  84<span style={{ fontSize: 14, color: "var(--slate)", fontWeight: 400 }}>/100</span>
+                  0<span style={{ fontSize: 14, color: "var(--slate)", fontWeight: 400 }}>/100</span>
                 </div>
               </div>
-              <ScoreBreakdown items={SCORE_ITEMS} />
+              {SCORE_ITEMS.length === 0 ? (
+                <EmptyState icon="shield" size="sm" title="No score yet" />
+              ) : (
+                <ScoreBreakdown items={SCORE_ITEMS} />
+              )}
             </Card>
 
             {/* Affordability */}
             <Card padding={24} style={{ marginBottom: 24 }}>
               <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Affordability</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-                <AffordabilityMetric label="Net monthly income" value="R 22,400" />
-                <AffordabilityMetric
-                  label="Rent ratio"
-                  value="24%"
-                  sub="Within healthy range"
-                  subTone="success"
-                />
-                <AffordabilityMetric label="3-month avg balance" value="R 8,200" />
+                <AffordabilityMetric label="Net monthly income" value="R 0" />
+                <AffordabilityMetric label="Rent ratio" value="—" />
+                <AffordabilityMetric label="3-month avg balance" value="R 0" />
               </div>
             </Card>
 
             {/* Documents */}
             <Card padding={24}>
               <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Documents</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {DOCUMENTS.map((d) => (
-                  <DocumentRow key={d.name} doc={d} />
-                ))}
-              </div>
+              {DOCUMENTS.length === 0 ? (
+                <EmptyState icon="doc" size="sm" title="No documents uploaded" />
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {DOCUMENTS.map((d) => (
+                    <DocumentRow key={d.name} doc={d} />
+                  ))}
+                </div>
+              )}
             </Card>
           </main>
 
@@ -129,19 +116,18 @@ export default function ApplicantDetail() {
           <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 12 }}>Applying for</Eyebrow>
-              <Photo ratio="16/10" label="studio · melville.jpg" style={{ borderRadius: 8, marginBottom: 12 }} />
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Studio · Melville</div>
+              <Photo ratio="16/10" label="" style={{ borderRadius: 8, marginBottom: 12 }} />
+              <div style={{ fontSize: 14, fontWeight: 600 }}>—</div>
               <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 12 }}>
-                32 m² · 1 bed · move 1 May
+                —
               </div>
-              <KeyValueRow label="Rent" value="R 5,400" divider size="sm" />
+              <KeyValueRow label="Rent" value="R 0" divider size="sm" />
             </Card>
 
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 12 }}>Cover note</Eyebrow>
               <p style={{ fontSize: 13, color: "var(--slate)", lineHeight: 1.6, margin: 0 }}>
-                "Hi Thandi — I'm looking for a quiet spot near work. I've been at my current place 4 years,
-                leaving because of relocation. Happy to do a video call if helpful."
+                —
               </p>
               <Link to="/inbox" style={{ textDecoration: "none" }}>
                 <Button

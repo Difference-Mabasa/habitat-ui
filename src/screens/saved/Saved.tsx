@@ -8,6 +8,7 @@ import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import PriceDisplay from "@/components/PriceDisplay";
 import Checkbox from "@/components/Checkbox";
+import EmptyState from "@/components/EmptyState";
 import SavedSearchCard, { type AlertChannel } from "@/components/SavedSearchCard";
 import { toast } from "@/lib/toast";
 
@@ -19,11 +20,7 @@ interface SearchRow {
   frequency: "Daily" | "Weekly";
 }
 
-const SEARCHES: SearchRow[] = [
-  { id: "s1", name: "Melville · 1 bed · under R5k", matches: 12, newCount: 3, frequency: "Daily" },
-  { id: "s2", name: "Brixton + Auckland Park · backrooms", matches: 7, newCount: 0, frequency: "Weekly" },
-  { id: "s3", name: "Pet-friendly · Northcliff", matches: 4, newCount: 1, frequency: "Daily" },
-];
+const SEARCHES: SearchRow[] = [];
 
 type NoteTone = "accent" | "success" | "warn" | "neutral";
 
@@ -36,14 +33,7 @@ interface WishlistItem {
   selected?: boolean;
 }
 
-const WISHLIST: WishlistItem[] = [
-  { id: "w1", name: "Sunlit cottage · Caroline", price: 4400, note: "Viewing booked Sat 11am", noteTone: "accent", selected: true },
-  { id: "w2", name: "Studio · Melville", price: 5400, note: "Application in progress", noteTone: "neutral", selected: true },
-  { id: "w3", name: "Garden flatlet · Brixton", price: 5200, note: "Drop in price · was R5,500", noteTone: "success" },
-  { id: "w4", name: "Backroom · Yeoville", price: 3800, noteTone: "neutral" },
-  { id: "w5", name: "Loft · Maboneng", price: 7800, note: "Let — saved for ref.", noteTone: "warn" },
-  { id: "w6", name: "Cottage · Norwood", price: 6200, note: "Application declined", noteTone: "warn" },
-];
+const WISHLIST: WishlistItem[] = [];
 
 const NOTE_STYLE: Record<NoteTone, { bg: string; color: string }> = {
   accent: { bg: "color-mix(in oklch, var(--accent) 8%, transparent)", color: "var(--accent)" },
@@ -58,11 +48,7 @@ interface SearchAlertState {
 }
 
 export default function Saved() {
-  const [alertsState, setAlertsState] = useState<Record<string, SearchAlertState>>(() => ({
-    s1: { on: true,  channels: new Set<AlertChannel>(["email", "push"]) },
-    s2: { on: true,  channels: new Set<AlertChannel>(["email"]) },
-    s3: { on: false, channels: new Set<AlertChannel>(["email"]) },
-  }));
+  const [alertsState, setAlertsState] = useState<Record<string, SearchAlertState>>({});
 
   const setAlerts = (id: string, on: boolean) => {
     setAlertsState((prev) => ({ ...prev, [id]: { ...prev[id], on } }));
@@ -107,24 +93,28 @@ export default function Saved() {
               New search
             </Button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-            {SEARCHES.map((s) => {
-              const state = alertsState[s.id];
-              return (
-                <SavedSearchCard
-                  key={s.id}
-                  name={s.name}
-                  matchCount={s.matches}
-                  newCount={s.newCount}
-                  alertFrequency={s.frequency}
-                  alertsOn={state?.on ?? true}
-                  channels={state?.channels}
-                  onToggleAlerts={(next) => setAlerts(s.id, next)}
-                  onToggleChannel={(ch) => toggleChannel(s.id, ch)}
-                />
-              );
-            })}
-          </div>
+          {SEARCHES.length === 0 ? (
+            <EmptyState icon="bell" title="No saved searches" />
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+              {SEARCHES.map((s) => {
+                const state = alertsState[s.id];
+                return (
+                  <SavedSearchCard
+                    key={s.id}
+                    name={s.name}
+                    matchCount={s.matches}
+                    newCount={s.newCount}
+                    alertFrequency={s.frequency}
+                    alertsOn={state?.on ?? true}
+                    channels={state?.channels}
+                    onToggleAlerts={(next) => setAlerts(s.id, next)}
+                    onToggleChannel={(ch) => toggleChannel(s.id, ch)}
+                  />
+                );
+              })}
+            </div>
+          )}
         </section>
 
         {/* Wishlist */}
@@ -149,6 +139,9 @@ export default function Saved() {
               </Button>
             </div>
           </div>
+          {WISHLIST.length === 0 ? (
+            <EmptyState icon="heart" title="Your wishlist is empty" />
+          ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
             {WISHLIST.map((w) => {
               const noteStyle = NOTE_STYLE[w.noteTone];
@@ -215,6 +208,7 @@ export default function Saved() {
               );
             })}
           </div>
+          )}
         </section>
       </div>
     </TenantShell>

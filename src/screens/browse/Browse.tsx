@@ -18,24 +18,10 @@ import FilterBar, { FilterDivider, LocationFilter } from "@/components/FilterBar
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import MapPanel from "./MapPanel";
 
-const LISTINGS: PropertyCardData[] = [
-  { id: "l0", title: "Sunlit Backroom", area: "Brixton, JHB", price: 4200, beds: 1, baths: 1, sqm: 22, type: "Backroom", tag: "New" },
-  { id: "l1", title: "Garden Cottage", area: "Westdene, JHB", price: 6800, beds: 2, baths: 1, sqm: 48, type: "Cottage", tag: "Verified" },
-  { id: "l2", title: "Studio Flatlet", area: "Melville, JHB", price: 5400, beds: 1, baths: 1, sqm: 32, type: "Flatlet", tag: "Open house Sat" },
-  { id: "l3", title: "Quiet Backroom", area: "Yeoville, JHB", price: 3200, beds: 1, baths: 1, sqm: 18, type: "Backroom" },
-  { id: "l4", title: "Modern Studio", area: "Auckland Park, JHB", price: 7100, beds: 1, baths: 1, sqm: 38, type: "Flatlet", tag: "Pet friendly" },
-  { id: "l5", title: "Family Cottage", area: "Northcliff, JHB", price: 9800, beds: 2, baths: 2, sqm: 64, type: "Cottage" },
-];
+const LISTINGS: PropertyCardData[] = [];
 
 // JHB suburb centroids (approximate) — feeds the real MapLibre canvas.
-const PIN_POSITIONS = [
-  { id: "l0", lat: -26.196, lng: 28.012, xPct: 22, yPct: 30 }, // Brixton
-  { id: "l1", lat: -26.178, lng: 27.985, xPct: 55, yPct: 22 }, // Westdene
-  { id: "l2", lat: -26.176, lng: 27.999, xPct: 38, yPct: 48 }, // Melville
-  { id: "l3", lat: -26.183, lng: 28.058, xPct: 70, yPct: 60 }, // Yeoville
-  { id: "l4", lat: -26.187, lng: 28.001, xPct: 30, yPct: 70 }, // Auckland Park
-  { id: "l5", lat: -26.149, lng: 27.953, xPct: 62, yPct: 38 }, // Northcliff
-];
+const PIN_POSITIONS: { id: string; lat: number; lng: number; xPct?: number; yPct?: number }[] = [];
 
 const TYPES = ["Backroom", "Cottage", "Flatlet", "Studio"];
 
@@ -65,8 +51,8 @@ export default function Browse() {
   // On phone, force list view; on tablet, force split-with-narrower-map.
   const [view, setView] = useState<ViewMode>("split");
   const effectiveView: ViewMode = isSm ? "list" : view;
-  const [active, setActive] = useState<string | null>("l2");
-  const [savedSet, setSavedSet] = useState<Set<string>>(new Set(["l0", "l4"]));
+  const [active, setActive] = useState<string | null>(null);
+  const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
 
   // All filters are URL-driven so the state survives reload and is shareable.
   const areaSet = useMemo(() => parseCsvSet(params.get("location") ?? params.get("areas")), [params]);

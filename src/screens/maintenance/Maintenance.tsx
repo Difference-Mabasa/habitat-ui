@@ -6,6 +6,7 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 import Photo from "@/components/Photo";
 import FormField from "@/components/FormField";
 import Select from "@/components/Select";
@@ -26,11 +27,7 @@ interface Ticket {
   done?: boolean;
 }
 
-const TICKETS: Ticket[] = [
-  { id: "MNT-0421", title: "Geyser leaking into ceiling", property: "Studio · Melville", urgency: "Urgent", stage: 2, opened: "2h ago", contractor: "PlumberPro · Sipho M.", eta: "Today 16:00" },
-  { id: "MNT-0419", title: "Front door latch sticking", property: "Studio · Melville", urgency: "Low", stage: 1, opened: "Yesterday", contractor: "Awaiting quote", eta: "—" },
-  { id: "MNT-0398", title: "Electric stove element burnt out", property: "Studio · Melville", urgency: "Medium", stage: 3, opened: "5 days ago", contractor: "Lebo Electric", eta: "Resolved 12 Mar", done: true },
-];
+const TICKETS: Ticket[] = [];
 
 const STAGES = ["Reported", "Triaged", "Scheduled", "Resolved"];
 const URGENCY_BADGE: Record<Urgency, "warn" | "accent" | "neutral"> = {
@@ -62,6 +59,15 @@ export default function Maintenance() {
 
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 380px", gap: 32 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {TICKETS.length === 0 ? (
+              <Card padding={20}>
+                <EmptyState
+                  icon="settings"
+                  title="No maintenance tickets"
+                  description="Report a problem and we'll route it to the right contractor."
+                />
+              </Card>
+            ) : null}
             {TICKETS.map((tk) => (
               <Card key={tk.id} padding={20} style={{ opacity: tk.done ? 0.7 : 1 }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>

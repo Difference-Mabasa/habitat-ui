@@ -5,6 +5,7 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 import PriceDisplay from "@/components/PriceDisplay";
 import AgentCard from "@/components/AgentCard";
 import KpiTile from "@/components/KpiTile";
@@ -24,17 +25,9 @@ interface MaintenanceRow {
   tone: "warn" | "accent" | "success";
 }
 
-const PAYMENTS: PaymentRow[] = [
-  { date: "1 Apr 2026", amount: "R 6,800", status: "paid" },
-  { date: "1 Mar 2026", amount: "R 6,800", status: "paid" },
-  { date: "28 Feb 2026", amount: "R 6,800", status: "paid", sub: "Deposit" },
-];
+const PAYMENTS: PaymentRow[] = [];
 
-const MAINTENANCE: MaintenanceRow[] = [
-  { title: "Geyser leaking under kitchen sink", status: "In progress", date: "Logged 3 Apr", tone: "warn" },
-  { title: "Replace window seal — bedroom", status: "Scheduled", date: "Visit 12 Apr", tone: "accent" },
-  { title: "Touch-up paint in lounge", status: "Completed", date: "Closed 28 Mar", tone: "success" },
-];
+const MAINTENANCE: MaintenanceRow[] = [];
 
 export default function TenantPortal() {
   return (
@@ -50,15 +43,15 @@ export default function TenantPortal() {
                 margin: "8px 0 0",
               }}
             >
-              Welcome home, Naledi
+              Welcome home
             </h1>
           </header>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-            <KpiTile label="Active lease" value="Garden Cottage" subText="ends 29 Feb 2027" />
-            <KpiTile label="Next rent due" value="R 6,800" subText="in 4 days · 1 May" valueTone="accent" />
-            <KpiTile label="Open maintenance" value="2" subText="1 urgent" subTone="warn" />
-            <KpiTile label="Upcoming viewings" value="2" subText="Sat 24 · Wed 21" />
+            <KpiTile label="Active lease" value="—" />
+            <KpiTile label="Next rent due" value="R 0" />
+            <KpiTile label="Open maintenance" value="0" />
+            <KpiTile label="Upcoming viewings" value="0" />
           </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 24 }}>
@@ -67,16 +60,16 @@ export default function TenantPortal() {
             <div style={{ display: "flex" }}>
               <Photo
                 ratio="auto"
-                label="2-bed cottage · brixton.jpg"
+                label=""
                 style={{ borderRadius: 0, width: 240, height: "auto", flexShrink: 0 }}
               />
               <div style={{ padding: 24, flex: 1 }}>
                 <Eyebrow style={{ marginBottom: 8 }}>Current home</Eyebrow>
                 <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em", marginBottom: 4 }}>
-                  Garden Cottage · Brixton
+                  —
                 </div>
                 <div style={{ fontSize: 13, color: "var(--slate)", marginBottom: 20 }}>
-                  12 Caroline St, Brixton · since 1 Mar 2026
+                  No active lease
                 </div>
                 <div
                   style={{
@@ -87,16 +80,16 @@ export default function TenantPortal() {
                     borderTop: "1px solid var(--hairline)",
                   }}
                 >
-                  <MiniStat label="Lease ends" value="29 Feb 2027" />
-                  <MiniStat label="Rent" value="R 6,800" />
-                  <MiniStat label="Next due" value="1 May" />
+                  <MiniStat label="Lease ends" value="—" />
+                  <MiniStat label="Rent" value="R 0" />
+                  <MiniStat label="Next due" value="—" />
                 </div>
               </div>
             </div>
             <div style={{ display: "flex", borderTop: "1px solid var(--hairline)" }}>
-              <ActionTile to="/payment" icon="cash" title="Pay rent" subtitle="Due in 4 days" />
+              <ActionTile to="/payment" icon="cash" title="Pay rent" subtitle="—" />
               <ActionTile to="/maintenance" icon="bolt" title="Report issue" subtitle="24h response" />
-              <ActionTile to="/lease" icon="paper" title="View lease" subtitle="Signed 28 Feb" />
+              <ActionTile to="/lease" icon="paper" title="View lease" subtitle="—" />
               <ActionTile to="/move-out" icon="key" title="Move out" subtitle="Inspection & handover" last />
             </div>
           </Card>
@@ -106,19 +99,23 @@ export default function TenantPortal() {
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 20 }}>
               <div>
                 <Eyebrow style={{ marginBottom: 6 }}>Next payment</Eyebrow>
-                <PriceDisplay amount={6800} period="" size="lg" />
+                <PriceDisplay amount={0} period="" size="lg" />
                 <div style={{ fontSize: 13, color: "var(--slate)", marginTop: 4 }}>
-                  Due 1 May 2026 · debit order
+                  —
                 </div>
               </div>
-              <Badge tone="accent">Auto-pay on</Badge>
+              <Badge tone="neutral">Auto-pay off</Badge>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 24 }}>
-              {PAYMENTS.map((p) => (
-                <PayRow key={p.date} payment={p} />
-              ))}
-            </div>
+            {PAYMENTS.length === 0 ? (
+              <EmptyState icon="cash" size="sm" title="No payments yet" />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 24 }}>
+                {PAYMENTS.map((p) => (
+                  <PayRow key={p.date} payment={p} />
+                ))}
+              </div>
+            )}
 
             <Link to="/statements" style={{ textDecoration: "none" }}>
               <Button
@@ -127,7 +124,7 @@ export default function TenantPortal() {
                 rightIcon="chevR"
                 style={{ width: "100%", marginTop: 12, justifyContent: "center" }}
               >
-                View all 14 payments
+                View statements
               </Button>
             </Link>
           </Card>
@@ -154,20 +151,24 @@ export default function TenantPortal() {
                 </Button>
               </Link>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {MAINTENANCE.map((m) => (
-                <MaintRow key={m.title} item={m} />
-              ))}
-            </div>
+            {MAINTENANCE.length === 0 ? (
+              <EmptyState icon="bolt" size="sm" title="No open requests" />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {MAINTENANCE.map((m) => (
+                  <MaintRow key={m.title} item={m} />
+                ))}
+              </div>
+            )}
           </Card>
 
           <Card padding={24}>
             <Eyebrow style={{ marginBottom: 16 }}>Your landlord</Eyebrow>
             <AgentCard
               variant="stacked"
-              name="Thandi Mokoena"
-              role="Lives in main house"
-              responseTime="responds in ~2 hrs"
+              name=""
+              role="Landlord"
+              responseTime=""
               actions={
                 <>
                   <Link to="/inbox" style={{ flex: 1, textDecoration: "none" }}>

@@ -2,13 +2,10 @@ import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Button from "@/components/Button";
 import PageHeader from "@/components/PageHeader";
+import EmptyState from "@/components/EmptyState";
 import ComparisonTable, { type CompareProperty } from "./ComparisonTable";
 
-const PROPERTIES: CompareProperty[] = [
-  { id: "cmp1", name: "Sunlit cottage · Caroline", price: 4400, beds: 1, baths: 1, sqm: 38, distance: "1.2km", solar: true, petFriendly: true, parking: true, fibre: false, score: 86 },
-  { id: "cmp2", name: "Studio · Melville", price: 5400, beds: 1, baths: 1, sqm: 32, distance: "0.4km", solar: false, petFriendly: false, parking: true, fibre: true, score: 91 },
-  { id: "cmp3", name: "Garden flatlet · Brixton", price: 5200, beds: 1, baths: 1, sqm: 44, distance: "2.8km", solar: true, petFriendly: true, parking: false, fibre: true, score: 78 },
-];
+const PROPERTIES: CompareProperty[] = [];
 
 export default function Compare() {
   return (
@@ -17,7 +14,7 @@ export default function Compare() {
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
         <PageHeader
           eyebrow="Side by side"
-          title="Compare 3 spots"
+          title={`Compare ${PROPERTIES.length} spots`}
           actions={
             <>
               <Button variant="ghost" size="sm" leftIcon="download">
@@ -31,7 +28,20 @@ export default function Compare() {
             </>
           }
         />
-        <ComparisonTable properties={PROPERTIES} />
+        {PROPERTIES.length === 0 ? (
+          <EmptyState
+            icon="search"
+            title="Nothing to compare yet"
+            description="Add spots from your saved list or browse to compare them side by side."
+            actions={
+              <Link to="/browse" style={{ textDecoration: "none" }}>
+                <Button variant="accent" leftIcon="search">Browse listings</Button>
+              </Link>
+            }
+          />
+        ) : (
+          <ComparisonTable properties={PROPERTIES} />
+        )}
       </div>
     </div>
   );

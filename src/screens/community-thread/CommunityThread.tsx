@@ -11,6 +11,7 @@ import Badge from "@/components/Badge";
 import Avatar from "@/components/Avatar";
 import InlineLink from "@/components/InlineLink";
 import MessageBubble from "@/components/MessageBubble";
+import EmptyState from "@/components/EmptyState";
 
 interface CommunityProfile {
   id: string;
@@ -24,67 +25,41 @@ interface CommunityProfile {
   myRole: "admin" | "moderator" | "member" | null;
 }
 
-const PROFILES: Record<string, CommunityProfile> = {
-  c2: {
-    id: "c2",
-    name: "Brixton Renters",
-    area: "Brixton",
-    type: "Area",
-    members: 184,
-    online: 12,
-    description: "Two-year-old neighbourhood network. Pet-sitting, second-hand furniture, loadshedding tips.",
-    joined: true,
-    myRole: "moderator",
-  },
-  c3: {
-    id: "c3",
-    name: "Caroline Cottages",
-    area: "Brixton",
-    type: "Building",
-    members: 67,
-    online: 4,
-    description: "Three-property cottage cluster on Caroline St. Garden duties roster, shared braai bookings.",
-    joined: true,
-    myRole: "member",
-  },
-  c4: {
-    id: "c4",
-    name: "Yeoville Backrooms",
-    area: "Yeoville",
-    type: "Area",
-    members: 421,
-    online: 28,
-    description: "Backroom and bachelor flat tenants across Yeoville. Active classifieds, hood watch alerts.",
-    joined: false,
-    myRole: null,
-  },
+const PROFILES: Record<string, CommunityProfile> = {};
+
+const DEFAULT_PROFILE: CommunityProfile = {
+  id: "",
+  name: "Community",
+  area: "—",
+  type: "Area",
+  members: 0,
+  online: 0,
+  description: "",
+  joined: false,
+  myRole: null,
 };
 
-const MESSAGES = [
-  { id: "m1", name: "Lerato P.", time: "Yesterday", body: "Anyone using BetterBond's tenant insurance? Worth it for backroom-sized policies?", older: true },
-  { id: "m2", name: "Mandla K.", time: "9:14", body: "Heads up — water shutoff on Caroline St tomorrow 09:00–14:00. Council notice attached.", hasMedia: true, pinned: true },
-  { id: "m3", name: "You", time: "9:42", body: "Thanks Mandla. Anyone planning a Saturday braai? I've got a spare gazebo.", own: true },
-  { id: "m4", name: "Aisha B.", time: "10:02", body: "I'm in. Bringing the meat if someone handles drinks." },
-  { id: "m5", name: "Sipho D.", time: "10:18", body: "Drinks on me. Will bring a backup gas burner in case the power goes." },
-];
+interface ThreadMessage {
+  id: string;
+  name: string;
+  time: string;
+  body: string;
+  own?: boolean;
+  pinned?: boolean;
+  older?: boolean;
+  hasMedia?: boolean;
+}
 
-const MEMBERS: { init: string; name: string; role: "admin" | "moderator" | "member" }[] = [
-  { init: "LP", name: "Lerato P.", role: "admin" },
-  { init: "MK", name: "Mandla K.", role: "moderator" },
-  { init: "SD", name: "Sipho D.", role: "moderator" },
-  { init: "AB", name: "Aisha B.", role: "member" },
-  { init: "NJ", name: "Nthabi J.", role: "member" },
-  { init: "RT", name: "Ravi T.", role: "member" },
-  { init: "KZ", name: "Kabelo Z.", role: "member" },
-  { init: "MM", name: "Mxolisi M.", role: "member" },
-];
+const MESSAGES: ThreadMessage[] = [];
+
+const MEMBERS: { init: string; name: string; role: "admin" | "moderator" | "member" }[] = [];
 
 const ROLE_TONE = { admin: "danger", moderator: "accent", member: "neutral" } as const;
 
 export default function CommunityThread() {
   const [params] = useSearchParams();
-  const id = params.get("id") ?? "c2";
-  const community = PROFILES[id] ?? PROFILES.c2;
+  const id = params.get("id") ?? "";
+  const community = PROFILES[id] ?? DEFAULT_PROFILE;
   const [hovered, setHovered] = useState<string | null>(null);
   const showAdmin = community.myRole === "admin" || community.myRole === "moderator";
 
@@ -167,11 +142,21 @@ export default function CommunityThread() {
               gap: 12,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <Button variant="ghost" size="sm" leftIcon="chevU">
-                Load older messages
-              </Button>
-            </div>
+            {MESSAGES.length === 0 ? (
+              <EmptyState
+                icon="chat"
+                title="No messages yet"
+                description="Start the conversation."
+              />
+            ) : null}
+
+            {MESSAGES.length > 0 ? (
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <Button variant="ghost" size="sm" leftIcon="chevU">
+                  Load older messages
+                </Button>
+              </div>
+            ) : null}
 
             {MESSAGES.map((m) => (
               <div
@@ -291,10 +276,10 @@ export default function CommunityThread() {
             <Card padding={14}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <Eyebrow>Join requests</Eyebrow>
-                <Badge tone="warn">2</Badge>
+                <Badge tone="neutral">0</Badge>
               </div>
               <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 8 }}>
-                Sipho Dlamini, Naledi Khumalo
+                No pending requests.
               </div>
               <Link to="/communities" style={{ color: "var(--accent)", fontSize: 12, fontWeight: 600 }}>
                 Review →

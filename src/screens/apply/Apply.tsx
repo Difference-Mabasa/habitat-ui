@@ -69,23 +69,19 @@ interface UnitSummary {
   photoLabel: string;
 }
 
-const UNIT_LOOKUP: Record<string, UnitSummary> = {
-  u1: { id: "u1", name: "Backroom A", property: "Sunlit Property · Caroline", type: "Backroom", beds: 1, baths: 1, sqm: 22, price: 4200, deposit: 4200, photoLabel: "backroom-a · entrance" },
-  u2: { id: "u2", name: "Backroom B", property: "Sunlit Property · Caroline", type: "Backroom", beds: 1, baths: 1, sqm: 24, price: 4400, deposit: 4400, photoLabel: "backroom-b · entrance" },
-  u3: { id: "u3", name: "Garden Cottage", property: "Sunlit Property · Caroline", type: "Cottage", beds: 2, baths: 1, sqm: 48, price: 6800, deposit: 6800, photoLabel: "cottage · facade" },
-};
+const UNIT_LOOKUP: Record<string, UnitSummary> = {};
 
 const DEFAULT_UNIT: UnitSummary = {
   id: "default",
-  name: "Studio Flatlet · Melville",
-  property: "Studio · Melville",
-  type: "Flatlet",
-  beds: 1,
-  baths: 1,
-  sqm: 32,
-  price: 5400,
-  deposit: 5400,
-  photoLabel: "studio · melville.jpg",
+  name: "Unit",
+  property: "—",
+  type: "",
+  beds: 0,
+  baths: 0,
+  sqm: 0,
+  price: 0,
+  deposit: 0,
+  photoLabel: "",
 };
 
 export default function Apply() {
@@ -106,21 +102,19 @@ export default function Apply() {
   const isFinalStep = step === STEPS.length - 1;
 
   // Shared form state — surfaced in Review.
-  const [fullName, setFullName] = useState("Sipho Dlamini");
-  const [email, setEmail] = useState("sipho@discovery.co.za");
-  const [phone, setPhone] = useState("+27 82 184 4421");
-  const [dob, setDob] = useState("1985-05-12");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
   const [employment, setEmployment] = useState("EMPLOYED");
-  const [employer, setEmployer] = useState("Discovery Health");
-  const [household, setHousehold] = useState("2");
+  const [employer, setEmployer] = useState("");
+  const [household, setHousehold] = useState("1");
   const [pets, setPets] = useState("none");
-  const [income, setIncome] = useState("28000");
-  const [otherIncome, setOtherIncome] = useState("0");
-  const [expenses, setExpenses] = useState("9400");
+  const [income, setIncome] = useState("");
+  const [otherIncome, setOtherIncome] = useState("");
+  const [expenses, setExpenses] = useState("");
   const [bankConnected, setBankConnected] = useState(false);
-  const [message, setMessage] = useState(
-    "Hi Thandi — I work for Discovery Health, hybrid in Sandton. Quiet professional, no pets, looking for a 1-year lease. Available to view Sat afternoon if it suits.",
-  );
+  const [message, setMessage] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptCredit, setAcceptCredit] = useState(false);
   const [addCosigner, setAddCosigner] = useState(false);
@@ -227,7 +221,7 @@ export default function Apply() {
             <StepHeader
               eyebrow="Step 5 of 5"
               title="Review and submit"
-              subtitle="Final pass before we send your application to Thandi. You can withdraw any time before she opens it."
+              subtitle="Final pass before we send your application to the landlord. You can withdraw any time before they open it."
             />
           )}
 
@@ -402,7 +396,7 @@ export default function Apply() {
                   <>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                       <FormField label="Full name" required>
-                        <Input value={cosignerName} onChange={(e) => setCosignerName(e.target.value)} placeholder="Lerato Dlamini" />
+                        <Input value={cosignerName} onChange={(e) => setCosignerName(e.target.value)} placeholder="Full name" />
                       </FormField>
                       <FormField label="Relationship" required>
                         <Select
@@ -422,7 +416,7 @@ export default function Apply() {
                           type="email"
                           value={cosignerEmail}
                           onChange={(e) => setCosignerEmail(e.target.value)}
-                          placeholder="lerato@example.co.za"
+                          placeholder="name@example.co.za"
                         />
                       </FormField>
                       <FormField label="Mobile" required helper="We text them a one-tap consent link.">
@@ -447,8 +441,8 @@ export default function Apply() {
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
                 <DocumentStatusRow
                   name="SA ID / Passport"
-                  status="verified"
-                  subText="SA_ID · matched home affairs · 28 Mar 2026"
+                  status="empty"
+                  subText="SA_ID"
                 />
                 <DocumentStatusRow
                   name="Passport (non-SA citizens)"
@@ -457,8 +451,8 @@ export default function Apply() {
                 />
                 <DocumentStatusRow
                   name="Payslips · last 3 months"
-                  status="uploaded"
-                  subText="PAYSLIPS_3M · payslip-march.pdf · 2.4 MB · +2 more"
+                  status="empty"
+                  subText="PAYSLIPS_3M · PDF · max 10 MB"
                 />
                 <DocumentStatusRow
                   name="Bank statements · last 3 months"
@@ -468,8 +462,8 @@ export default function Apply() {
                 />
                 <DocumentStatusRow
                   name="Employment letter"
-                  status="uploaded"
-                  subText="EMPLOYMENT_LETTER · discovery-letter.pdf · 142 KB"
+                  status="empty"
+                  subText="EMPLOYMENT_LETTER · PDF"
                 />
                 <DocumentStatusRow
                   name="Proof of address"
@@ -483,8 +477,8 @@ export default function Apply() {
                 />
                 <DocumentStatusRow
                   name="Previous landlord reference"
-                  status="uploaded"
-                  subText="LANDLORD_REFERENCE · auto-requested from Mxolisi N. · received 14 Mar"
+                  status="empty"
+                  subText="LANDLORD_REFERENCE"
                 />
                 <DocumentStatusRow
                   name="Other (optional)"
@@ -503,7 +497,7 @@ export default function Apply() {
           {step === 3 ? (
             <Card padding={24}>
               <FormField
-                label="Note to Thandi"
+                label="Note to the landlord"
                 helper={`${message.length} / 600 characters · keep it short, plain, and specific.`}
               >
                 <Textarea
@@ -589,10 +583,10 @@ export default function Apply() {
 
               <Card padding={24}>
                 <Eyebrow style={{ marginBottom: 12 }}>Documents</Eyebrow>
-                <KeyValueRow label="Required uploaded" value="5 of 7" tone="accent" divider />
+                <KeyValueRow label="Required uploaded" value="0 of 7" tone="accent" divider />
                 <KeyValueRow
                   label="Missing"
-                  value="Bank statements · Proof of address · Credit consent"
+                  value="—"
                   tone="warn"
                   divider={false}
                 />

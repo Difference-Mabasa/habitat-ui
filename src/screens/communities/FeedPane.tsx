@@ -16,7 +16,7 @@ import { POSTS, USERS, userById, type FeedPost } from "./feedData";
 
 type FeedSubTab = "for_you" | "following" | "local";
 
-const DEFAULT_USER_AREA = "Brixton";
+const DEFAULT_USER_AREA = "your area";
 
 export default function FeedPane() {
   const [params, setParams] = useSearchParams();
@@ -37,8 +37,8 @@ export default function FeedPane() {
     return POSTS;
   }, [sub]);
 
-  const suggested = useMemo(() => USERS.filter((u) => u.id !== "u-sipho").slice(0, 4), []);
-  const trendingAreas = ["Brixton", "Yeoville", "Maboneng", "Westdene", "Orlando West"];
+  const suggested = useMemo(() => USERS.slice(0, 4), []);
+  const trendingAreas: string[] = [];
 
   return (
     <>
@@ -52,7 +52,7 @@ export default function FeedPane() {
         <main>
           {/* Compose strip */}
           <Card padding={16} style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
-            <Avatar name="Sipho Dlamini" size="md" tone="neutral" />
+            <Avatar name="" size="md" tone="neutral" />
             <button
               type="button"
               onClick={() => setComposeOpen(true)}

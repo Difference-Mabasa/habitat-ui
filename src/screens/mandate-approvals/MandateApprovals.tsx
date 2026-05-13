@@ -11,6 +11,7 @@ import PageHeader from "@/components/PageHeader";
 import KpiTile from "@/components/KpiTile";
 import KeyValueRow from "@/components/KeyValueRow";
 import Alert from "@/components/Alert";
+import EmptyState from "@/components/EmptyState";
 
 type ApprovalState = "pending" | "approved" | "rejected" | "revoked";
 
@@ -28,65 +29,14 @@ interface MandateRequest {
   notes?: string;
 }
 
-const REQUESTS: MandateRequest[] = [
-  {
-    id: "ma1",
-    agency: "Vilakazi Property Co.",
-    agencyInit: "VPC",
-    agent: "Naledi Mokoena",
-    property: "Backroom · Vilakazi St, Orlando West",
-    scope: "Full management",
-    fee: "8% of monthly rent",
-    duration: "12 months",
-    requested: "3 hours ago",
-    state: "pending",
-    notes: "Includes monthly statements + maintenance triage. Trust account audited Mar 2026.",
-  },
-  {
-    id: "ma2",
-    agency: "Lebo Properties",
-    agencyInit: "LP",
-    agent: "Thabo K.",
-    property: "Garden Flatlet · Brixton",
-    scope: "Tenant find only",
-    fee: "1 month rent (once-off)",
-    duration: "Until let",
-    requested: "1 day ago",
-    state: "pending",
-  },
-  {
-    id: "ma3",
-    agency: "Inner City Lets",
-    agencyInit: "IC",
-    agent: "Pieter v.d.B.",
-    property: "Loft · Maboneng",
-    scope: "Letting & inspections",
-    fee: "6% + R 250 / inspection",
-    duration: "24 months",
-    requested: "5 days ago",
-    state: "approved",
-  },
-  {
-    id: "ma4",
-    agency: "North Joburg Realty",
-    agencyInit: "NJ",
-    agent: "Susan B.",
-    property: "Studio · Killarney",
-    scope: "Full management",
-    fee: "10% of monthly rent",
-    duration: "12 months",
-    requested: "1 week ago",
-    state: "rejected",
-    notes: "Rejected — fee structure not aligned. Owner countered at 7.5%.",
-  },
-];
+const REQUESTS: MandateRequest[] = [];
 
 const FILTERS: { id: ApprovalState | "all"; label: string; count: number }[] = [
-  { id: "pending", label: "Pending", count: 2 },
-  { id: "approved", label: "Approved", count: 1 },
-  { id: "rejected", label: "Rejected", count: 1 },
+  { id: "pending", label: "Pending", count: 0 },
+  { id: "approved", label: "Approved", count: 0 },
+  { id: "rejected", label: "Rejected", count: 0 },
   { id: "revoked", label: "Revoked", count: 0 },
-  { id: "all", label: "All", count: 4 },
+  { id: "all", label: "All", count: 0 },
 ];
 
 const STATE_BADGE: Record<ApprovalState, { tone: "neutral" | "success" | "warn" | "danger" | "accent"; label: string }> = {
@@ -110,10 +60,10 @@ export default function MandateApprovals() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
-          <KpiTile label="Pending" value="2" valueTone="warn" subText="oldest: 1 day" />
-          <KpiTile label="Approved · YTD" value="6" valueTone="success" />
-          <KpiTile label="Avg. response time" value="14 h" subText="across all requests" />
-          <KpiTile label="Active mandates" value="3" subText="of 4 properties" />
+          <KpiTile label="Pending" value="0" subText="—" />
+          <KpiTile label="Approved · YTD" value="0" />
+          <KpiTile label="Avg. response time" value="—" subText="—" />
+          <KpiTile label="Active mandates" value="0" subText="—" />
         </div>
 
         <Alert tone="info" title="Before you approve">
@@ -129,6 +79,13 @@ export default function MandateApprovals() {
           />
         </div>
 
+        {rows.length === 0 ? (
+          <EmptyState
+            icon="check"
+            title="No mandate requests"
+            description="Approval requests from agencies wanting to manage your properties will appear here."
+          />
+        ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {rows.map((r) => {
             const badge = STATE_BADGE[r.state];
@@ -208,6 +165,7 @@ export default function MandateApprovals() {
             );
           })}
         </div>
+        )}
       </div>
     </LandlordShell>
   );

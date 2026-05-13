@@ -69,32 +69,7 @@ const DOC_TYPES: { id: string; label: string; required: boolean }[] = [
   { id: "LANDLORD_REFERENCE", label: "Previous landlord reference", required: false },
 ];
 
-const INITIAL_UNITS: UnitDraft[] = [
-  {
-    id: "u1",
-    title: "Backroom A",
-    type: "Backroom",
-    beds: 1,
-    baths: 1,
-    sqm: 22,
-    rent: 4200,
-    deposit: 4200,
-    availableFrom: "Available now",
-    photos: 5,
-  },
-  {
-    id: "u2",
-    title: "Backroom B",
-    type: "Backroom",
-    beds: 1,
-    baths: 1,
-    sqm: 24,
-    rent: 4400,
-    deposit: 4400,
-    availableFrom: "Available now",
-    photos: 5,
-  },
-];
+const INITIAL_UNITS: UnitDraft[] = [];
 
 interface ListingDraft {
   propertyName: string;
@@ -111,61 +86,7 @@ interface ListingDraft {
   landlordEmail: string;
 }
 
-const LISTING_LOOKUP: Record<string, ListingDraft> = {
-  p1: {
-    propertyName: "Sunlit Property · Caroline",
-    propertyType: "FREESTANDING",
-    street: "12 Caroline St",
-    suburb: "Brixton",
-    city: "Johannesburg",
-    postcode: "2092",
-    description:
-      "A quiet, walled property on a leafy stretch of Caroline Street with three rentable units sharing a north-facing garden and laundry yard.",
-    amenities: ["Fibre ready", "Walled / gated", "Garden"],
-    units: INITIAL_UNITS,
-    mandateType: "FULL_MANAGEMENT",
-    agencyFee: "8",
-    landlordEmail: "thandi@example.co.za",
-  },
-  p2: {
-    propertyName: "Garden Cottages",
-    propertyType: "COTTAGE_GROUP",
-    street: "44 Lewis St",
-    suburb: "Westdene",
-    city: "Johannesburg",
-    postcode: "2092",
-    description:
-      "Four detached garden cottages sharing a walled, pet-friendly garden. Each has its own entrance, prepaid electricity, and a small private patio.",
-    amenities: ["Pet friendly", "Garden", "Prepaid electricity", "Walled / gated"],
-    units: [
-      { id: "u1", title: "Cottage 1", type: "Cottage", beds: 1, baths: 1, sqm: 32, rent: 5400, deposit: 5400, availableFrom: "Available now", photos: 6 },
-      { id: "u2", title: "Cottage 2", type: "Cottage", beds: 1, baths: 1, sqm: 32, rent: 5400, deposit: 5400, availableFrom: "Available now", photos: 6 },
-      { id: "u3", title: "Cottage 3", type: "Cottage", beds: 1, baths: 1, sqm: 34, rent: 5400, deposit: 5400, availableFrom: "Available 1 Jun", photos: 5 },
-      { id: "u4", title: "Cottage 4", type: "Cottage", beds: 1, baths: 1, sqm: 34, rent: 5400, deposit: 5400, availableFrom: "Available 1 Jun", photos: 5 },
-    ],
-    mandateType: "FULL_MANAGEMENT",
-    agencyFee: "8",
-    landlordEmail: "thandi@example.co.za",
-  },
-  p5: {
-    propertyName: "Backroom · Vilakazi St",
-    propertyType: "COTTAGE_GROUP",
-    street: "8115 Vilakazi St",
-    suburb: "Orlando West",
-    city: "Soweto",
-    postcode: "1804",
-    description:
-      "Two backrooms with private entrances on the iconic Vilakazi Street. Prepaid electricity, fibre-ready, walled yard, quiet during off-tour hours.",
-    amenities: ["Prepaid electricity", "Fibre ready", "Walled / gated"],
-    units: [
-      { id: "u1", title: "Backroom A", type: "Backroom", beds: 1, baths: 1, sqm: 18, rent: 3450, deposit: 3450, availableFrom: "Available now", photos: 5 },
-      { id: "u2", title: "Backroom B", type: "Backroom", beds: 1, baths: 1, sqm: 20, rent: 3650, deposit: 3650, availableFrom: "Available 1 Jun", photos: 4 },
-    ],
-    mandateType: "FULL_MANAGEMENT",
-    agencyFee: "10",
-    landlordEmail: "mxolisi@example.co.za",
-  },
-};
+const LISTING_LOOKUP: Record<string, ListingDraft> = {};
 
 export default function Wizard() {
   const [params, setParams] = useSearchParams();
@@ -189,25 +110,20 @@ export default function Wizard() {
   const defaultMode: ListingMode = ctxAgent ? "behalf" : "self";
 
   // Form state (mocked, not persisted)
-  const [propertyName, setPropertyName] = useState(seed?.propertyName ?? "Sunlit Property on Caroline");
+  const [propertyName, setPropertyName] = useState(seed?.propertyName ?? "");
   const [propertyType, setPropertyType] = useState(seed?.propertyType ?? "FREESTANDING");
-  const [street, setStreet] = useState(seed?.street ?? "12 Caroline St");
-  const [suburb, setSuburb] = useState(seed?.suburb ?? "Brixton");
-  const [city, setCity] = useState(seed?.city ?? "Johannesburg");
-  const [postcode, setPostcode] = useState(seed?.postcode ?? "2092");
-  const [description, setDescription] = useState(
-    seed?.description ??
-      "A quiet, walled property on a leafy stretch of Caroline Street with three rentable units sharing a north-facing garden and laundry yard.",
-  );
-  const [amenities, setAmenities] = useState<string[]>(seed?.amenities ?? [
-    "Fibre ready", "Walled / gated", "Garden",
-  ]);
+  const [street, setStreet] = useState(seed?.street ?? "");
+  const [suburb, setSuburb] = useState(seed?.suburb ?? "");
+  const [city, setCity] = useState(seed?.city ?? "");
+  const [postcode, setPostcode] = useState(seed?.postcode ?? "");
+  const [description, setDescription] = useState(seed?.description ?? "");
+  const [amenities, setAmenities] = useState<string[]>(seed?.amenities ?? []);
 
   const [listingMode, setListingMode] = useState<ListingMode>(defaultMode);
   const [mandateType, setMandateType] = useState<MandateType>(seed?.mandateType ?? "FULL_MANAGEMENT");
   const [landlordOnHabitat, setLandlordOnHabitat] = useState(true);
-  const [landlordEmail, setLandlordEmail] = useState(seed?.landlordEmail ?? "thandi@example.co.za");
-  const [agencyFee, setAgencyFee] = useState(seed?.agencyFee ?? "8");
+  const [landlordEmail, setLandlordEmail] = useState(seed?.landlordEmail ?? "");
+  const [agencyFee, setAgencyFee] = useState(seed?.agencyFee ?? "");
 
   const [units, setUnits] = useState<UnitDraft[]>(seed?.units ?? INITIAL_UNITS);
 
@@ -218,9 +134,9 @@ export default function Wizard() {
   const [instantApply, setInstantApply] = useState(false);
 
   const [bankName, setBankName] = useState("FNB");
-  const [accountHolder, setAccountHolder] = useState("Thandi Mokoena");
-  const [accountNumber, setAccountNumber] = useState("62123456789");
-  const [branchCode, setBranchCode] = useState("250655");
+  const [accountHolder, setAccountHolder] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [branchCode, setBranchCode] = useState("");
 
   const totalRent = useMemo(() => units.reduce((s, u) => s + u.rent, 0), [units]);
   const isFinal = step === STEPS.length - 1;
@@ -247,7 +163,7 @@ export default function Wizard() {
         fromRent: minRent,
         mandateType,
         agencyFee,
-        ownerName: "Thandi Mokoena",
+        ownerName: "",
         ownerEmail: landlordEmail,
         landlordOnHabitat,
       },
@@ -463,8 +379,8 @@ export default function Wizard() {
                   </Card>
 
                   <Alert tone="info" title="What happens next">
-                    Once you publish, we send Thandi a mandate-approval request. The listing stays in DRAFT
-                    until she approves — which is usually within an hour.
+                    Once you publish, we send the landlord a mandate-approval request. The listing stays in
+                    DRAFT until they approve — usually within an hour.
                   </Alert>
                 </>
               ) : null}
@@ -764,8 +680,8 @@ export default function Wizard() {
                         label="Owner"
                         value={
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                            <Avatar name="Thandi M." size="sm" tone="neutral" />
-                            {landlordEmail}
+                            <Avatar name="" size="sm" tone="neutral" />
+                            {landlordEmail || "—"}
                           </span>
                         }
                         divider={false}
@@ -896,8 +812,10 @@ export default function Wizard() {
               {suburb}, {city}
             </div>
             <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 12 }}>
-              {units.length} unit{units.length === 1 ? "" : "s"} · from R{" "}
-              {Math.min(...units.map((u) => u.rent), Infinity).toLocaleString("en-ZA")}/mo
+              {units.length} unit{units.length === 1 ? "" : "s"}
+              {units.length > 0
+                ? ` · from R ${Math.min(...units.map((u) => u.rent)).toLocaleString("en-ZA")}/mo`
+                : ""}
             </div>
             <div
               style={{

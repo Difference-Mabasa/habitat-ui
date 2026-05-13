@@ -12,8 +12,8 @@ export default function Auth() {
   const { login, error, status } = useSession();
   const from = (location.state as { from?: string } | null)?.from;
 
-  const [email, setEmail] = useState("sipho@example.co.za");
-  const [password, setPassword] = useState("habitat123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const completeSignIn = async () => {
     try {

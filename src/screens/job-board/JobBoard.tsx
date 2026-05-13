@@ -9,79 +9,13 @@ import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import BriefCard, { type BriefCardData, type BriefStatus } from "@/components/BriefCard";
 
-const BRIEFS: BriefCardData[] = [
-  {
-    id: "r1",
-    tenant: "Sipho Dlamini",
-    tenantInit: "SD",
-    budgetMin: 3000,
-    budgetMax: 4200,
-    areas: ["Orlando West", "Diepkloof", "Mofolo"],
-    moveIn: "by 1 Jun",
-    status: "OPEN",
-    body: "Working professional. Need a backroom or bachelor flat with own entrance and prepaid electricity. Quiet area preferred.",
-    posted: "18m",
-    proposals: 2,
-  },
-  {
-    id: "r2",
-    tenant: "Naledi Khumalo",
-    tenantInit: "NK",
-    budgetMin: 5500,
-    budgetMax: 7500,
-    areas: ["Westdene", "Auckland Park", "Brixton"],
-    moveIn: "ASAP",
-    status: "OPEN",
-    body: "Postgrad student. Garden cottage or 1-bed flat, parking, Wi-Fi-ready. ID + payslip + Wits letter on file.",
-    posted: "2h",
-    proposals: 0,
-  },
-  {
-    id: "r3",
-    tenant: "Lerato Pretorius",
-    tenantInit: "LP",
-    budgetMin: 4000,
-    budgetMax: 5800,
-    areas: ["Yeoville", "Bertrams", "Bellevue East"],
-    moveIn: "by 15 Jun",
-    status: "OPEN",
-    body: "Looking for a 1-bed with secure parking and water included. Pet (small dog) — vet papers ready.",
-    posted: "4h",
-    proposals: 5,
-  },
-  {
-    id: "r4",
-    tenant: "Mxolisi Ndlovu",
-    tenantInit: "MN",
-    budgetMin: 2800,
-    budgetMax: 3500,
-    areas: ["Pimville", "Klipspruit"],
-    moveIn: "by 1 Jul",
-    status: "MATCHED",
-    body: "Backroom with own entrance. Recently matched with a Pimville unit — keeping brief open as backup.",
-    posted: "Yesterday",
-    proposals: 3,
-  },
-  {
-    id: "r5",
-    tenant: "Aisha Mahlangu",
-    tenantInit: "AM",
-    budgetMin: 6500,
-    budgetMax: 9000,
-    areas: ["Maboneng", "Newtown", "Braamfontein"],
-    moveIn: "by 1 Jun",
-    status: "FILLED",
-    body: "Filled — moved into Loft at Maboneng on 14 May.",
-    posted: "3d",
-    proposals: 6,
-  },
-];
+const BRIEFS: BriefCardData[] = [];
 
 const FILTERS: { id: BriefStatus | "all"; label: string; count: number }[] = [
-  { id: "all", label: "All", count: 5 },
-  { id: "OPEN", label: "Open", count: 3 },
-  { id: "MATCHED", label: "Matched", count: 1 },
-  { id: "FILLED", label: "Filled", count: 1 },
+  { id: "all", label: "All", count: 0 },
+  { id: "OPEN", label: "Open", count: 0 },
+  { id: "MATCHED", label: "Matched", count: 0 },
+  { id: "FILLED", label: "Filled", count: 0 },
   { id: "EXPIRED", label: "Expired", count: 0 },
 ];
 
@@ -112,10 +46,10 @@ export default function JobBoard() {
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-          <KpiTile label="Open briefs" value="3" subText="in your areas" />
-          <KpiTile label="You proposed" value="4" subText="2 awaiting review" />
-          <KpiTile label="Matches won · YTD" value="11" valueTone="success" subText="R 38,400 fees" />
-          <KpiTile label="Avg. response" value="42 min" subText="faster than 78%" />
+          <KpiTile label="Open briefs" value="0" subText="in your areas" />
+          <KpiTile label="You proposed" value="0" subText="awaiting review" />
+          <KpiTile label="Matches won · YTD" value="0" subText="R 0 fees" />
+          <KpiTile label="Avg. response" value="—" subText="—" />
         </div>
 
         <div style={{ marginBottom: 16 }}>

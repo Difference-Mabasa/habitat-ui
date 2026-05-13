@@ -12,11 +12,11 @@ interface TransactionRow {
 }
 
 const ROWS: TransactionRow[] = [
-  { label: "Reference", value: "HB-RENT-04250-SD", mono: true },
-  { label: "Method", value: "FNB Cheque ••3091" },
-  { label: "Date", value: "01 Apr 2025 · 09:14 SAST" },
-  { label: "Receipt #", value: "RCP-2025-04-00482", mono: true },
-  { label: "Held in escrow until", value: "03 Apr 2025" },
+  { label: "Reference", value: "—", mono: true },
+  { label: "Method", value: "—" },
+  { label: "Date", value: "—" },
+  { label: "Receipt #", value: "—", mono: true },
+  { label: "Held in escrow until", value: "—" },
 ];
 
 export default function Payment() {
@@ -58,10 +58,10 @@ export default function Payment() {
                 margin: "8px 0 6px",
               }}
             >
-              R 5,400.00
+              R 0.00
             </h1>
             <p style={{ fontSize: 14, color: "var(--slate)", margin: 0 }}>
-              Rent for April 2025 · paid to Thandi Mokoena
+              —
             </p>
           </div>
 
@@ -138,7 +138,7 @@ export default function Payment() {
           >
             <div>
               <Eyebrow style={{ marginBottom: 4 }}>Next payment</Eyebrow>
-              <div style={{ fontSize: 13 }}>R 5,400 · due 1 May 2025 (29 days)</div>
+              <div style={{ fontSize: 13 }}>R 0 · —</div>
             </div>
             <Link to="/settings" style={{ textDecoration: "none" }}>
               <Button variant="ghost" size="sm" rightIcon="chevR">

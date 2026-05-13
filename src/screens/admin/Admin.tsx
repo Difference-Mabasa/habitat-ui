@@ -4,6 +4,7 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge, { type BadgeTone } from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 import Tabs from "@/components/Tabs";
 import { toast } from "@/lib/toast";
 
@@ -20,14 +21,7 @@ interface FlagRow {
   state: FlagState;
 }
 
-const QUEUE: FlagRow[] = [
-  { id: "HB-FLG-1421", type: "Listing", reason: "Suspicious pricing", subject: "Cottage · Sandton · R 850", source: "User report ×3", priority: "high", state: "open" },
-  { id: "HB-FLG-1419", type: "Review", reason: "Slander · personal attack", subject: "Naledi Mokoena · 1★", source: "Auto-detect", priority: "med", state: "open" },
-  { id: "HB-FLG-1418", type: "Listing", reason: "Duplicate of #HB-LST-08123", subject: "Backroom · Vilakazi St", source: "Auto-detect", priority: "low", state: "open" },
-  { id: "HB-FLG-1416", type: "Message", reason: "Off-platform payment ask", subject: "Conversation #4421", source: "User report", priority: "high", state: "in-review" },
-  { id: "HB-FLG-1411", type: "Profile", reason: "Failed FICA · 3rd attempt", subject: "User #92041", source: "System", priority: "med", state: "in-review" },
-  { id: "HB-FLG-1408", type: "Listing", reason: "Photo of another listing", subject: "Bachelor · Diepkloof", source: "User report", priority: "low", state: "resolved" },
-];
+const QUEUE: FlagRow[] = [];
 
 const PRIORITY_TONE: Record<FlagPriority, BadgeTone> = {
   high: "danger",
@@ -42,7 +36,7 @@ const STATE_TONE: Record<FlagState, BadgeTone> = {
 };
 
 const FILTER_TABS = [
-  { id: "all", label: "All", count: 42 },
+  { id: "all", label: "All" },
   { id: "listings", label: "Listings" },
   { id: "reviews", label: "Reviews" },
   { id: "messages", label: "Messages" },
@@ -57,10 +51,10 @@ interface StatDef {
 }
 
 const STATS: StatDef[] = [
-  { label: "Open flags", value: "42", sub: "↑ 8 vs yesterday", tone: "danger" },
-  { label: "In review", value: "16", sub: "by 4 moderators" },
-  { label: "SLA breach", value: "3", sub: "> 4h unresponded", tone: "danger" },
-  { label: "Auto-resolved (7d)", value: "184", sub: "84% accuracy", tone: "accent" },
+  { label: "Open flags", value: "0", sub: "—" },
+  { label: "In review", value: "0", sub: "—" },
+  { label: "SLA breach", value: "0", sub: "—" },
+  { label: "Auto-resolved (7d)", value: "0", sub: "—" },
 ];
 
 const STAT_COLOR = {
@@ -94,7 +88,7 @@ export default function Admin() {
             </h1>
           </div>
           <div className="mono" style={{ fontSize: 12, color: "var(--slate)" }}>
-            Last sync: 11 May 2026 · 14:38 SAST
+            Last sync: —
           </div>
         </div>
 
@@ -135,6 +129,14 @@ export default function Admin() {
 
         {/* Queue table */}
         <Card padding={0} style={{ overflow: "hidden" }}>
+          {QUEUE.length === 0 ? (
+            <EmptyState
+              icon="shield"
+              title="Moderation queue is empty"
+              description="Flagged listings, reviews, messages, and profiles will appear here."
+            />
+          ) : null}
+          {QUEUE.length > 0 ? (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
@@ -203,27 +205,30 @@ export default function Admin() {
               ))}
             </tbody>
           </table>
-          <div
-            style={{
-              padding: "14px 18px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderTop: "1px solid var(--hairline)",
-              color: "var(--slate)",
-              fontSize: 12,
-            }}
-          >
-            <span>Showing 6 of 42</span>
-            <div style={{ display: "flex", gap: 6 }}>
-              <Button variant="ghost" size="sm" disabled leftIcon="chevL">
-                Prev
-              </Button>
-              <Button variant="ghost" size="sm" rightIcon="chevR">
-                Next
-              </Button>
+          ) : null}
+          {QUEUE.length > 0 ? (
+            <div
+              style={{
+                padding: "14px 18px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderTop: "1px solid var(--hairline)",
+                color: "var(--slate)",
+                fontSize: 12,
+              }}
+            >
+              <span>Showing {QUEUE.length} of {QUEUE.length}</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                <Button variant="ghost" size="sm" disabled leftIcon="chevL">
+                  Prev
+                </Button>
+                <Button variant="ghost" size="sm" rightIcon="chevR">
+                  Next
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : null}
         </Card>
       </div>
     </div>

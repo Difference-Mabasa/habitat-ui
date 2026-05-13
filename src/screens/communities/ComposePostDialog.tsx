@@ -21,7 +21,7 @@ export interface ComposePostDialogProps {
 export default function ComposePostDialog({
   open,
   onClose,
-  defaultArea = "Brixton",
+  defaultArea = "",
 }: ComposePostDialogProps) {
   const [body, setBody] = useState("");
   const [tag, setTag] = useState<PostTag | null>(null);
@@ -56,9 +56,9 @@ export default function ComposePostDialog({
       }
     >
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-        <Avatar name="Sipho Dlamini" size="md" tone="neutral" />
+        <Avatar name="" size="md" tone="neutral" />
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 600 }}>Sipho Dlamini</div>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>You</div>
           <div style={{ fontSize: 11, color: "var(--slate)", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
             <Icon name="pin" size={11} />
             <select

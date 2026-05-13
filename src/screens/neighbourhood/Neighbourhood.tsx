@@ -4,25 +4,23 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Photo from "@/components/Photo";
 import Eyebrow from "@/components/Eyebrow";
+import EmptyState from "@/components/EmptyState";
 import AreaCard from "@/components/AreaCard";
 
 const STATS: [string, string][] = [
-  ["Avg. rent", "R 3,450"],
-  ["Spots available", "1,206"],
-  ["Avg. vacancy", "8 days"],
-  ["Verified landlords", "412"],
+  ["Avg. rent", "R 0"],
+  ["Spots available", "0"],
+  ["Avg. vacancy", "—"],
+  ["Verified landlords", "0"],
 ];
 
-const SUB_AREAS: { name: string; priceFrom: string; count: number }[] = [
-  { name: "Orlando West", priceFrom: "R 3,650", count: 184 },
-  { name: "Diepkloof", priceFrom: "R 3,200", count: 211 },
-  { name: "Mofolo", priceFrom: "R 3,480", count: 134 },
-  { name: "Pimville", priceFrom: "R 3,950", count: 96 },
-  { name: "Meadowlands", priceFrom: "R 2,950", count: 158 },
-  { name: "Jabavu", priceFrom: "R 3,100", count: 142 },
-  { name: "Dube", priceFrom: "R 3,890", count: 88 },
-  { name: "Klipspruit", priceFrom: "R 2,750", count: 193 },
-];
+interface SubArea {
+  name: string;
+  priceFrom: string;
+  count: number;
+}
+
+const SUB_AREAS: SubArea[] = [];
 
 const FEATURES: { icon: IconName; title: string; body: string }[] = [
   { icon: "wifi", title: "Connected", body: "Fibre in Orlando, Pimville, and Dube. Taxis to Joburg CBD every 4 minutes." },
@@ -30,11 +28,14 @@ const FEATURES: { icon: IconName; title: string; body: string }[] = [
   { icon: "flame", title: "Affordable", body: "30% cheaper than Joburg CBD for similar amenities. Prepaid utilities." },
 ];
 
-const NEW_LISTINGS = [
-  { id: "n1", title: "Backroom in Orlando", price: "R 3,200", sub: "Available 1 June · 18m² · verified" },
-  { id: "n2", title: "Cottage in Pimville", price: "R 4,100", sub: "Available 8 June · 32m² · verified" },
-  { id: "n3", title: "Bachelor flat in Diepkloof", price: "R 3,600", sub: "Available now · 24m² · verified" },
-];
+interface NewListing {
+  id: string;
+  title: string;
+  price: string;
+  sub: string;
+}
+
+const NEW_LISTINGS: NewListing[] = [];
 
 export default function Neighbourhood() {
   return (
@@ -79,8 +80,7 @@ export default function Neighbourhood() {
               SOWETO
             </h1>
             <p style={{ fontSize: 16, color: "rgba(247,239,226,0.7)", maxWidth: 560, margin: 0 }}>
-              South Africa's largest township — 1.3M residents, 1,200 active listings, average vacancy 8
-              days.
+              South Africa's largest township — 1.3M residents.
             </p>
           </div>
         </div>
@@ -120,18 +120,28 @@ export default function Neighbourhood() {
         <div className="display" style={{ fontSize: 32, marginBottom: 20 }}>
           POPULAR SUB-AREAS
         </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 14,
-            marginBottom: 48,
-          }}
-        >
-          {SUB_AREAS.map((a) => (
-            <AreaCard key={a.name} name={a.name} count={a.count} priceFrom={a.priceFrom} />
-          ))}
-        </div>
+        {SUB_AREAS.length === 0 ? (
+          <Card padding={20} style={{ marginBottom: 48 }}>
+            <EmptyState
+              icon="pin"
+              title="No sub-areas to show"
+              description="Sub-area highlights will appear here once listings are loaded."
+            />
+          </Card>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 14,
+              marginBottom: 48,
+            }}
+          >
+            {SUB_AREAS.map((a) => (
+              <AreaCard key={a.name} name={a.name} count={a.count} priceFrom={a.priceFrom} />
+            ))}
+          </div>
+        )}
 
         {/* Why people choose */}
         <Card padding={36} style={{ marginBottom: 32 }}>
@@ -177,25 +187,35 @@ export default function Neighbourhood() {
             NEW IN SOWETO
           </div>
           <Button variant="ghost" size="sm" rightIcon="arrR">
-            Browse all 1,206
+            Browse all
           </Button>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-          {NEW_LISTINGS.map((l) => (
-            <Card key={l.id} padding={0} style={{ overflow: "hidden" }}>
-              <Photo label={l.title} ratio="16/10" style={{ borderRadius: 0 }} />
-              <div style={{ padding: 16 }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <div style={{ fontWeight: 600 }}>{l.title}</div>
-                  <div className="mono" style={{ fontWeight: 600 }}>
-                    {l.price}
+        {NEW_LISTINGS.length === 0 ? (
+          <Card padding={20}>
+            <EmptyState
+              icon="home"
+              title="No new listings"
+              description="New listings in this area will appear here."
+            />
+          </Card>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            {NEW_LISTINGS.map((l) => (
+              <Card key={l.id} padding={0} style={{ overflow: "hidden" }}>
+                <Photo label={l.title} ratio="16/10" style={{ borderRadius: 0 }} />
+                <div style={{ padding: 16 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <div style={{ fontWeight: 600 }}>{l.title}</div>
+                    <div className="mono" style={{ fontWeight: 600 }}>
+                      {l.price}
+                    </div>
                   </div>
+                  <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 4 }}>{l.sub}</div>
                 </div>
-                <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 4 }}>{l.sub}</div>
-              </div>
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
