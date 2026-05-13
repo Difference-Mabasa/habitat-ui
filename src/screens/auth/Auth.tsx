@@ -676,11 +676,21 @@ function RegisterForm() {
             />
             <span>
               I accept Habitat's{" "}
-              <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
+              <Link
+                to="/help/terms-of-service"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--accent)", fontWeight: 600 }}
+              >
                 terms of service
               </Link>{" "}
               and{" "}
-              <Link to="/about" style={{ color: "var(--accent)", fontWeight: 600 }}>
+              <Link
+                to="/help/popia-notice"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--accent)", fontWeight: 600 }}
+              >
                 POPIA notice
               </Link>
               .

@@ -1,9 +1,11 @@
+import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Eyebrow from "@/components/Eyebrow";
 import Input from "@/components/Input";
+import { HELP_ARTICLES } from "./articles";
 
 interface Category {
   icon: IconName;
@@ -20,14 +22,8 @@ const CATEGORIES: Category[] = [
   { icon: "user", name: "Account & profile", count: 11 },
 ];
 
-const FAQS = [
-  "How do I cancel an application after applying?",
-  "When will my deposit be returned?",
-  "What's the difference between Free and Landlord plans?",
-  "How does Habitat verify landlords?",
-  "Can I pay rent via cash deposit?",
-  "What happens if my landlord doesn't respond?",
-];
+/** Articles surfaced as quick links on the help index. */
+const FEATURED_SLUGS = ["terms-of-service", "popia-notice"] as const;
 
 export default function Help() {
   return (
@@ -120,28 +116,41 @@ export default function Help() {
         </div>
 
         <div style={{ marginTop: 48, display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 28 }}>
-          {/* FAQ */}
+          {/* Featured articles */}
           <div>
             <div className="display" style={{ fontSize: 28, marginBottom: 16 }}>
-              POPULAR QUESTIONS
+              FEATURED ARTICLES
             </div>
             <Card padding={0} style={{ overflow: "hidden" }}>
-              {FAQS.map((q, i) => (
-                <div
-                  key={q}
-                  style={{
-                    padding: "18px 22px",
-                    borderTop: i ? "1px solid var(--hairline)" : "none",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    cursor: "pointer",
-                  }}
-                >
-                  <span style={{ fontSize: 14, fontWeight: 500 }}>{q}</span>
-                  <Icon name="chevR" size={16} style={{ color: "var(--slate)" }} />
-                </div>
-              ))}
+              {FEATURED_SLUGS.map((slug, i) => {
+                const article = HELP_ARTICLES.find((a) => a.slug === slug);
+                if (!article) return null;
+                return (
+                  <Link
+                    key={article.slug}
+                    to={`/help/${article.slug}`}
+                    style={{
+                      padding: "18px 22px",
+                      borderTop: i ? "1px solid var(--hairline)" : "none",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      textDecoration: "none",
+                      color: "var(--ink)",
+                    }}
+                  >
+                    <span style={{ flex: 1 }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, display: "block" }}>
+                        {article.title}
+                      </span>
+                      <span style={{ fontSize: 12, color: "var(--slate)", marginTop: 4, display: "block" }}>
+                        {article.summary}
+                      </span>
+                    </span>
+                    <Icon name="chevR" size={16} style={{ color: "var(--slate)", marginLeft: 16 }} />
+                  </Link>
+                );
+              })}
             </Card>
           </div>
 

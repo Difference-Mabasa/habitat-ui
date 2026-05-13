@@ -80,6 +80,7 @@ export const ROUTES: ScreenRoute[] = [
   // Trust, safety & support
   { id: "verification", label: "37 — FICA / POPIA verification", path: "/verification", group: "trust" },
   { id: "help", label: "38 — Help & support", path: "/help", group: "trust" },
+  { id: "help-article", label: "38a — Help article (deep link)", path: "/help/:slug", group: "trust" },
   { id: "admin", label: "39 — Admin / moderation", path: "/admin", group: "trust" },
 
   // Documents
