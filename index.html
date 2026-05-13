@@ -34,14 +34,22 @@
       rel="stylesheet"
     />
     <!--
-      Google Maps Places SDK. Reusing backroom's API key (referrer-restricted
-      in GCP). Loaded async + defer so it doesn't block first paint;
-      consumers (AddressLookup today, /browse + /property-detail later) await
+      Google Maps Places SDK. Key is injected at build time from the
+      VITE_GOOGLE_MAPS_KEY env var (Vite %placeholder% substitution) so the
+      secret never lives in source control. Local dev reads .env (gitignored);
+      Docker builds receive it as a build arg from habitat-stack/.env.
+
+      When the env var is unset the URL still loads but Google rejects the
+      request — AddressLookup's `isGoogleAvailable()` check sees `window.google`
+      is missing and falls through to Nominatim, so the form keeps working.
+
+      Loaded async + defer so it doesn't block first paint; consumers
+      (AddressLookup today, /browse + /property-detail later) await
       `google.maps.importLibrary(...)` before use, which transparently waits
       for the script to finish loading.
     -->
     <script
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyComWXDCPtCenbiXmqcBfCMDlONckAzrvg&libraries=places&loading=async&v=weekly"
+      src="https://maps.googleapis.com/maps/api/js?key=%VITE_GOOGLE_MAPS_KEY%&libraries=places&loading=async&v=weekly"
       async
       defer
     ></script>

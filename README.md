@@ -49,6 +49,17 @@ src/
 
 The dev server proxies `/api/*` to `http://localhost:8080`. The API client (`src/lib/api.ts`) calls `/api/v1` by default; override with `VITE_API_BASE_URL` in `.env`.
 
+## Environment variables
+
+Copy `.env.example` to `.env` (gitignored) and fill in the values you need. Vite reads them at build time and injects `VITE_*` ones into the bundle.
+
+| Var | What it's for | Behaviour when unset |
+|---|---|---|
+| `VITE_API_BASE_URL` | Override the default `/api/v1` base. Set in production builds; leave blank in dev so the Vite proxy handles it. | Falls back to the relative `/api/v1` (proxied to `localhost:8080` in dev). |
+| `VITE_GOOGLE_MAPS_KEY` | Google Places SDK key used by `AddressLookup` (and later by `/browse` and `/property-detail` map views). Substituted into `index.html` via Vite's `%placeholder%` syntax. Restricted by HTTP referrer in Google Cloud Console — never commit the actual value. | `AddressLookup` falls back to Nominatim (OpenStreetMap). Slower and patchier SA suburb data, but the form keeps working. |
+
+For Docker builds, the same vars are forwarded as build args from `habitat-stack/.env` — see that repo's README for the docker-compose wiring.
+
 ## Design system
 
 Tokens (CSS variables) and utility classes (`.btn`, `.chip`, `.badge`, `.card`, `.input`, `.ph`, `.display`, `.eyebrow`, `.mono`, `.tabular`) are loaded globally from `src/styles/`. Light/dark themes toggle via `[data-theme="dark"]` on `<html>`.

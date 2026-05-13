@@ -5,6 +5,13 @@
 FROM node:22-alpine AS build
 WORKDIR /workspace
 
+# Build-time secrets. Vite reads VITE_* vars from process.env during `vite build`
+# and substitutes %VITE_*% placeholders in index.html. The compose file passes
+# these in via `build.args`; CI does the same from its own secret store.
+# Unset is fine — AddressLookup falls back to Nominatim when the key is empty.
+ARG VITE_GOOGLE_MAPS_KEY=""
+ENV VITE_GOOGLE_MAPS_KEY=$VITE_GOOGLE_MAPS_KEY
+
 # Install deps with the lockfile; layer cached unless deps change.
 COPY package.json package-lock.json ./
 RUN npm ci
