@@ -14,8 +14,23 @@ import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
 import { createPropertiesApi, type PopularArea, type PropertySummary } from "@/lib/api/properties";
-import { createLandingApi, type LandingStats } from "@/lib/api/landing";
+import { createLandingApi, type LandingStats, type PopularCity } from "@/lib/api/landing";
 import HeroSearch from "./HeroSearch";
+
+/**
+ * Editorial fallback shown immediately on first render (and on fetch
+ * failure) so the "Trusted across" marquee never starts empty. Matches
+ * the server-side `LandingContent.EDITORIAL_CITIES` list exactly.
+ */
+const EDITORIAL_CITIES: PopularCity[] = [
+  { name: "Johannesburg", listingCount: 0 },
+  { name: "Cape Town", listingCount: 0 },
+  { name: "Durban", listingCount: 0 },
+  { name: "Pretoria", listingCount: 0 },
+  { name: "Gqeberha", listingCount: 0 },
+  { name: "Polokwane", listingCount: 0 },
+  { name: "Bloemfontein", listingCount: 0 },
+];
 
 /**
  * Initial chip line shown while the popular-areas request is in flight,
@@ -550,7 +565,30 @@ function Hero() {
 }
 
 function TrustBar() {
-  const cities = ["Johannesburg", "Cape Town", "Durban", "Pretoria", "Gqeberha", "Polokwane", "Bloemfontein"];
+  const session = useSession();
+  const api = useMemo(() => createLandingApi(session.client), [session.client]);
+  const [cities, setCities] = useState<PopularCity[]>(EDITORIAL_CITIES);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.cities(7).then(
+      (live) => {
+        if (!cancelled && live.length > 0) setCities(live);
+      },
+      () => {
+        // Swallow — editorial fallback already renders.
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
+  // Render the list twice in the marquee track so the translateX(-50%)
+  // loop point is seamless. Keys are suffixed because React doesn't allow
+  // duplicate keys among siblings.
+  const looped = [...cities, ...cities];
+
   return (
     <section
       style={{
@@ -567,15 +605,28 @@ function TrustBar() {
           display: "flex",
           alignItems: "center",
           gap: 32,
-          flexWrap: "wrap",
         }}
       >
-        <Eyebrow>Trusted across</Eyebrow>
-        {cities.map((c) => (
-          <span key={c} style={{ fontSize: 13, color: "var(--slate)", fontWeight: 500 }}>
-            {c}
-          </span>
-        ))}
+        <Eyebrow style={{ flexShrink: 0 }}>Trusted across</Eyebrow>
+        <div className="marquee" style={{ flex: 1, minWidth: 0 }}>
+          <div className="marquee__track" style={{ gap: 32 }}>
+            {looped.map((c, i) => (
+              <Link
+                key={`${c.name}-${i}`}
+                to={`/browse?location=${encodeURIComponent(c.name)}`}
+                style={{
+                  fontSize: 13,
+                  color: "var(--slate)",
+                  fontWeight: 500,
+                  textDecoration: "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

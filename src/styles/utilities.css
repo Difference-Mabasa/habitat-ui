@@ -290,3 +290,55 @@
     animation: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Marquee — the landing "Trusted across" cities strip scrolls right→left.
+   Pattern: parent .marquee has overflow:hidden, child .marquee__track is a
+   flex row containing the content rendered TWICE side-by-side, animated
+   from translateX(0) to translateX(-50%). Because each copy is identical,
+   the seam at -50% is invisible and the loop reads as continuous scroll.
+   Hover pauses so users can click a city without chasing it.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.marquee {
+  overflow: hidden;
+  /* Soft fades at left/right edges so items appear to enter/exit instead
+     of popping at the section boundary. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black 48px,
+    black calc(100% - 48px),
+    transparent 100%
+  );
+          mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black 48px,
+    black calc(100% - 48px),
+    transparent 100%
+  );
+}
+
+.marquee__track {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+  will-change: transform;
+}
+
+.marquee:hover .marquee__track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track {
+    animation: none;
+  }
+}
