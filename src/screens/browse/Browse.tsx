@@ -26,6 +26,7 @@ import {
 } from "./FilterPopovers";
 import FilterBar from "@/components/FilterBar";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
+import { summaryToCardData } from "@/lib/propertyCard";
 import MapPanel from "./MapPanel";
 
 // Mirrors the API's UnitType enum (premium-aligned; BACKROOM / ROOM removed
@@ -76,15 +77,6 @@ function readSortKey(raw: string | null): SortKey {
 
 function readSortDirection(raw: string | null): SortDirection {
   return raw === "ASC" ? "ASC" : "DESC";
-}
-
-/** "APARTMENT_BLOCK" -> "Apartment Block". */
-function titleCase(s: string): string {
-  return s
-    .toLowerCase()
-    .split("_")
-    .map((w) => (w.length > 0 ? w[0].toUpperCase() + w.slice(1) : w))
-    .join(" ");
 }
 
 export default function Browse() {
@@ -226,19 +218,10 @@ export default function Browse() {
   // minPrice and minSqm. Adding a client-side filter here would mean the
   // paginated page is whatever's LEFT after a second pass, which mismatches
   // totalElements and shows half-empty pages (the backroom PERF-01 bug).
-  const visibleListings = useMemo<PropertyCardData[]>(() => {
-    return items.map((s) => ({
-      id: s.id,
-      title: s.title,
-      area: s.suburb ?? s.city ?? "—",
-      price: s.headlinePrice ?? 0,
-      beds: s.headlineBeds ?? 0,
-      baths: s.headlineBaths ?? 0,
-      sqm: s.headlineSqm ?? undefined,
-      type: s.headlineUnitType ? titleCase(s.headlineUnitType) : undefined,
-      photoSrc: s.coverImageUrl ?? undefined,
-    }));
-  }, [items]);
+  const visibleListings = useMemo<PropertyCardData[]>(
+    () => items.map(summaryToCardData),
+    [items],
+  );
 
   const visiblePins = useMemo(
     () =>

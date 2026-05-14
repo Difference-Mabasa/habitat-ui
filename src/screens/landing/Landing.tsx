@@ -10,7 +10,8 @@ import StatTile from "@/components/StatTile";
 import AreaCard from "@/components/AreaCard";
 import EmptyState from "@/components/EmptyState";
 import Footer from "@/components/Footer";
-import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
+import PropertyCard from "@/components/PropertyCard";
+import { summaryToCardData } from "@/lib/propertyCard";
 import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
 import { createPropertiesApi, type PopularArea, type PropertySummary } from "@/lib/api/properties";
@@ -249,35 +250,6 @@ function TopRatedNearYou() {
       </div>
     </section>
   );
-}
-
-/**
- * Map a {@link PropertySummary} to the {@link PropertyCardData} shape the
- * card consumes. The "tag" pill shows the rating when reviews exist, or
- * a "New" badge when the property hasn't been reviewed yet — same surface,
- * different content.
- */
-function summaryToCardData(p: PropertySummary): PropertyCardData {
-  const area = p.suburb ?? p.city ?? "—";
-  // Review count is intentionally left off the card — that lives on the
-  // /property/:id detail view. The card pill stays compact: star + score
-  // when rated, "New" otherwise.
-  const tag =
-    p.ratingCount > 0
-      ? `★ ${Number(p.avgRating).toFixed(1)}`
-      : "New";
-  return {
-    id: p.id,
-    title: p.title,
-    area,
-    price: p.headlinePrice ?? 0,
-    beds: p.headlineBeds ?? 0,
-    baths: p.headlineBaths ?? 0,
-    sqm: p.headlineSqm ?? undefined,
-    type: p.headlineUnitType ?? undefined,
-    tag,
-    photoSrc: p.coverImageUrl ?? undefined,
-  };
 }
 
 
