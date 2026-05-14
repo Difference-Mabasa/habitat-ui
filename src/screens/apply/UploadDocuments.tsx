@@ -105,7 +105,7 @@ export default function UploadDocuments() {
             title="Couldn't load required documents"
             description={error ?? "Open this page from the apply flow."}
             actions={
-              <Link to="/my-applications" style={{ textDecoration: "none" }}>
+              <Link to="/my-apps" style={{ textDecoration: "none" }}>
                 <Button variant="accent">My applications</Button>
               </Link>
             }
@@ -235,7 +235,7 @@ export default function UploadDocuments() {
               Continue
             </Button>
           ) : null}
-          <Link to="/my-applications" style={{ textDecoration: "none" }}>
+          <Link to="/my-apps" style={{ textDecoration: "none" }}>
             <Button variant="ghost" size="lg">
               Finish later
             </Button>

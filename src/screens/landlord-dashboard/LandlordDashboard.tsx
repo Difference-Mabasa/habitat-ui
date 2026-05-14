@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Eyebrow from "@/components/Eyebrow";
 import Button from "@/components/Button";
@@ -6,20 +7,104 @@ import Chip from "@/components/Chip";
 import EmptyState from "@/components/EmptyState";
 import KpiTile from "@/components/KpiTile";
 import LandlordShell from "@/components/LandlordShell";
+import { useSession } from "@/lib/session";
+import {
+  createApplicationsApi,
+  type ApplicationResponse,
+} from "@/lib/api/applications";
 import PropertyTable, { type PropertyTableRowData } from "./PropertyTable";
 import ApplicationPipeline, { type PipelineColumn } from "./ApplicationPipeline";
 
 const PROPERTY_ROWS: PropertyTableRowData[] = [];
 
-const PIPELINE_COLUMNS: PipelineColumn[] = [
-  { title: "New", count: 0, items: [] },
-  { title: "Vetting", count: 0, items: [] },
-  { title: "Interview", count: 0, items: [] },
-  { title: "Lease", count: 0, items: [] },
-];
+const NEW_STATUSES = new Set(["SUBMITTED", "AWAITING_DOCUMENTS"]);
+const VETTING_STATUSES = new Set([
+  "DOCUMENTS_SUBMITTED",
+  "UNDER_REVIEW",
+  "ON_HOLD",
+]);
+const INTERVIEW_STATUSES = new Set(["APPROVED", "INVOICE_SENT", "DEPOSIT_PAID"]);
+const LEASE_STATUSES = new Set([
+  "LEASE_GENERATED",
+  "LEASE_PENDING_SIGNATURES",
+  "COMPLETED",
+]);
+
+function tenantName(app: ApplicationResponse): string {
+  const parts = [app.tenant.firstName, app.tenant.surname].filter(Boolean) as string[];
+  if (parts.length) return parts.join(" ");
+  return app.tenant.email ?? "Applicant";
+}
+
+function unitLine(app: ApplicationResponse): string {
+  const bits = [app.property.title, app.unit.title].filter(Boolean) as string[];
+  return bits.join(" · ");
+}
+
+function bucketise(apps: ApplicationResponse[]): PipelineColumn[] {
+  const cols: Record<"new" | "vetting" | "interview" | "lease", ApplicationResponse[]> = {
+    new: [],
+    vetting: [],
+    interview: [],
+    lease: [],
+  };
+  for (const a of apps) {
+    if (NEW_STATUSES.has(a.status)) cols.new.push(a);
+    else if (VETTING_STATUSES.has(a.status)) cols.vetting.push(a);
+    else if (INTERVIEW_STATUSES.has(a.status)) cols.interview.push(a);
+    else if (LEASE_STATUSES.has(a.status)) cols.lease.push(a);
+  }
+  const toCol = (title: string, rows: ApplicationResponse[]): PipelineColumn => ({
+    title,
+    count: rows.length,
+    items: rows.map((a) => ({
+      id: a.id,
+      name: tenantName(a),
+      unit: unitLine(a),
+      score: 0,
+    })),
+  });
+  return [
+    toCol("New", cols.new),
+    toCol("Vetting", cols.vetting),
+    toCol("Interview", cols.interview),
+    toCol("Lease", cols.lease),
+  ];
+}
 
 export default function LandlordDashboard() {
   const navigate = useNavigate();
+  const session = useSession();
+  const api = useMemo(() => createApplicationsApi(session.client), [session.client]);
+  const [inbound, setInbound] = useState<ApplicationResponse[]>([]);
+  const [loadingInbound, setLoadingInbound] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingInbound(true);
+    void api
+      .listInbound()
+      .then((rows) => {
+        if (cancelled) return;
+        setInbound(rows);
+        setLoadingInbound(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setInbound([]);
+        setLoadingInbound(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
+  const pipelineColumns = useMemo(() => bucketise(inbound), [inbound]);
+  const openCount = useMemo(
+    () => inbound.filter((a) => !["COMPLETED", "REJECTED", "WITHDRAWN", "EXPIRED"].includes(a.status)).length,
+    [inbound],
+  );
+
   return (
     <LandlordShell activeId="overview">
       <div style={{ padding: "32px 32px 80px" }}>
@@ -54,7 +139,7 @@ export default function LandlordDashboard() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
           <KpiTile label="Monthly rent" value="R 0" />
           <KpiTile label="Occupancy" value="—" />
-          <KpiTile label="Open applications" value="0" />
+          <KpiTile label="Open applications" value={String(openCount)} />
           <KpiTile label="Outstanding" value="R 0" />
         </div>
 
@@ -117,13 +202,23 @@ export default function LandlordDashboard() {
               <Eyebrow style={{ marginBottom: 6 }}>Applicants</Eyebrow>
               <div style={{ fontSize: 18, fontWeight: 600 }}>Pipeline</div>
             </div>
-            <Link to="/applicant" style={{ textDecoration: "none" }}>
-              <Button variant="ghost" size="sm" rightIcon="arrR">
-                Open full pipeline
-              </Button>
-            </Link>
+            {loadingInbound ? (
+              <span style={{ fontSize: 12, color: "var(--slate)" }}>Loading…</span>
+            ) : null}
           </div>
-          <ApplicationPipeline columns={PIPELINE_COLUMNS} onOpenApplicant={() => navigate("/applicant")} />
+          {inbound.length === 0 && !loadingInbound ? (
+            <EmptyState
+              icon="paper"
+              size="sm"
+              title="No applications yet"
+              description="Tenant applications against your properties will appear here."
+            />
+          ) : (
+            <ApplicationPipeline
+              columns={pipelineColumns}
+              onOpenApplicant={(id) => navigate(`/applicant?id=${id}`)}
+            />
+          )}
         </section>
       </div>
     </LandlordShell>

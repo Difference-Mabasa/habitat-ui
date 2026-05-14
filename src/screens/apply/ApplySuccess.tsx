@@ -120,7 +120,7 @@ export default function ApplySuccess() {
             flexWrap: "wrap",
           }}
         >
-          <Link to="/my-applications" style={{ textDecoration: "none" }}>
+          <Link to="/my-apps" style={{ textDecoration: "none" }}>
             <Button variant="accent" size="lg" rightIcon="arrR">
               Track my applications
             </Button>
