@@ -247,7 +247,7 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
               </Button>
             </Link>
           ) : showInvoice ? (
-            <Link to="/payment" style={{ textDecoration: "none" }}>
+            <Link to="/invoices" style={{ textDecoration: "none" }}>
               <Button
                 variant="accent"
                 size="sm"

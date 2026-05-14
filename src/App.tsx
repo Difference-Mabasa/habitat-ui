@@ -87,6 +87,7 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   "my-apps": lazy(() => import("@/screens/my-apps/MyApplications")),
   lease: lazy(() => import("@/screens/lease/Lease")),
   payment: lazy(() => import("@/screens/payment/Payment")),
+  invoices: lazy(() => import("@/screens/invoices/Invoices")),
   communities: lazy(() => import("@/screens/communities/Communities")),
   saved: lazy(() => import("@/screens/saved/Saved")),
   compare: lazy(() => import("@/screens/compare/Compare")),
