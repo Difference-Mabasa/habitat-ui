@@ -284,7 +284,11 @@ function TopRatedCard({
 }) {
   return (
     <div style={{ position: "relative" }}>
-      <PropertyCard data={summaryToCardData(item)} variant="grid" />
+      <PropertyCard
+        data={summaryToCardData(item)}
+        variant="grid"
+        href={`/property/${item.id}`}
+      />
       {showDistance && item.distanceKm != null ? (
         <div
           style={{
