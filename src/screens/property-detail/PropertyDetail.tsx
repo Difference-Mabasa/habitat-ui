@@ -17,6 +17,7 @@ import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import NearbyPlaces from "./NearbyPlaces";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import { useSession } from "@/lib/session";
 import { useSavedProperties } from "@/lib/useSavedProperties";
 import { toast } from "@/lib/toast";
@@ -133,12 +134,16 @@ export default function PropertyDetail() {
   const units: UnitDetail[] = useMemo(() => property?.units ?? [], [property]);
   const availableUnits = units.filter((u) => u.status === "AVAILABLE");
   const listingState: PropertyStatus = property?.status ?? "LISTED";
-  const galleryPhotos = useMemo(() => {
+  /** Every photo on the property + units, in display order. The header
+   *  gallery shows the first five; the lightbox cycles through all. */
+  const allPhotos = useMemo(() => {
     if (!property) return [] as string[];
     const propUrls = property.images.map((i) => i.url);
     const unitUrls = property.units.flatMap((u) => u.images.map((i) => i.url));
-    return [...propUrls, ...unitUrls].slice(0, 5);
+    return [...propUrls, ...unitUrls];
   }, [property]);
+  const galleryPhotos = useMemo(() => allPhotos.slice(0, 5), [allPhotos]);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const earliestMoveIn = useMemo(() => {
     const dates = availableUnits
@@ -228,21 +233,70 @@ export default function PropertyDetail() {
           }}
         >
           {galleryPhotos.map((src, i) => (
-            <Photo
+            <button
               key={src + i}
-              ratio="auto"
-              src={src}
-              label=""
-              style={i === 0
-                ? { gridRow: isSm ? undefined : "1 / 3", borderRadius: 0, height: "100%" }
-                : { borderRadius: 0, height: "100%" }}
-            />
+              type="button"
+              onClick={() => setLightboxIndex(i)}
+              aria-label={`Open photo ${i + 1} of ${allPhotos.length}`}
+              style={{
+                padding: 0,
+                border: 0,
+                background: "transparent",
+                cursor: "pointer",
+                ...(i === 0 && !isSm
+                  ? { gridRow: "1 / 3" }
+                  : {}),
+              }}
+            >
+              <Photo
+                ratio="auto"
+                src={src}
+                label=""
+                style={{ borderRadius: 0, height: "100%" }}
+              />
+            </button>
           ))}
           {galleryPhotos.length === 0 ? (
             <Photo ratio="auto" label="No photos" style={{ borderRadius: 0, height: "100%" }} />
           ) : null}
+
+          {/* "View all" pill — only when there's more than fits in the grid. */}
+          {allPhotos.length > galleryPhotos.length ? (
+            <button
+              type="button"
+              onClick={() => setLightboxIndex(0)}
+              style={{
+                position: "absolute",
+                right: 16,
+                bottom: 16,
+                padding: "8px 14px",
+                background: "var(--paper)",
+                color: "var(--ink)",
+                border: "1px solid var(--hairline)",
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                boxShadow: "var(--shadow-md)",
+                fontFamily: "inherit",
+              }}
+            >
+              <Icon name="grid" size={14} />
+              View all {allPhotos.length} photos
+            </button>
+          ) : null}
         </div>
       </div>
+
+      <PhotoLightbox
+        photos={allPhotos}
+        index={lightboxIndex}
+        onChange={setLightboxIndex}
+        alt={property.title}
+      />
 
       {/* Body */}
       <div
