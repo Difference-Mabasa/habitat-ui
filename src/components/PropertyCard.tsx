@@ -140,9 +140,9 @@ function TagPill({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Distance-from-viewer pill rendered top-right of the photo. Offset 8px
- * further left than the SaveButton (which sits at right:12, width:32) so
- * the two pills sit side-by-side without overlapping.
+ * Distance-from-viewer pill stacked directly beneath the TagPill (top-left
+ * of the photo). 8px gap below the tag — both share left:12 so they read
+ * as one column.
  */
 function DistancePill({ km }: { km: number }) {
   return (
@@ -150,8 +150,10 @@ function DistancePill({ km }: { km: number }) {
       aria-label={`${km.toFixed(1)} km from you`}
       style={{
         position: "absolute",
-        top: 12,
-        right: 12 + 32 + 8,
+        // TagPill sits at top:12 and is ~24px tall (4px+11px text+4px+border).
+        // 24 + 8gap = 32 → place this at top:44.
+        top: 44,
+        left: 12,
         background: "var(--ink)",
         color: "var(--paper)",
         padding: "4px 8px",
