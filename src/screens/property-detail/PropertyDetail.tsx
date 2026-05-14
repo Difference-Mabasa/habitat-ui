@@ -468,7 +468,7 @@ export default function PropertyDetail() {
           </div>
 
           <DetailSection
-            title="Units"
+            title="Available units"
             subtitle="Select a unit to view its photos and apply"
             actions={
               units.length > 1 ? (
