@@ -77,15 +77,32 @@ test("apply wizard: lands on About you and clicks through to Review", async ({ p
   );
   await page.getByRole("button", { name: /^Continue$/i }).click();
 
-  // ── Step 3 — Review ──
+  // ── Step 3 — Documents ──
+  await expect(page.getByRole("heading", { name: /Upload your documents/i })).toBeVisible();
+  await expect(page.locator('main[data-step="documents"]')).toBeVisible();
+  // Pick a tiny fake file for one of the docs (SA_ID) so submission has
+  // something to send through the loop. Choose-file buttons sit on each
+  // doc row; click the first and let Playwright set a file.
+  const sampleFile = {
+    name: "id-front.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.4 fake", "utf-8"),
+  };
+  await page.locator("input#apply-doc-SA_ID").setInputFiles(sampleFile);
+  await expect(page.getByText("id-front.pdf").first()).toBeVisible();
+  await page.getByRole("button", { name: /^Continue$/i }).click();
+
+  // ── Step 4 — Review ──
   await expect(page.getByRole("heading", { name: /Review and submit/i })).toBeVisible();
   await expect(page.locator('main[data-step="review"]')).toBeVisible();
   await expect(page.getByText(/Wizard click-through test/i)).toBeVisible();
+  // The file we picked must be acknowledged on Review.
+  await expect(page.getByText("id-front.pdf").first()).toBeVisible();
   await expect(page.getByRole("button", { name: /Submit application/i })).toBeVisible();
 
   // ── Back navigation ──
   await page.getByRole("button", { name: /^Back$/i }).click();
-  await expect(page.getByRole("heading", { name: /^Your application$/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Upload your documents/i })).toBeVisible();
 
   // ── Left rail click-back to a done step ──
   await page.getByRole("button", { name: /About you/i }).first().click();

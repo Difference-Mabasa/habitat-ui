@@ -20,24 +20,53 @@ import {
 } from "@/lib/api/properties";
 import {
   createApplicationsApi,
+  type DocumentType,
   type EmploymentStatus,
 } from "@/lib/api/applications";
 
 // ── Wizard step model ───────────────────────────────────────────────
 
-type WizardStep = "about" | "application" | "review";
-const STEP_ORDER: WizardStep[] = ["about", "application", "review"];
+type WizardStep = "about" | "application" | "documents" | "review";
+const STEP_ORDER: WizardStep[] = ["about", "application", "documents", "review"];
 
-const STEPS: { id: WizardStep | "documents"; icon: IconName; title: string }[] = [
+const STEPS: { id: WizardStep; icon: IconName; title: string }[] = [
   { id: "about",       icon: "user",  title: "About you" },
   { id: "application", icon: "edit",  title: "Your application" },
-  { id: "review",      icon: "check", title: "Review" },
-  // "Documents" is the post-submit screen (/apply/upload-documents); shown
-  // in the rail so the journey is visible end-to-end. Not clickable from
-  // the wizard — the user lands there automatically after submit IF the
-  // landlord requires docs (AWAITING_DOCUMENTS branch).
   { id: "documents",   icon: "doc",   title: "Documents" },
+  { id: "review",      icon: "check", title: "Review" },
 ];
+
+/**
+ * Standard SA tenant document set. Matches V25's per-property backfill in
+ * habitat-api so we can render the upload UI before the application
+ * exists. Per-property variations land later when landlords can configure
+ * their own checklists (will need a public GET /properties/{id}/required-
+ * documents endpoint at that point).
+ */
+const REQUIRED_DOC_TYPES: DocumentType[] = [
+  "SA_ID",
+  "PAYSLIPS_3_MONTHS",
+  "BANK_STATEMENTS_3_MONTHS",
+  "PROOF_OF_ADDRESS",
+];
+
+const DOC_LABEL: Record<DocumentType, string> = {
+  SA_ID: "South African ID",
+  PASSPORT: "Passport",
+  PAYSLIPS_3_MONTHS: "Last 3 payslips",
+  BANK_STATEMENTS_3_MONTHS: "Last 3 bank statements",
+  EMPLOYMENT_LETTER: "Employment letter",
+  PROOF_OF_ADDRESS: "Proof of address",
+};
+
+const DOC_HINT: Record<DocumentType, string> = {
+  SA_ID: "Clear scan or photo of both sides.",
+  PASSPORT: "Photo page only.",
+  PAYSLIPS_3_MONTHS: "PDF or image. 3 most recent months in one file is fine.",
+  BANK_STATEMENTS_3_MONTHS: "Bank-stamped or PDF download. Most recent 3 months.",
+  EMPLOYMENT_LETTER: "On letterhead, dated within 30 days.",
+  PROOF_OF_ADDRESS: "Utility bill, lease, or bank statement — no older than 3 months.",
+};
 
 const EMPLOYMENT_OPTIONS: { value: EmploymentStatus; label: string; icon: IconName }[] = [
   { value: "EMPLOYED",      label: "Employed",          icon: "user" },
@@ -95,6 +124,8 @@ export default function Apply() {
   const [employment, setEmployment] = useState<EmploymentStatus | null>(null);
   const [message, setMessage] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
+  /** Files the tenant has chosen, keyed by DocumentType. Held until submit. */
+  const [docs, setDocs] = useState<Partial<Record<DocumentType, File>>>({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -182,16 +213,42 @@ export default function Apply() {
     const submittedProperty = property;
     setSubmitting(true);
     try {
+      // 1. Create the application.
       const application = await applicationsApi.create({
         unitId: submittedFor.id,
         message: message.trim() ? message.trim() : undefined,
         moveInDate: moveInDate || undefined,
         employmentStatus: employment ?? undefined,
       });
-      const target =
-        application.status === "AWAITING_DOCUMENTS"
-          ? "/apply/upload-documents"
-          : "/apply/success";
+
+      // 2. Upload whichever documents the tenant picked in step 3.
+      //    Each upload is a separate API call; failures are reported but
+      //    don't abort the others — the user can resume at /upload-documents.
+      const failed: DocumentType[] = [];
+      for (const docType of REQUIRED_DOC_TYPES) {
+        const file = docs[docType];
+        if (!file) continue;
+        try {
+          await applicationsApi.uploadDocument(application.id, {
+            docType,
+            fileName: file.name,
+            // No real object store yet; record a stub URL like the existing
+            // upload screen does. When StorageService lands the wizard
+            // swaps to a multipart upload before this call.
+            fileUrl: `/uploads/stub/${file.name}`,
+          });
+        } catch {
+          failed.push(docType);
+        }
+      }
+
+      // 3. Decide where to send them. If anything is missing or upload
+      //    failed AND the property requires docs, the API will leave the
+      //    application at AWAITING_DOCUMENTS — route to /upload-documents
+      //    so they can complete or retry. Otherwise straight to success.
+      const missing = REQUIRED_DOC_TYPES.some((t) => !docs[t]);
+      const incomplete = missing || failed.length > 0;
+      const target = incomplete ? "/apply/upload-documents" : "/apply/success";
       navigate(target, {
         state: {
           application,
@@ -260,17 +317,11 @@ export default function Apply() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {STEPS.map((s, i) => {
-              const isDocs = s.id === "documents";
-              const state = isDocs
-                ? "next"
-                : i < stepIndex
-                  ? "done"
-                  : i === stepIndex
-                    ? "current"
-                    : "next";
+              const state =
+                i < stepIndex ? "done" : i === stepIndex ? "current" : "next";
               const clickable = state === "done";
               const onClick = clickable
-                ? () => setStep(STEPS[i].id as WizardStep)
+                ? () => setStep(STEPS[i].id)
                 : undefined;
               return (
                 <div
@@ -378,11 +429,14 @@ export default function Apply() {
               setMoveInDate={setMoveInDate}
               today={TODAY}
             />
+          ) : step === "documents" ? (
+            <StepDocuments docs={docs} setDocs={setDocs} />
           ) : (
             <StepReview
               employment={employment}
               message={message}
               moveInDate={moveInDate}
+              docs={docs}
               unitTitle={unit.title}
               propertyTitle={property.title ?? ""}
             />
@@ -621,16 +675,170 @@ function StepApplication({
   );
 }
 
+function StepDocuments({
+  docs,
+  setDocs,
+}: {
+  docs: Partial<Record<DocumentType, File>>;
+  setDocs: (next: Partial<Record<DocumentType, File>>) => void;
+}) {
+  function pickFile(docType: DocumentType, file: File | null) {
+    const next = { ...docs };
+    if (file) next[docType] = file;
+    else delete next[docType];
+    setDocs(next);
+  }
+
+  const uploadedCount = REQUIRED_DOC_TYPES.filter((t) => docs[t]).length;
+
+  return (
+    <div>
+      <h1
+        style={{
+          fontSize: 28,
+          fontWeight: 500,
+          letterSpacing: "-0.02em",
+          margin: "0 0 8px",
+        }}
+      >
+        Upload your documents
+      </h1>
+      <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 12px" }}>
+        Standard SA tenant verification set. Goes straight to the landlord
+        when you submit — encrypted, deleted after 90 days if unsuccessful.
+      </p>
+      <p
+        style={{
+          fontSize: 12,
+          color: "var(--slate)",
+          margin: "0 0 24px",
+          fontFamily: "var(--font-mono)",
+        }}
+      >
+        {uploadedCount} / {REQUIRED_DOC_TYPES.length} attached · all optional in
+        this step, you can finish later if any are missing.
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {REQUIRED_DOC_TYPES.map((docType) => (
+          <DocRow
+            key={docType}
+            docType={docType}
+            file={docs[docType] ?? null}
+            onPick={(f) => pickFile(docType, f)}
+            onClear={() => pickFile(docType, null)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DocRow({
+  docType,
+  file,
+  onPick,
+  onClear,
+}: {
+  docType: DocumentType;
+  file: File | null;
+  onPick: (f: File) => void;
+  onClear: () => void;
+}) {
+  const inputId = `apply-doc-${docType}`;
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 16,
+        padding: "14px 16px",
+        border: `1px solid ${file ? "var(--hairline)" : "var(--ink)"}`,
+        borderRadius: 12,
+        background: "var(--surface)",
+      }}
+    >
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          background: file ? "var(--accent-soft)" : "var(--surface-2)",
+          color: file ? "var(--accent)" : "var(--slate)",
+          display: "grid",
+          placeItems: "center",
+        }}
+      >
+        <Icon name={file ? "doc" : "upload"} size={16} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 600 }}>{DOC_LABEL[docType]}</div>
+        <div
+          className="mono"
+          style={{
+            fontSize: 12,
+            color: "var(--slate)",
+            marginTop: 2,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {file
+            ? `${file.name} · ${(file.size / 1024).toFixed(0)} KB`
+            : DOC_HINT[docType]}
+        </div>
+      </div>
+      <input
+        id={inputId}
+        type="file"
+        accept=".pdf,.png,.jpg,.jpeg"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onPick(f);
+          e.currentTarget.value = "";
+        }}
+      />
+      {file ? (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => document.getElementById(inputId)?.click()}
+          >
+            Replace
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onClear}>
+            Remove
+          </Button>
+        </>
+      ) : (
+        <Button
+          variant="secondary"
+          size="sm"
+          leftIcon="upload"
+          onClick={() => document.getElementById(inputId)?.click()}
+        >
+          Choose file
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function StepReview({
   employment,
   message,
   moveInDate,
+  docs,
   unitTitle,
   propertyTitle,
 }: {
   employment: EmploymentStatus | null;
   message: string;
   moveInDate: string;
+  docs: Partial<Record<DocumentType, File>>;
   unitTitle: string;
   propertyTitle: string;
 }) {
@@ -664,6 +872,42 @@ function StepReview({
           <div style={{ fontSize: 14, color: "var(--ink)", whiteSpace: "pre-wrap" }}>
             {message.trim() ? message : <em style={{ color: "var(--slate)" }}>None</em>}
           </div>
+        </div>
+      </Card>
+
+      <Card padding={20} style={{ marginBottom: 16 }}>
+        <Eyebrow style={{ marginBottom: 12 }}>Documents</Eyebrow>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {REQUIRED_DOC_TYPES.map((t) => {
+            const file = docs[t];
+            return (
+              <div
+                key={t}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  fontSize: 13,
+                }}
+              >
+                <span style={{ color: "var(--slate)" }}>{DOC_LABEL[t]}</span>
+                <span
+                  className={file ? "mono" : undefined}
+                  style={{
+                    fontWeight: 500,
+                    color: file ? "var(--ink)" : "var(--slate)",
+                    fontStyle: file ? "normal" : "italic",
+                    maxWidth: "60%",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {file ? file.name : "Not attached"}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </Card>
 
