@@ -390,15 +390,18 @@ function Hero() {
           <div style={{ display: "flex", gap: 40, paddingTop: 28, borderTop: "1px solid var(--hairline)" }}>
             <StatTile
               value={stats ? formatStat(stats.activeListings) : "—"}
-              label="active listings"
+              label="Active Listings"
+              valueTone="accent"
             />
             <StatTile
               value={stats ? formatStat(stats.registeredTenants) : "—"}
-              label="registered tenants"
+              label="Registered Tenants"
+              valueTone="accent"
             />
             <StatTile
               value={stats ? formatStat(stats.suburbsCovered) : "—"}
-              label="suburbs covered"
+              label="Suburbs Covered"
+              valueTone="accent"
             />
           </div>
         </div>
