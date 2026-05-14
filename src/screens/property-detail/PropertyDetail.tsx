@@ -394,12 +394,6 @@ export default function PropertyDetail() {
             ))}
           </div>
 
-          <DetailSection title="About this property">
-            <p style={{ fontSize: 15, color: "var(--slate)", lineHeight: 1.7, margin: "0 0 12px" }}>
-              {property.description ?? "—"}
-            </p>
-          </DetailSection>
-
           <DetailSection
             title="Units"
             subtitle={`${availableUnits.length} of ${units.length} available · click a unit for photos & apply`}
@@ -442,14 +436,28 @@ export default function PropertyDetail() {
 
         {/* Sticky property-info panel */}
         <aside>
-          <Card padding={24} style={{ position: "sticky", top: 88 }}>
+          <Card padding={24} style={{ position: "sticky", top: 88, maxHeight: "calc(100vh - 104px)", overflowY: "auto" }}>
             <Eyebrow style={{ marginBottom: 8 }}>About this property</Eyebrow>
             <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
               {property.title}
             </div>
             <div style={{ fontSize: 13, color: "var(--slate)", marginBottom: 16 }}>
-              {units.length} units · {availableUnits.length} available
+              {titleCase(property.propertyType)} · {units.length} {units.length === 1 ? "unit" : "units"} · {availableUnits.length} available
             </div>
+
+            {property.description ? (
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "var(--slate)",
+                  lineHeight: 1.6,
+                  margin: "0 0 16px",
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {property.description}
+              </p>
+            ) : null}
 
             <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12 }}>
               {availableUnits.length > 0 ? (
