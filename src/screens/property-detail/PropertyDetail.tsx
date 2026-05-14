@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
@@ -9,6 +10,7 @@ import IconButton from "@/components/IconButton";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import Select from "@/components/Select";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PriceDisplay from "@/components/PriceDisplay";
 import RatingDisplay from "@/components/RatingDisplay";
@@ -170,6 +172,33 @@ export default function PropertyDetail() {
     : [];
 
   const amenities = useMemo(() => deriveAmenities(units), [units]);
+
+  // ── Units section: sort + paginate ──
+  type UnitSort = "price-asc" | "price-desc";
+  const UNITS_PER_PAGE = 9;
+  const [unitSort, setUnitSort] = useState<UnitSort>("price-asc");
+  const [unitPage, setUnitPage] = useState(0);
+
+  const sortedUnits = useMemo(() => {
+    const next = [...units];
+    next.sort((a, b) =>
+      unitSort === "price-asc"
+        ? Number(a.price) - Number(b.price)
+        : Number(b.price) - Number(a.price),
+    );
+    return next;
+  }, [units, unitSort]);
+
+  const unitPageCount = Math.max(1, Math.ceil(sortedUnits.length / UNITS_PER_PAGE));
+  // Clamp the current page if the catalogue shrinks (status changes, etc.)
+  const safeUnitPage = Math.min(unitPage, unitPageCount - 1);
+  const unitsOnPage = sortedUnits.slice(
+    safeUnitPage * UNITS_PER_PAGE,
+    safeUnitPage * UNITS_PER_PAGE + UNITS_PER_PAGE,
+  );
+  const unitsShownFrom = sortedUnits.length === 0 ? 0 : safeUnitPage * UNITS_PER_PAGE + 1;
+  const unitsShownTo = Math.min(sortedUnits.length, (safeUnitPage + 1) * UNITS_PER_PAGE);
+  const unitGridCols = isSm ? "1fr" : isMd ? "repeat(2, 1fr)" : "repeat(3, 1fr)";
 
   if (loading) {
     return (
@@ -396,16 +425,77 @@ export default function PropertyDetail() {
 
           <DetailSection
             title="Units"
-            subtitle={`${availableUnits.length} of ${units.length} available · click a unit for photos & apply`}
+            subtitle={`${availableUnits.length} of ${units.length} available`}
+            actions={
+              units.length > 1 ? (
+                <Select
+                  aria-label="Sort units"
+                  value={unitSort}
+                  onChange={(e) => {
+                    setUnitSort(e.target.value as UnitSort);
+                    setUnitPage(0);
+                  }}
+                  options={[
+                    { value: "price-asc", label: "Price: Low to high" },
+                    { value: "price-desc", label: "Price: High to low" },
+                  ]}
+                  style={{ width: 200 }}
+                />
+              ) : null
+            }
           >
             {units.length === 0 ? (
               <EmptyState icon="home" title="No units yet" />
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {units.map((u) => (
-                  <UnitRow key={u.id} unit={u} />
-                ))}
-              </div>
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: unitGridCols, gap: 16 }}>
+                  {unitsOnPage.map((u) => (
+                    <UnitCard key={u.id} unit={u} />
+                  ))}
+                </div>
+                {unitPageCount > 1 ? (
+                  <div
+                    style={{
+                      marginTop: 20,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 16,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span style={{ fontSize: 13, color: "var(--slate)" }}>
+                      Showing {unitsShownFrom}–{unitsShownTo} of {sortedUnits.length}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        leftIcon="chevL"
+                        disabled={safeUnitPage === 0}
+                        onClick={() => setUnitPage((p) => Math.max(0, p - 1))}
+                      >
+                        Prev
+                      </Button>
+                      <span
+                        className="mono"
+                        style={{ fontSize: 12, color: "var(--slate)", padding: "0 8px" }}
+                      >
+                        {safeUnitPage + 1} / {unitPageCount}
+                      </span>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        rightIcon="chevR"
+                        disabled={safeUnitPage >= unitPageCount - 1}
+                        onClick={() => setUnitPage((p) => Math.min(unitPageCount - 1, p + 1))}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+              </>
             )}
           </DetailSection>
 
@@ -520,10 +610,13 @@ export default function PropertyDetail() {
 function DetailSection({
   title,
   subtitle,
+  actions,
   children,
 }: {
   title: string;
   subtitle?: string;
+  /** Right-aligned controls in the header — sort dropdown, view toggles, etc. */
+  actions?: ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -533,18 +626,23 @@ function DetailSection({
           display: "flex",
           alignItems: "baseline",
           justifyContent: "space-between",
+          gap: 16,
           marginBottom: 16,
+          flexWrap: "wrap",
         }}
       >
         <h3 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.015em", margin: 0 }}>{title}</h3>
-        {subtitle ? <span style={{ fontSize: 13, color: "var(--slate)" }}>{subtitle}</span> : null}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {subtitle ? <span style={{ fontSize: 13, color: "var(--slate)" }}>{subtitle}</span> : null}
+          {actions}
+        </div>
       </div>
       {children}
     </section>
   );
 }
 
-function UnitRow({ unit }: { unit: UnitDetail }) {
+function UnitCard({ unit }: { unit: UnitDetail }) {
   const closed = unit.status !== "AVAILABLE";
   const badge = UNIT_BADGE[unit.status];
   const cover = unit.images.find((i) => i.isCover)?.url ?? unit.images[0]?.url;
@@ -554,38 +652,63 @@ function UnitRow({ unit }: { unit: UnitDetail }) {
       style={{
         textDecoration: "none",
         color: "inherit",
-        display: "grid",
-        gridTemplateColumns: "100px 1fr auto auto auto",
-        gap: 16,
-        alignItems: "center",
-        padding: 12,
+        display: "flex",
+        flexDirection: "column",
         border: "1px solid var(--hairline)",
         borderRadius: 12,
         background: "var(--surface)",
         opacity: closed ? 0.7 : 1,
         cursor: "pointer",
-        transition: "border-color 150ms, background 150ms",
+        overflow: "hidden",
+        transition: "border-color 150ms, box-shadow 150ms",
       }}
     >
-      <Photo ratio="4/3" src={cover} label="" style={{ borderRadius: 8 }} />
-      <div>
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{unit.title}</div>
-        <div style={{ fontSize: 12, color: "var(--slate)", display: "flex", gap: 10 }}>
-          <span><Icon name="bed" size={12} /> {unit.bedrooms}</span>
-          <span><Icon name="bath" size={12} /> {unit.bathrooms}</span>
+      <div style={{ position: "relative" }}>
+        <Photo ratio="4/3" src={cover} label="" style={{ borderRadius: 0 }} />
+        <span style={{ position: "absolute", top: 10, left: 10 }}>
+          <Badge tone={badge.tone}>{badge.label}</Badge>
+        </span>
+      </div>
+      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 8,
+          }}
+        >
+          <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>
+            {unit.title}
+          </span>
+          <PriceDisplay amount={Number(unit.price)} period="/mo" size="sm" />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            fontSize: 12,
+            color: "var(--slate)",
+            paddingTop: 8,
+            borderTop: "1px solid var(--hairline)",
+          }}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <Icon name="bed" size={13} /> {unit.bedrooms}
+          </span>
+          <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <Icon name="bath" size={13} /> {unit.bathrooms}
+          </span>
           {unit.sqm != null ? (
-            <span><Icon name="sqm" size={12} /> {unit.sqm} m²</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <Icon name="sqm" size={13} /> {unit.sqm} m²
+            </span>
           ) : null}
+          <span style={{ marginLeft: "auto", fontSize: 11 }}>
+            {unit.availableFrom ?? "Occupied"}
+          </span>
         </div>
       </div>
-      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-        <PriceDisplay amount={Number(unit.price)} period="" size="md" />
-        <span style={{ fontSize: 11, color: "var(--slate)" }}>
-          {unit.availableFrom ?? "Currently occupied"}
-        </span>
-      </span>
-      <Badge tone={badge.tone}>{badge.label}</Badge>
-      <Icon name="chevR" size={16} style={{ color: "var(--slate)" }} />
     </Link>
   );
 }
