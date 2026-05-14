@@ -37,6 +37,8 @@ export const ROUTES: ScreenRoute[] = [
   { id: "browse", label: "03 — Browse + map", path: "/browse", group: "core" },
   { id: "property", label: "04 — Property detail", path: "/property/:id", group: "core" },
   { id: "apply", label: "05 — Apply flow", path: "/apply", group: "core" },
+  { id: "apply-success", label: "05a — Apply success", path: "/apply/success", group: "core" },
+  { id: "upload-documents", label: "05b — Upload documents", path: "/apply/upload-documents", group: "core" },
   { id: "tenant-portal", label: "06 — Tenant portal", path: "/tenant-portal", group: "core" },
 
   // Landlord surfaces

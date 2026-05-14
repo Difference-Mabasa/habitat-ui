@@ -71,6 +71,8 @@ const SCREEN_COMPONENTS: Partial<Record<string, LazyExoticComponent<ComponentTyp
   browse: lazy(() => import("@/screens/browse/Browse")),
   property: lazy(() => import("@/screens/property-detail/PropertyDetail")),
   apply: lazy(() => import("@/screens/apply/Apply")),
+  "apply-success": lazy(() => import("@/screens/apply/ApplySuccess")),
+  "upload-documents": lazy(() => import("@/screens/apply/UploadDocuments")),
   "tenant-portal": lazy(() => import("@/screens/tenant-portal/TenantPortal")),
   wizard: lazy(() => import("@/screens/wizard/Wizard")),
   applicant: lazy(() => import("@/screens/applicant/ApplicantDetail")),

@@ -1,6 +1,6 @@
 import { type ApiClient } from "./client";
 
-export type ApplicationStatus = "SUBMITTED";
+export type ApplicationStatus = "SUBMITTED" | "AWAITING_DOCUMENTS" | "DOCUMENTS_SUBMITTED";
 
 export type EmploymentStatus =
   | "EMPLOYED"
@@ -9,6 +9,14 @@ export type EmploymentStatus =
   | "PENSIONER"
   | "UNEMPLOYED"
   | "OTHER";
+
+export type DocumentType =
+  | "SA_ID"
+  | "PASSPORT"
+  | "PAYSLIPS_3_MONTHS"
+  | "BANK_STATEMENTS_3_MONTHS"
+  | "EMPLOYMENT_LETTER"
+  | "PROOF_OF_ADDRESS";
 
 export interface CreateApplicationPayload {
   unitId: string;
@@ -29,15 +37,53 @@ export interface ApplicationResponse {
   createdAt: string;
 }
 
+export interface ApplicationDocumentResponse {
+  id: string;
+  applicationId: string;
+  docType: DocumentType;
+  fileUrl: string;
+  fileName: string;
+  uploadedAt: string;
+  verified: boolean;
+}
+
+export interface RequiredDocumentsResponse {
+  required: DocumentType[];
+  uploaded: ApplicationDocumentResponse[];
+}
+
+export interface UploadDocumentPayload {
+  docType: DocumentType;
+  fileName: string;
+  fileUrl: string;
+}
+
 export interface ApplicationsApi {
-  /** Create a tenant application against a Unit. POST /applications. */
   create(payload: CreateApplicationPayload): Promise<ApplicationResponse>;
+  /** Required docs for the application + what's already uploaded. */
+  listDocuments(applicationId: string): Promise<RequiredDocumentsResponse>;
+  /** Record an uploaded document. */
+  uploadDocument(
+    applicationId: string,
+    payload: UploadDocumentPayload,
+  ): Promise<ApplicationDocumentResponse>;
 }
 
 export function createApplicationsApi(client: ApiClient): ApplicationsApi {
   return {
     create(payload) {
       return client.post<ApplicationResponse>("/applications", payload);
+    },
+    listDocuments(applicationId) {
+      return client.get<RequiredDocumentsResponse>(
+        `/applications/${applicationId}/documents`,
+      );
+    },
+    uploadDocument(applicationId, payload) {
+      return client.post<ApplicationDocumentResponse>(
+        `/applications/${applicationId}/documents`,
+        payload,
+      );
     },
   };
 }

@@ -131,17 +131,36 @@ export default function Apply() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (submitting || !unit) return;
+    if (submitting || !unit || !property) return;
+    const submittedFor = unit;
+    const submittedProperty = property;
     setSubmitting(true);
     try {
-      await applicationsApi.create({
-        unitId: unit.id,
+      const application = await applicationsApi.create({
+        unitId: submittedFor.id,
         message: message.trim() ? message.trim() : undefined,
         moveInDate: moveInDate || undefined,
         employmentStatus: employment ?? undefined,
       });
-      toast.success("Application submitted — we'll let the landlord know.");
-      navigate("/my-applications");
+      // API auto-transitions to AWAITING_DOCUMENTS when the property has
+      // required docs — route the tenant straight to the upload screen
+      // in that case; otherwise go to the simple success page.
+      const target =
+        application.status === "AWAITING_DOCUMENTS"
+          ? "/apply/upload-documents"
+          : "/apply/success";
+      navigate(target, {
+        state: {
+          application,
+          property: {
+            id: submittedProperty.id,
+            title: submittedProperty.title,
+            suburb: submittedProperty.suburb,
+            city: submittedProperty.city,
+          },
+          unit: { id: submittedFor.id, title: submittedFor.title },
+        },
+      });
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
