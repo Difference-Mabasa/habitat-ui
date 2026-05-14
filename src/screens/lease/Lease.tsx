@@ -347,8 +347,18 @@ export default function Lease() {
               {isSigned ? (
                 <div style={{ marginTop: 16 }}>
                   <Alert tone="success" title="Lease signed">
-                    Both parties signed. Move-in steps will follow shortly.
+                    Both parties signed. Your move-in checklist is ready.
                   </Alert>
+                  <Link to="/move-in" style={{ textDecoration: "none" }}>
+                    <Button
+                      variant="accent"
+                      size="sm"
+                      rightIcon="arrR"
+                      style={{ width: "100%", justifyContent: "center", marginTop: 12 }}
+                    >
+                      Go to move-in
+                    </Button>
+                  </Link>
                 </div>
               ) : !tenantSigned ? (
                 stage === "sign" ? (

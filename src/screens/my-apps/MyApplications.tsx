@@ -157,6 +157,7 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
   const showRejected = app.status === "REJECTED";
   const showInvoice = app.status === "INVOICE_SENT";
   const showLease = app.status === "LEASE_GENERATED" || app.status === "LEASE_PENDING_SIGNATURES";
+  const showMoveIn = app.status === "COMPLETED";
 
   return (
     <Card padding={0} style={{ overflow: "hidden" }}>
@@ -266,6 +267,17 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
                 style={{ width: "100%", justifyContent: "center" }}
               >
                 Sign lease
+              </Button>
+            </Link>
+          ) : showMoveIn ? (
+            <Link to="/move-in" style={{ textDecoration: "none" }}>
+              <Button
+                variant="accent"
+                size="sm"
+                leftIcon="key"
+                style={{ width: "100%", justifyContent: "center" }}
+              >
+                Move-in checklist
               </Button>
             </Link>
           ) : (

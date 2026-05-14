@@ -58,6 +58,7 @@ export const ROUTES: ScreenRoute[] = [
   { id: "lease", label: "12 — Lease review & sign", path: "/lease", group: "tenant" },
   { id: "payment", label: "13 — Payment receipt", path: "/payment", group: "tenant" },
   { id: "invoices", label: "13a — Outstanding invoices", path: "/invoices", group: "tenant" },
+  { id: "move-in", label: "13b — Move-in confirmation", path: "/move-in", group: "tenant" },
   { id: "communities", label: "14 — Communities", path: "/communities", group: "tenant" },
   { id: "saved", label: "15 — Saved searches", path: "/saved", group: "tenant" },
   { id: "compare", label: "16 — Compare drawer", path: "/compare", group: "tenant" },
