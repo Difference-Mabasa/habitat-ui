@@ -4,6 +4,7 @@ import Logo from "./Logo";
 import Icon, { type IconName } from "./Icon";
 import IconButton from "./IconButton";
 import Avatar from "./Avatar";
+import Button from "./Button";
 import Eyebrow from "./Eyebrow";
 import Badge from "./Badge";
 import NotificationDrawer, { type NotificationItem } from "./NotificationDrawer";
@@ -294,26 +295,114 @@ export default function Nav({
           <IconButton icon="search" label="Search" onClick={openPalette} />
         ) : null}
 
-        <Link to="/inbox" aria-label="Open inbox" style={{ display: "inline-flex" }}>
-          <IconButton
-            icon="chat"
-            label="Inbox"
-            badge={showBadges ? unreadDms : undefined}
-          />
-        </Link>
+        {isAuthenticated ? (
+          <Link to="/inbox" aria-label="Open inbox" style={{ display: "inline-flex" }}>
+            <IconButton
+              icon="chat"
+              label="Inbox"
+              badge={showBadges ? unreadDms : undefined}
+            />
+          </Link>
+        ) : null}
         <Link to="/help" aria-label="Open help center" style={{ display: "inline-flex" }}>
           <IconButton icon="help" label="Help center" />
         </Link>
-        <IconButton
-          icon="bell"
-          label="Notifications"
-          badge={showBadges ? unreadNotif : undefined}
-          onClick={() => {
-            setOpenNotif((v) => !v);
-            setOpenMenu(false);
-          }}
-        />
+        {isAuthenticated ? (
+          <IconButton
+            icon="bell"
+            label="Notifications"
+            badge={showBadges ? unreadNotif : undefined}
+            onClick={() => {
+              setOpenNotif((v) => !v);
+              setOpenMenu(false);
+            }}
+          />
+        ) : null}
 
+        {session.status === "loading" ? null : !isAuthenticated ? (
+          <div ref={menuRef} style={{ position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => {
+                setOpenMenu((v) => !v);
+                setOpenNotif(false);
+              }}
+              aria-haspopup="menu"
+              aria-expanded={openMenu}
+              aria-label="Sign in or create account"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                height: 36,
+                padding: isSm ? "0 10px" : "0 14px",
+                border: "1px solid var(--hairline)",
+                borderRadius: 999,
+                background: openMenu ? "var(--surface-2)" : "transparent",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                color: "var(--ink)",
+                fontSize: 13,
+                fontWeight: 500,
+              }}
+            >
+              <Icon name="user" size={15} style={{ color: "var(--slate)" }} />
+              {isSm ? null : <span>Sign in</span>}
+              <Icon name="chevD" size={14} style={{ color: "var(--slate)" }} />
+            </button>
+
+            {openMenu ? (
+              <div
+                role="menu"
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 12px)",
+                  right: 0,
+                  width: 288,
+                  background: "var(--surface)",
+                  border: "1px solid var(--hairline)",
+                  borderRadius: 10,
+                  boxShadow: "var(--shadow-lg)",
+                  padding: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  zIndex: 10,
+                }}
+              >
+                <Eyebrow>Welcome</Eyebrow>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 13,
+                    lineHeight: 1.4,
+                    color: "var(--slate)",
+                  }}
+                >
+                  Save your spot, message landlords, and track your applications.
+                </p>
+                <Button
+                  variant="accent"
+                  onClick={() => {
+                    setOpenMenu(false);
+                    navigate("/register");
+                  }}
+                >
+                  Create account
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setOpenMenu(false);
+                    navigate("/auth");
+                  }}
+                >
+                  Log in
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        ) : (
         <div ref={menuRef} style={{ position: "relative" }}>
           <button
             type="button"
@@ -336,17 +425,7 @@ export default function Nav({
               color: "var(--ink)",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                lineHeight: 1.1,
-              }}
-            >
-              <span style={{ fontSize: 13, fontWeight: 500 }}>{effectiveUser.name}</span>
-              <span style={{ fontSize: 11, color: "var(--slate)" }}>{ROLE_LABEL[effectiveRole]}</span>
-            </div>
+            <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.1 }}>{effectiveUser.name}</span>
             <Avatar name={effectiveUser.name} size="md" />
             <Icon name="chevD" size={14} style={{ color: "var(--slate)" }} />
           </button>
@@ -503,6 +582,7 @@ export default function Nav({
             </div>
           ) : null}
         </div>
+        )}
       </div>
 
       <NotificationDrawer
