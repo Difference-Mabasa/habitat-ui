@@ -3,43 +3,55 @@ import Card from "@/components/Card";
 import Chip from "@/components/Chip";
 import Icon, { type IconName } from "@/components/Icon";
 
-type CategoryId = "all" | "cafes" | "schools" | "transit" | "hospitals" | "parks" | "shopping";
-type ResolvedCategory = Exclude<CategoryId, "all">;
+/**
+ * Category set mirrors backroom-ui's NEARBY_CATEGORIES (school / shopping
+ * / transit / healthcare / restaurant / bank / fuel) but reordered so
+ * Shopping is the default — most renters care more about a corner shop
+ * than the nearest primary school.
+ */
+type CategoryId =
+  | "shopping"
+  | "schools"
+  | "transit"
+  | "healthcare"
+  | "restaurants"
+  | "banks"
+  | "fuel";
 
 interface NearbyPlace {
   id: string;
   name: string;
-  category: ResolvedCategory;
+  category: CategoryId;
   /** Distance in metres from the property. */
   distanceM: number;
   position: google.maps.LatLngLiteral;
 }
 
 const CATEGORIES: { id: CategoryId; label: string; icon: IconName; types: string[] }[] = [
-  { id: "all",       label: "All nearby",   icon: "pin",    types: [] },
-  { id: "cafes",     label: "Cafés & food", icon: "flame",  types: ["cafe", "restaurant"] },
-  { id: "schools",   label: "Schools",      icon: "paper",  types: ["school", "primary_school", "secondary_school", "university"] },
-  { id: "transit",   label: "Transit",      icon: "bolt",   types: ["bus_station", "train_station", "transit_station"] },
-  { id: "hospitals", label: "Health",       icon: "shield", types: ["hospital", "pharmacy", "doctor"] },
-  { id: "parks",     label: "Parks",        icon: "park",   types: ["park"] },
-  { id: "shopping",  label: "Shopping",     icon: "cash",   types: ["shopping_mall", "supermarket", "store"] },
+  { id: "shopping",    label: "Shopping",     icon: "cash",     types: ["shopping_mall", "supermarket", "convenience_store"] },
+  { id: "schools",     label: "Schools",      icon: "paper",    types: ["school", "primary_school", "secondary_school", "university"] },
+  { id: "transit",     label: "Transit",      icon: "bolt",     types: ["transit_station", "bus_station", "train_station", "subway_station", "light_rail_station", "taxi_stand", "airport"] },
+  { id: "healthcare",  label: "Healthcare",   icon: "shield",   types: ["hospital", "doctor", "pharmacy", "dentist", "physiotherapist"] },
+  { id: "restaurants", label: "Restaurants",  icon: "flame",    types: ["restaurant", "cafe", "meal_takeaway", "bakery", "bar"] },
+  { id: "banks",       label: "Banks & ATMs", icon: "bookmark", types: ["bank", "atm"] },
+  { id: "fuel",        label: "Fuel",         icon: "flag",     types: ["gas_station"] },
 ];
 
-const CATEGORY_TONE: Record<ResolvedCategory, { color: string; bg: string }> = {
-  cafes:     { color: "var(--accent)",  bg: "var(--accent-soft)" },
-  schools:   { color: "var(--ink)",     bg: "var(--surface-3)" },
-  transit:   { color: "var(--slate)",   bg: "var(--surface-2)" },
-  hospitals: { color: "var(--danger)",  bg: "var(--danger-soft)" },
-  parks:     { color: "var(--success)", bg: "var(--success-soft)" },
-  shopping:  { color: "var(--warn)",    bg: "var(--warn-soft)" },
+const CATEGORY_TONE: Record<CategoryId, { color: string; bg: string }> = {
+  shopping:    { color: "var(--warn)",    bg: "var(--warn-soft)" },
+  schools:     { color: "var(--ink)",     bg: "var(--surface-3)" },
+  transit:     { color: "var(--slate)",   bg: "var(--surface-2)" },
+  healthcare:  { color: "var(--danger)",  bg: "var(--danger-soft)" },
+  restaurants: { color: "var(--accent)",  bg: "var(--accent-soft)" },
+  banks:       { color: "var(--success)", bg: "var(--success-soft)" },
+  fuel:        { color: "var(--ink)",     bg: "var(--surface-2)" },
 };
 
 /** Map a Google Places type back to one of our category buckets. First match wins. */
-function categoryForTypes(types: readonly string[]): ResolvedCategory | null {
+function categoryForTypes(types: readonly string[]): CategoryId | null {
   for (const cat of CATEGORIES) {
-    if (cat.id === "all") continue;
     if (types.some((t) => cat.types.includes(t))) {
-      return cat.id as ResolvedCategory;
+      return cat.id;
     }
   }
   return null;
@@ -106,7 +118,7 @@ export default function NearbyPlaces({ latitude, longitude }: NearbyPlacesProps)
 
   const [ready, setReady] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
-  const [cat, setCat] = useState<CategoryId>("all");
+  const [cat, setCat] = useState<CategoryId>("shopping");
   const [places, setPlaces] = useState<NearbyPlace[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -178,10 +190,7 @@ export default function NearbyPlaces({ latitude, longitude }: NearbyPlacesProps)
         )) as google.maps.PlacesLibrary;
         if (cancelled) return;
 
-        const includedTypes =
-          cat === "all"
-            ? CATEGORIES.filter((c) => c.id !== "all").flatMap((c) => c.types)
-            : CATEGORIES.find((c) => c.id === cat)!.types;
+        const includedTypes = CATEGORIES.find((c) => c.id === cat)!.types;
 
         const { places: results } = await Place.searchNearby({
           fields: ["id", "displayName", "location", "types"],
@@ -277,13 +286,10 @@ export default function NearbyPlaces({ latitude, longitude }: NearbyPlacesProps)
     };
   }, [ready, places]);
 
-  const counts = useMemo(() => {
-    const map: Record<string, number> = { all: places.length };
-    for (const c of CATEGORIES) {
-      if (c.id !== "all") map[c.id] = places.filter((p) => p.category === c.id).length;
-    }
-    return map;
-  }, [places]);
+  // Only the active category has a meaningful count — we fetch per
+  // category, so inactive chips have nothing to show. Chip omits count
+  // when undefined.
+  const activeCount = places.length;
 
   const active = places.find((p) => p.id === activeId);
 
@@ -313,7 +319,7 @@ export default function NearbyPlaces({ latitude, longitude }: NearbyPlacesProps)
             key={c.id}
             active={cat === c.id}
             leftIcon={c.icon}
-            count={counts[c.id]}
+            count={cat === c.id ? activeCount : undefined}
             onClick={() => setCat(c.id)}
           >
             {c.label}
