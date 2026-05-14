@@ -27,6 +27,7 @@ import {
 import FilterBar from "@/components/FilterBar";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import { summaryToCardData } from "@/lib/propertyCard";
+import { useSavedProperties } from "@/lib/useSavedProperties";
 import MapPanel from "./MapPanel";
 
 // Mirrors the API's UnitType enum (premium-aligned; BACKROOM / ROOM removed
@@ -88,7 +89,7 @@ export default function Browse() {
   const [view, setView] = useState<ViewMode>("split");
   const effectiveView: ViewMode = isSm ? "list" : view;
   const [active, setActive] = useState<string | null>(null);
-  const [savedSet, setSavedSet] = useState<Set<string>>(new Set());
+  const { saved: savedSet, toggle: toggleSave } = useSavedProperties();
 
   // Real listings from the API. Filters live on the URL; whenever a param
   // changes we re-fetch (the API does the work, no client-side filtering).
@@ -230,15 +231,6 @@ export default function Browse() {
         .map((s) => ({ id: s.id, lat: s.latitude!, lng: s.longitude! })),
     [items],
   );
-
-  const toggleSave = (id: string) => {
-    setSavedSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   return (
     <div style={{ background: "var(--paper)", height: "100vh", display: "flex", flexDirection: "column" }}>

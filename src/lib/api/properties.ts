@@ -54,6 +54,12 @@ export interface UnitDetail {
   images: PropertyImage[];
 }
 
+export interface ManagerRef {
+  id: string;
+  firstName: string;
+  surname: string;
+}
+
 export interface PropertyDetail {
   id: string;
   title: string;
@@ -69,9 +75,15 @@ export interface PropertyDetail {
   longitude: number | null;
   landlordId: string;
   managerId: string;
+  /** "Listed by" identity attached to the listing; null when no manager. */
+  manager: ManagerRef | null;
   images: PropertyImage[];
   units: UnitDetail[];
   createdAt: string;
+  /** Aggregated rating (0.00–5.00). Zero for un-reviewed listings. */
+  avgRating: number;
+  /** Number of reviews backing avgRating. */
+  ratingCount: number;
 }
 
 export interface PropertySummary {

@@ -18,6 +18,8 @@ import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import NearbyPlaces from "./NearbyPlaces";
 import { useSession } from "@/lib/session";
+import { useSavedProperties } from "@/lib/useSavedProperties";
+import { toast } from "@/lib/toast";
 import {
   createPropertiesApi,
   type PropertyDetail as PropertyDetailDto,
@@ -33,14 +35,39 @@ const UNIT_BADGE: Record<UnitStatus, { tone: "success" | "neutral" | "warn"; lab
   UNLISTED: { tone: "neutral", label: "Unlisted" },
 };
 
-const AMENITIES: { i: IconName; t: string }[] = [];
-
 function titleCase(s: string): string {
   return s
     .toLowerCase()
     .split("_")
     .map((w) => (w.length > 0 ? w[0].toUpperCase() + w.slice(1) : w))
     .join(" ");
+}
+
+/**
+ * Property-level amenities derived from the unit-level boolean flags
+ * (waterIncluded / electricityIncluded / petsAllowed). The rule is
+ * "any unit grants it" so a property with one pet-friendly unit reads
+ * "Pets allowed" even if other units don't accept pets. Honest enough
+ * for the listing card while a real Amenity entity is unspeced.
+ */
+function deriveAmenities(units: UnitDetail[]): { i: IconName; t: string }[] {
+  if (units.length === 0) return [];
+  const amenities: { i: IconName; t: string }[] = [];
+  if (units.some((u) => u.waterIncluded)) {
+    amenities.push({ i: "bath", t: "Water included" });
+  }
+  if (units.some((u) => u.electricityIncluded)) {
+    amenities.push({ i: "bolt", t: "Electricity included" });
+  }
+  if (units.some((u) => u.petsAllowed)) {
+    amenities.push({ i: "heart", t: "Pets allowed" });
+  }
+  if (units.some((u) => u.furnishing === "FURNISHED")) {
+    amenities.push({ i: "home", t: "Fully furnished unit" });
+  } else if (units.some((u) => u.furnishing === "SEMI_FURNISHED")) {
+    amenities.push({ i: "home", t: "Semi-furnished unit" });
+  }
+  return amenities;
 }
 
 export default function PropertyDetail() {
@@ -55,6 +82,25 @@ export default function PropertyDetail() {
   const [property, setProperty] = useState<PropertyDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isSaved, toggle: toggleSaved } = useSavedProperties();
+
+  function handleShare() {
+    if (!property) return;
+    const url = window.location.href;
+    const title = property.title;
+    if (typeof navigator.share === "function") {
+      navigator
+        .share({ title, url })
+        .catch(() => {
+          // User cancelled the native sheet — silent.
+        });
+      return;
+    }
+    void navigator.clipboard
+      .writeText(url)
+      .then(() => toast.success("Link copied to clipboard"))
+      .catch(() => toast.error("Couldn't copy the link"));
+  }
 
   useEffect(() => {
     if (!propertyId || propertyId === ":id") {
@@ -84,7 +130,7 @@ export default function PropertyDetail() {
 
   const canEdit = ctx === "landlord" || ctx === "agent";
   const editHref = `/wizard?edit=${propertyId ?? ""}${ctx === "agent" ? "&ctx=agent" : ""}`;
-  const units: UnitDetail[] = property?.units ?? [];
+  const units: UnitDetail[] = useMemo(() => property?.units ?? [], [property]);
   const availableUnits = units.filter((u) => u.status === "AVAILABLE");
   const listingState: PropertyStatus = property?.status ?? "LISTED";
   const galleryPhotos = useMemo(() => {
@@ -107,9 +153,18 @@ export default function PropertyDetail() {
         { i: "home", l: "Property type", v: titleCase(property.propertyType) },
         { i: "users", l: "Units available", v: `${availableUnits.length} of ${units.length}` },
         { i: "calendar", l: "Earliest move-in", v: earliestMoveIn ?? "—" },
-        { i: "shield", l: "Verified by", v: "Habitat" },
+        {
+          i: "star",
+          l: "Rating",
+          v:
+            property.ratingCount > 0
+              ? `★ ${Number(property.avgRating).toFixed(1)} · ${property.ratingCount} ${property.ratingCount === 1 ? "review" : "reviews"}`
+              : "No reviews yet",
+        },
       ]
     : [];
+
+  const amenities = useMemo(() => deriveAmenities(units), [units]);
 
   if (loading) {
     return (
@@ -227,8 +282,16 @@ export default function PropertyDetail() {
                   <Icon name="pin" size={14} />
                   {[property.suburb, property.city, property.province].filter(Boolean).join(", ") || "—"}
                 </span>
-                <span>·</span>
-                <RatingDisplay rating={0} count={0} size="sm" />
+                {property.ratingCount > 0 ? (
+                  <>
+                    <span>·</span>
+                    <RatingDisplay
+                      rating={Number(property.avgRating)}
+                      count={property.ratingCount}
+                      size="sm"
+                    />
+                  </>
+                ) : null}
               </div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
@@ -239,10 +302,15 @@ export default function PropertyDetail() {
                   </Button>
                 </Link>
               ) : null}
-              <Button variant="secondary" size="sm" leftIcon="heart">
-                Save
+              <Button
+                variant={isSaved(property.id) ? "accent" : "secondary"}
+                size="sm"
+                leftIcon="heart"
+                onClick={() => toggleSaved(property.id)}
+              >
+                {isSaved(property.id) ? "Saved" : "Save"}
               </Button>
-              <Button variant="secondary" size="sm" leftIcon="arrUR">
+              <Button variant="secondary" size="sm" leftIcon="arrUR" onClick={handleShare}>
                 Share
               </Button>
             </div>
@@ -294,11 +362,11 @@ export default function PropertyDetail() {
           </DetailSection>
 
           <DetailSection title="Amenities">
-            {AMENITIES.length === 0 ? (
+            {amenities.length === 0 ? (
               <EmptyState icon="home" title="No amenities listed" />
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 14 }}>
-                {AMENITIES.map((a) => (
+                {amenities.map((a) => (
                   <div
                     key={a.t}
                     style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: "var(--ink)" }}
@@ -311,9 +379,11 @@ export default function PropertyDetail() {
             )}
           </DetailSection>
 
-          <DetailSection title="Neighbourhood">
-            <NearbyPlaces />
-          </DetailSection>
+          {property.latitude != null && property.longitude != null ? (
+            <DetailSection title="Neighbourhood">
+              <NearbyPlaces latitude={property.latitude} longitude={property.longitude} />
+            </DetailSection>
+          ) : null}
         </main>
 
         {/* Sticky property-info panel */}
@@ -363,18 +433,21 @@ export default function PropertyDetail() {
               )}
             </div>
 
-            <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 20, paddingTop: 20 }}>
-              <AgentCard
-                name=""
-                role="Landlord"
-                responseTime=""
-                actions={
-                  <Link to="/inbox" aria-label="Message landlord">
-                    <IconButton icon="chat" label="Message" variant="secondary" size="sm" />
-                  </Link>
-                }
-              />
-            </div>
+            {property.manager ? (
+              <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 20, paddingTop: 20 }}>
+                <Eyebrow style={{ marginBottom: 10 }}>Listed by</Eyebrow>
+                <AgentCard
+                  name={`${property.manager.firstName} ${property.manager.surname}`}
+                  role="Landlord"
+                  responseTime="Typically responds in 2 hours"
+                  actions={
+                    <Link to={`/inbox?to=${property.manager.id}`} aria-label="Message landlord">
+                      <IconButton icon="chat" label="Message" variant="secondary" size="sm" />
+                    </Link>
+                  }
+                />
+              </div>
+            ) : null}
           </Card>
         </aside>
       </div>
