@@ -11,6 +11,7 @@ import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import Select from "@/components/Select";
+import KeyValueRow from "@/components/KeyValueRow";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PriceDisplay from "@/components/PriceDisplay";
 import RatingDisplay from "@/components/RatingDisplay";
@@ -172,6 +173,49 @@ export default function PropertyDetail() {
     : [];
 
   const amenities = useMemo(() => deriveAmenities(units), [units]);
+
+  /** Compact ranges/formatters for the right-rail details stack. */
+  const priceRangeLabel = useMemo(() => {
+    if (units.length === 0) return null;
+    const prices = units.map((u) => Number(u.price)).filter((p) => !Number.isNaN(p));
+    if (prices.length === 0) return null;
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max ? `R ${min.toLocaleString("en-ZA")}` : `R ${min.toLocaleString("en-ZA")} – ${max.toLocaleString("en-ZA")}`;
+  }, [units]);
+
+  const bedsRangeLabel = useMemo(() => {
+    if (units.length === 0) return null;
+    const beds = units.map((u) => u.bedrooms);
+    const min = Math.min(...beds);
+    const max = Math.max(...beds);
+    return min === max ? `${min}` : `${min}–${max}`;
+  }, [units]);
+
+  const sqmRangeLabel = useMemo(() => {
+    if (units.length === 0) return null;
+    const sqms = units.map((u) => u.sqm).filter((s): s is number => typeof s === "number");
+    if (sqms.length === 0) return null;
+    const min = Math.min(...sqms);
+    const max = Math.max(...sqms);
+    return min === max ? `${min} m²` : `${min}–${max} m²`;
+  }, [units]);
+
+  const listedSinceLabel = useMemo(() => {
+    if (!property) return null;
+    return new Date(property.createdAt).toLocaleDateString("en-ZA", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }, [property]);
+
+  const addressLine = useMemo(() => {
+    if (!property) return null;
+    return [property.addressLine, property.suburb, property.city, property.province]
+      .filter(Boolean)
+      .join(", ");
+  }, [property]);
 
   // ── Units section: sort + paginate ──
   type UnitSort = "price-asc" | "price-desc";
@@ -564,39 +608,97 @@ export default function PropertyDetail() {
             ) : null}
 
             <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12, marginTop: 16 }}>
-              {availableUnits.length > 0 ? (
-                <>
-                  <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 10 }}>
-                    Pick a unit to see its photos and apply
-                  </div>
-                  {availableUnits.map((u) => (
-                    <Link
-                      key={u.id}
-                      to={`/unit?id=${u.id}`}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "10px 0",
-                        borderTop: "1px solid var(--hairline)",
-                        textDecoration: "none",
-                        color: "var(--ink)",
-                        fontSize: 13,
-                      }}
-                    >
-                      <span style={{ fontWeight: 500 }}>{u.title}</span>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                        <PriceDisplay amount={Number(u.price)} period="/mo" size="sm" />
-                        <Icon name="chevR" size={14} style={{ color: "var(--slate)" }} />
+              <Eyebrow style={{ marginBottom: 6 }}>Property details</Eyebrow>
+              <div>
+                <KeyValueRow label="Type" value={titleCase(property.propertyType)} size="sm" />
+                <KeyValueRow
+                  label="Status"
+                  value={titleCase(property.status)}
+                  size="sm"
+                  divider
+                  tone={
+                    property.status === "LISTED"
+                      ? "success"
+                      : property.status === "DRAFT"
+                        ? "warn"
+                        : "neutral"
+                  }
+                />
+                <KeyValueRow
+                  label="Units"
+                  value={`${availableUnits.length} of ${units.length} available`}
+                  size="sm"
+                  divider
+                />
+                {priceRangeLabel ? (
+                  <KeyValueRow
+                    label="Rent"
+                    value={`${priceRangeLabel} / mo`}
+                    size="sm"
+                    divider
+                  />
+                ) : null}
+                {bedsRangeLabel ? (
+                  <KeyValueRow
+                    label="Bedrooms"
+                    value={bedsRangeLabel}
+                    size="sm"
+                    divider
+                  />
+                ) : null}
+                {sqmRangeLabel ? (
+                  <KeyValueRow
+                    label="Floor area"
+                    value={sqmRangeLabel}
+                    size="sm"
+                    divider
+                  />
+                ) : null}
+                {earliestMoveIn ? (
+                  <KeyValueRow
+                    label="Move in"
+                    value={earliestMoveIn}
+                    size="sm"
+                    divider
+                  />
+                ) : null}
+                {addressLine ? (
+                  <KeyValueRow
+                    label="Address"
+                    value={
+                      <span style={{ textAlign: "right", fontWeight: 500, fontSize: 12, lineHeight: 1.4, maxWidth: 200, display: "inline-block" }}>
+                        {addressLine}
                       </span>
-                    </Link>
-                  ))}
-                </>
-              ) : (
-                <div style={{ fontSize: 13, color: "var(--slate)" }}>
-                  All units are currently let. Set a saved search to be notified when one opens.
-                </div>
-              )}
+                    }
+                    size="sm"
+                    divider
+                  />
+                ) : null}
+                {property.postalCode ? (
+                  <KeyValueRow
+                    label="Postal code"
+                    value={property.postalCode}
+                    size="sm"
+                    divider
+                  />
+                ) : null}
+                {listedSinceLabel ? (
+                  <KeyValueRow
+                    label="Listed"
+                    value={listedSinceLabel}
+                    size="sm"
+                    divider
+                  />
+                ) : null}
+                {property.ratingCount > 0 ? (
+                  <KeyValueRow
+                    label="Rating"
+                    value={`★ ${Number(property.avgRating).toFixed(1)} · ${property.ratingCount}`}
+                    size="sm"
+                    divider
+                  />
+                ) : null}
+              </div>
             </div>
 
             {property.manager ? (
