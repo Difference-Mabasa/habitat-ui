@@ -14,6 +14,7 @@ import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
 import { createPropertiesApi, type PopularArea } from "@/lib/api/properties";
+import { createLandingApi, type LandingStats } from "@/lib/api/landing";
 import HeroSearch from "./HeroSearch";
 
 /**
@@ -288,9 +289,40 @@ function SearchHero() {
   );
 }
 
+/**
+ * Format a count for the trust strip. Uses en-ZA grouping (e.g. "1 247")
+ * once numbers cross the thousand mark, but renders the raw value below
+ * that so "50" stays "50" rather than padded.
+ */
+function formatStat(n: number): string {
+  return n.toLocaleString("en-ZA");
+}
+
 function Hero() {
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
+  const session = useSession();
+  const api = useMemo(() => createLandingApi(session.client), [session.client]);
+  const [stats, setStats] = useState<LandingStats | null>(null);
+
+  // Pre-launch the trust strip starts on em-dashes and is replaced as soon
+  // as the API responds. Errors leave the placeholders in place — a missed
+  // stat strip is preferable to a broken one.
+  useEffect(() => {
+    let cancelled = false;
+    api.stats().then(
+      (s) => {
+        if (!cancelled) setStats(s);
+      },
+      () => {
+        // Swallow — placeholders already render.
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)" }}>
       <div
@@ -356,9 +388,18 @@ function Hero() {
           </div>
 
           <div style={{ display: "flex", gap: 40, paddingTop: 28, borderTop: "1px solid var(--hairline)" }}>
-            <StatTile value="—" label="active listings" />
-            <StatTile value="—" label="rent processed" />
-            <StatTile value="—" label="median time-to-listed" />
+            <StatTile
+              value={stats ? formatStat(stats.activeListings) : "—"}
+              label="active listings"
+            />
+            <StatTile
+              value={stats ? formatStat(stats.registeredTenants) : "—"}
+              label="registered tenants"
+            />
+            <StatTile
+              value={stats ? formatStat(stats.suburbsCovered) : "—"}
+              label="suburbs covered"
+            />
           </div>
         </div>
 
