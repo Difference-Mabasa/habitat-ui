@@ -259,9 +259,12 @@ function TopRatedNearYou() {
  */
 function summaryToCardData(p: PropertySummary): PropertyCardData {
   const area = p.suburb ?? p.city ?? "—";
+  // Review count is intentionally left off the card — that lives on the
+  // /property/:id detail view. The card pill stays compact: star + score
+  // when rated, "New" otherwise.
   const tag =
     p.ratingCount > 0
-      ? `★ ${Number(p.avgRating).toFixed(1)} · ${p.ratingCount} ${p.ratingCount === 1 ? "review" : "reviews"}`
+      ? `★ ${Number(p.avgRating).toFixed(1)}`
       : "New";
   return {
     id: p.id,
