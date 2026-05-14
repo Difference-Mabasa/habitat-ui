@@ -94,7 +94,7 @@ export default function Landing() {
 /** A top-rated listing with an optional pre-computed distance from the viewer. */
 type TopRatedItem = PropertySummary & { distanceKm: number | null };
 
-type LocationState = "ask" | "granted" | "denied";
+type LocationState = "pending" | "granted" | "denied";
 
 /** How many cards the section renders at most. */
 const TOP_RATED_VISIBLE = 4;
@@ -123,15 +123,54 @@ function TopRatedNearYou() {
 
   const [items, setItems] = useState<TopRatedItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [location, setLocation] = useState<LocationState>("ask");
+  const [location, setLocation] = useState<LocationState>("pending");
 
+  // Match backroom's featured.component.ts flow: fetch the rated set
+  // first, then immediately request location. The browser prompt fires
+  // automatically — no separate user-gesture button — and once granted
+  // we recompute haversine distances and re-sort the list.
   useEffect(() => {
     let cancelled = false;
     api.topRated(TOP_RATED_FETCH).then(
       (rows) => {
         if (cancelled) return;
-        setItems(rows.map((r) => ({ ...r, distanceKm: null })));
+        const seeded = rows.map((r) => ({ ...r, distanceKm: null as number | null }));
+        setItems(seeded);
         setLoading(false);
+
+        if (!navigator.geolocation) {
+          setLocation("denied");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            if (cancelled) return;
+            const userLat = pos.coords.latitude;
+            const userLng = pos.coords.longitude;
+            setLocation("granted");
+            setItems(
+              [...seeded]
+                .map((p) => ({
+                  ...p,
+                  distanceKm:
+                    p.latitude != null && p.longitude != null
+                      ? haversineKm(userLat, userLng, p.latitude, p.longitude)
+                      : null,
+                }))
+                .sort((a, b) => {
+                  // Properties without coords sink to the bottom; everyone
+                  // else sorts ascending by distance from the viewer.
+                  if (a.distanceKm == null) return 1;
+                  if (b.distanceKm == null) return -1;
+                  return a.distanceKm - b.distanceKm;
+                }),
+            );
+          },
+          () => {
+            if (cancelled) return;
+            setLocation("denied");
+          },
+        );
       },
       () => {
         if (cancelled) return;
@@ -142,40 +181,6 @@ function TopRatedNearYou() {
       cancelled = true;
     };
   }, [api]);
-
-  // Triggered by the "Allow Location" button — the call MUST be on a
-  // user gesture for the browser to even consider granting permission.
-  function requestLocation() {
-    if (!navigator.geolocation) {
-      setLocation("denied");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const userLat = pos.coords.latitude;
-        const userLng = pos.coords.longitude;
-        setLocation("granted");
-        setItems((current) =>
-          [...current]
-            .map((p) => ({
-              ...p,
-              distanceKm:
-                p.latitude != null && p.longitude != null
-                  ? haversineKm(userLat, userLng, p.latitude, p.longitude)
-                  : null,
-            }))
-            .sort((a, b) => {
-              // Properties without coords sink to the bottom; everyone
-              // else sorts ascending by distance from the viewer.
-              if (a.distanceKm == null) return 1;
-              if (b.distanceKm == null) return -1;
-              return a.distanceKm - b.distanceKm;
-            }),
-        );
-      },
-      () => setLocation("denied"),
-    );
-  }
 
   const visible = items.slice(0, TOP_RATED_VISIBLE);
 
@@ -211,16 +216,7 @@ function TopRatedNearYou() {
             <Badge tone="success" leftIcon="pin">Sorted by Distance from You</Badge>
           ) : location === "denied" ? (
             <Badge tone="neutral">Showing Top-Rated · Location Off</Badge>
-          ) : (
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon="pin"
-              onClick={requestLocation}
-            >
-              Allow Location for Nearest Results
-            </Button>
-          )}
+          ) : null}
         </div>
 
         {loading || visible.length === 0 ? (
