@@ -99,8 +99,90 @@ test("apply wizard: lands on About you and clicks through to Review", async ({ p
   await page.getByRole("button", { name: /Your application/i }).first().click();
   await expect(page.locator('main[data-step="application"]')).toBeVisible();
 
-  // Filter out the harmless dev refresh chatter that fires when API is
-  // briefly probed; everything else should be silent.
+  const fatal = errors.filter((e) => !/Failed to load resource.*4\d\d/i.test(e));
+  expect(fatal, "no fatal console errors").toEqual([]);
+});
+
+test("apply wizard: in-wizard confirmation lives inside the same shell after submit", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(`PAGEERROR: ${e.message}`));
+  page.on("console", (m) => {
+    if (m.type() === "error") errors.push(m.text());
+  });
+
+  const login = await page.request.post("http://localhost:8080/api/v1/auth/login", {
+    data: { email: SEED_TENANT_EMAIL, password: SEED_TENANT_PASSWORD },
+  });
+  expect(login.ok()).toBe(true);
+  const auth = await login.json();
+
+  // Find any property whose first AVAILABLE unit hasn't already been
+  // applied to by this tenant — try a few, since this test reruns.
+  const props = await page.request.get(
+    "http://localhost:8080/api/v1/properties?page=0&size=20",
+  );
+  const propsBody = await props.json();
+  let propertyId: string | undefined;
+  let unitId: string | undefined;
+  for (const p of propsBody.content ?? []) {
+    const detail = await (
+      await page.request.get(`http://localhost:8080/api/v1/properties/${p.id}`)
+    ).json();
+    const unit = detail.units?.find((u: { status: string }) => u.status === "AVAILABLE");
+    if (!unit) continue;
+    propertyId = detail.id;
+    unitId = unit.id;
+    break;
+  }
+  expect(propertyId, "found an applicable property/unit").toBeTruthy();
+
+  await page.goto("http://localhost:5173/", { waitUntil: "domcontentloaded" });
+  await page.evaluate((authResp) => {
+    window.localStorage.setItem(
+      "habitat.session",
+      JSON.stringify({
+        user: {
+          id: authResp.userId,
+          firstName: authResp.firstName,
+          surname: authResp.surname,
+          name: `${authResp.firstName} ${authResp.surname}`.trim(),
+          email: authResp.email,
+          roles: authResp.roles,
+          activeRole: authResp.activeRole,
+        },
+        tokens: {
+          accessToken: authResp.accessToken,
+          accessTokenExpiresAt: authResp.accessTokenExpiresAt,
+          refreshToken: authResp.refreshToken,
+          refreshTokenExpiresAt: authResp.refreshTokenExpiresAt,
+        },
+      }),
+    );
+  }, auth);
+
+  await page.goto(`http://localhost:5173/apply?prop=${propertyId}&unit=${unitId}`, {
+    waitUntil: "networkidle",
+  });
+
+  // Walk all 3 steps to Review.
+  await page.getByRole("radio", { name: /^Employed$/i }).click();
+  await page.getByRole("button", { name: /^Continue$/i }).click();
+  await page.getByRole("button", { name: /^Continue$/i }).click(); // skip docs
+  await expect(page.locator('main[data-step="review"]')).toBeVisible();
+  await page.getByRole("button", { name: /Submit application/i }).click();
+
+  // Confirmation must live inside the same shell (data-step="submitted").
+  await expect(page.locator('main[data-step="submitted"]')).toBeVisible({ timeout: 10_000 });
+  // The listing recap (right rail) is still rendered.
+  await expect(page.getByText(/Applying for/i)).toBeVisible();
+  // The "Submitted" milestone shows in the left rail.
+  await expect(page.getByText(/^Submitted$/)).toBeVisible();
+  // Follow-up CTAs.
+  await expect(page.getByRole("link", { name: /My applications/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Browse more units/i })).toBeVisible();
+
   const fatal = errors.filter((e) => !/Failed to load resource.*4\d\d/i.test(e));
   expect(fatal, "no fatal console errors").toEqual([]);
 });

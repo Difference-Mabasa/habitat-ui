@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Photo from "@/components/Photo";
 import Button from "@/components/Button";
@@ -20,13 +20,14 @@ import {
 } from "@/lib/api/properties";
 import {
   createApplicationsApi,
+  type ApplicationResponse,
   type DocumentType,
   type EmploymentStatus,
 } from "@/lib/api/applications";
 
 // ── Wizard step model ───────────────────────────────────────────────
 
-type WizardStep = "application" | "documents" | "review";
+type WizardStep = "application" | "documents" | "review" | "submitted";
 const STEP_ORDER: WizardStep[] = ["application", "documents", "review"];
 
 const STEPS: { id: WizardStep; icon: IconName; title: string }[] = [
@@ -100,7 +101,6 @@ function formatDate(iso: string): string {
 
 export default function Apply() {
   const [params] = useSearchParams();
-  const navigate = useNavigate();
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
 
@@ -126,6 +126,13 @@ export default function Apply() {
   /** Files the tenant has chosen, keyed by DocumentType. Held until submit. */
   const [docs, setDocs] = useState<Partial<Record<DocumentType, File>>>({});
   const [submitting, setSubmitting] = useState(false);
+  /** Set once the application has been created — drives the in-wizard
+   *  confirmation state. Captures whether docs were skipped so the
+   *  follow-up CTA can route the tenant to the upload screen. */
+  const [submitted, setSubmitted] = useState<{
+    application: ApplicationResponse;
+    docsIncomplete: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!propertyId || !unitId) {
@@ -241,25 +248,19 @@ export default function Apply() {
         }
       }
 
-      // 3. Decide where to send them. If anything is missing or upload
-      //    failed AND the property requires docs, the API will leave the
-      //    application at AWAITING_DOCUMENTS — route to /upload-documents
-      //    so they can complete or retry. Otherwise straight to success.
+      // 3. Land on the in-wizard "submitted" state. The confirmation now
+      //    lives within the journey — same shell, same right-rail recap,
+      //    left rail shows the 3 steps done + Submitted milestone.
+      //    If any docs are missing/failed, the follow-up CTA points at
+      //    /apply/upload-documents so the tenant can finish.
       const missing = REQUIRED_DOC_TYPES.some((t) => !docs[t]);
-      const incomplete = missing || failed.length > 0;
-      const target = incomplete ? "/apply/upload-documents" : "/apply/success";
-      navigate(target, {
-        state: {
-          application,
-          property: {
-            id: submittedProperty.id,
-            title: submittedProperty.title,
-            suburb: submittedProperty.suburb,
-            city: submittedProperty.city,
-          },
-          unit: { id: submittedFor.id, title: submittedFor.title },
-        },
-      });
+      const docsIncomplete = missing || failed.length > 0;
+      setSubmitted({ application, docsIncomplete });
+      setStep("submitted");
+      // Suppress unused-var lint — submittedFor/submittedProperty are
+      // kept in scope for the next-step CTAs rendered below.
+      void submittedFor;
+      void submittedProperty;
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
@@ -316,9 +317,15 @@ export default function Apply() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {STEPS.map((s, i) => {
-              const state =
-                i < stepIndex ? "done" : i === stepIndex ? "current" : "next";
-              const clickable = state === "done";
+              // After submit, every wizard step is done.
+              const state = step === "submitted"
+                ? "done"
+                : i < stepIndex
+                  ? "done"
+                  : i === stepIndex
+                    ? "current"
+                    : "next";
+              const clickable = state === "done" && step !== "submitted";
               const onClick = clickable
                 ? () => setStep(STEPS[i].id)
                 : undefined;
@@ -383,6 +390,37 @@ export default function Apply() {
                 </div>
               );
             })}
+            {step === "submitted" ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  background: "color-mix(in oklch, var(--success) 10%, transparent)",
+                  marginTop: 8,
+                }}
+              >
+                <div
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    background: "var(--success)",
+                    color: "var(--paper)",
+                    display: "grid",
+                    placeItems: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon name="check" size={12} />
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--success)" }}>
+                  Submitted
+                </span>
+              </div>
+            ) : null}
           </div>
 
           <Card
@@ -427,7 +465,7 @@ export default function Apply() {
             />
           ) : step === "documents" ? (
             <StepDocuments docs={docs} setDocs={setDocs} />
-          ) : (
+          ) : step === "review" ? (
             <StepReview
               employment={employment}
               message={message}
@@ -436,58 +474,68 @@ export default function Apply() {
               unitTitle={unit.title}
               propertyTitle={property.title ?? ""}
             />
-          )}
+          ) : submitted ? (
+            <StepSubmitted
+              application={submitted.application}
+              docsIncomplete={submitted.docsIncomplete}
+              propertyTitle={property.title ?? ""}
+            />
+          ) : null}
 
-          {/* Footer nav — Back / Continue or Submit */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 32,
-              flexWrap: "wrap",
-              gap: 12,
-            }}
-          >
-            {stepIndex === 0 ? (
-              <Link
-                to={`/unit?id=${unit.id}&prop=${property.id}`}
-                style={{ textDecoration: "none" }}
-              >
-                <Button variant="ghost" leftIcon="chevL" disabled={submitting}>
-                  Back to property
+          {/* Footer nav — Back / Continue or Submit. Hidden on the
+              submitted state; the next-step CTAs live inside the
+              StepSubmitted card. */}
+          {step !== "submitted" ? (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 32,
+                flexWrap: "wrap",
+                gap: 12,
+              }}
+            >
+              {stepIndex === 0 ? (
+                <Link
+                  to={`/unit?id=${unit.id}&prop=${property.id}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <Button variant="ghost" leftIcon="chevL" disabled={submitting}>
+                    Back to property
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  variant="ghost"
+                  leftIcon="chevL"
+                  onClick={goBack}
+                  disabled={submitting}
+                >
+                  Back
                 </Button>
-              </Link>
-            ) : (
-              <Button
-                variant="ghost"
-                leftIcon="chevL"
-                onClick={goBack}
-                disabled={submitting}
-              >
-                Back
-              </Button>
-            )}
-            {step === "review" ? (
-              <Button
-                variant="accent"
-                rightIcon="arrR"
-                onClick={handleSubmit}
-                disabled={submitting}
-              >
-                {submitting ? "Submitting…" : "Submit application"}
-              </Button>
-            ) : (
-              <Button
-                variant="accent"
-                rightIcon="arrR"
-                onClick={goNext}
-                disabled={submitting}
-              >
-                Continue
-              </Button>
-            )}
-          </div>
+              )}
+              {step === "review" ? (
+                <Button
+                  variant="accent"
+                  rightIcon="arrR"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                >
+                  {submitting ? "Submitting…" : "Submit application"}
+                </Button>
+              ) : (
+                <Button
+                  variant="accent"
+                  rightIcon="arrR"
+                  onClick={goNext}
+                  disabled={submitting}
+                >
+                  Continue
+                </Button>
+              )}
+            </div>
+          ) : null}
         </main>
 
         {/* ── Right rail: listing recap ──────────────────────────────────── */}
@@ -899,6 +947,152 @@ function StepReview({
           <strong style={{ color: "var(--ink)" }}>/my-apps</strong>.
         </div>
       </Card>
+    </div>
+  );
+}
+
+function StepSubmitted({
+  application,
+  docsIncomplete,
+  propertyTitle,
+}: {
+  application: ApplicationResponse;
+  docsIncomplete: boolean;
+  propertyTitle: string;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: "50%",
+          background: "color-mix(in oklch, var(--success) 12%, transparent)",
+          border: "1.5px solid var(--success)",
+          color: "var(--success)",
+          display: "grid",
+          placeItems: "center",
+          marginBottom: 20,
+        }}
+      >
+        <Icon name="check" size={26} />
+      </div>
+      <Eyebrow style={{ color: "var(--success)", marginBottom: 6 }}>
+        Application submitted
+      </Eyebrow>
+      <h1
+        style={{
+          fontSize: 28,
+          fontWeight: 500,
+          letterSpacing: "-0.02em",
+          margin: "0 0 8px",
+        }}
+      >
+        On its way to {propertyTitle || "the landlord"}
+      </h1>
+      <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 24px" }}>
+        Reference{" "}
+        <span className="mono" style={{ color: "var(--ink)" }}>
+          {application.id.slice(0, 8).toUpperCase()}
+        </span>
+        . The landlord has been notified and will respond — typically within 48 hours.
+        You'll see status updates on My applications.
+      </p>
+
+      {docsIncomplete ? (
+        <Card padding={16} style={{ background: "var(--warn-soft)", marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <Icon
+              name="info"
+              size={16}
+              style={{ color: "var(--warn)", marginTop: 2, flexShrink: 0 }}
+            />
+            <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.5 }}>
+              Some documents weren't attached. Finish uploading them so the landlord can
+              progress your application — the upload page picks up where you left off.
+            </div>
+          </div>
+        </Card>
+      ) : null}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <Eyebrow>What happens next</Eyebrow>
+        <NextStep
+          n={1}
+          title="Landlord reviews"
+          body="They look over your application and any documents you attached."
+        />
+        <NextStep
+          n={2}
+          title="Decision"
+          body="If approved, you'll get an invoice for the deposit and first month."
+        />
+        <NextStep
+          n={3}
+          title="Lease + move-in"
+          body="Sign the lease, get the keys, move in. The portal tracks every step."
+        />
+      </div>
+
+      <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
+        {docsIncomplete ? (
+          <Link to="/apply/upload-documents" style={{ textDecoration: "none" }}>
+            <Button variant="accent" leftIcon="upload">
+              Finish uploading documents
+            </Button>
+          </Link>
+        ) : null}
+        <Link to="/my-apps" style={{ textDecoration: "none" }}>
+          <Button
+            variant={docsIncomplete ? "secondary" : "accent"}
+            rightIcon="arrR"
+          >
+            My applications
+          </Button>
+        </Link>
+        <Link to="/browse" style={{ textDecoration: "none" }}>
+          <Button variant="ghost">Browse more units</Button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function NextStep({ n, title, body }: { n: number; title: string; body: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 12,
+        padding: "12px 14px",
+        border: "1px solid var(--hairline)",
+        borderRadius: 10,
+        background: "var(--surface)",
+      }}
+    >
+      <div
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: "50%",
+          background: "var(--surface-2)",
+          color: "var(--slate)",
+          display: "grid",
+          placeItems: "center",
+          fontFamily: "var(--font-mono)",
+          fontSize: 12,
+          fontWeight: 600,
+          flexShrink: 0,
+        }}
+      >
+        {n}
+      </div>
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
+        <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2, lineHeight: 1.5 }}>
+          {body}
+        </div>
+      </div>
     </div>
   );
 }
