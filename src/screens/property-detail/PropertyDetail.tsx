@@ -499,24 +499,6 @@ export default function PropertyDetail() {
             )}
           </DetailSection>
 
-          <DetailSection title="Amenities">
-            {amenities.length === 0 ? (
-              <EmptyState icon="home" title="No amenities listed" />
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 14 }}>
-                {amenities.map((a) => (
-                  <div
-                    key={a.t}
-                    style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: "var(--ink)" }}
-                  >
-                    <Icon name={a.i} size={16} style={{ color: "var(--slate)" }} />
-                    {a.t}
-                  </div>
-                ))}
-              </div>
-            )}
-          </DetailSection>
-
           {property.latitude != null && property.longitude != null ? (
             <DetailSection title="Neighbourhood">
               <NearbyPlaces latitude={property.latitude} longitude={property.longitude} />
@@ -549,7 +531,39 @@ export default function PropertyDetail() {
               </p>
             ) : null}
 
-            <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12 }}>
+            {amenities.length > 0 ? (
+              <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12, marginBottom: 4 }}>
+                <Eyebrow style={{ marginBottom: 10 }}>Amenities</Eyebrow>
+                <ul
+                  style={{
+                    listStyle: "none",
+                    margin: 0,
+                    padding: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                  }}
+                >
+                  {amenities.map((a) => (
+                    <li
+                      key={a.t}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        fontSize: 13,
+                        color: "var(--ink)",
+                      }}
+                    >
+                      <Icon name={a.i} size={14} style={{ color: "var(--slate)" }} />
+                      {a.t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12, marginTop: 16 }}>
               {availableUnits.length > 0 ? (
                 <>
                   <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 10 }}>
