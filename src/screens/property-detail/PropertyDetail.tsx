@@ -412,11 +412,23 @@ export default function PropertyDetail() {
                 {property.ratingCount > 0 ? (
                   <>
                     <span>·</span>
-                    <RatingDisplay
-                      rating={Number(property.avgRating)}
-                      count={property.ratingCount}
-                      size="sm"
-                    />
+                    <a
+                      href="#reviews"
+                      style={{
+                        textDecoration: "none",
+                        color: "inherit",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        cursor: "pointer",
+                      }}
+                      aria-label={`Jump to reviews — ${Number(property.avgRating).toFixed(1)} stars from ${property.ratingCount} ${property.ratingCount === 1 ? "review" : "reviews"}`}
+                    >
+                      <RatingDisplay
+                        rating={Number(property.avgRating)}
+                        count={property.ratingCount}
+                        size="sm"
+                      />
+                    </a>
                   </>
                 ) : null}
               </div>
@@ -540,6 +552,50 @@ export default function PropertyDetail() {
                   </div>
                 ) : null}
               </>
+            )}
+          </DetailSection>
+
+          <DetailSection
+            id="reviews"
+            title="Reviews"
+            subtitle={
+              property.ratingCount > 0
+                ? `${property.ratingCount} ${property.ratingCount === 1 ? "review" : "reviews"} · ★ ${Number(property.avgRating).toFixed(1)} overall`
+                : "No reviews yet"
+            }
+          >
+            {property.ratingCount > 0 ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isSm ? "1fr" : "auto 1fr",
+                  gap: 32,
+                  alignItems: "center",
+                  padding: 24,
+                  border: "1px solid var(--hairline)",
+                  borderRadius: 12,
+                  background: "var(--surface)",
+                }}
+              >
+                <RatingDisplay
+                  rating={Number(property.avgRating)}
+                  count={property.ratingCount}
+                  layout="vertical"
+                  size="lg"
+                />
+                <div style={{ fontSize: 14, color: "var(--slate)", lineHeight: 1.6 }}>
+                  Aggregated from {property.ratingCount}{" "}
+                  {property.ratingCount === 1 ? "tenant review" : "tenant reviews"}. The
+                  written reviews these scores roll up from will appear here once the
+                  review feed ships — for now the overall score is the trust signal.
+                </div>
+              </div>
+            ) : (
+              <EmptyState
+                icon="star"
+                title="No reviews yet"
+                description="This property hasn't been reviewed by a Habitat tenant. New listings collect their first reviews after a few signed leases."
+              />
             )}
           </DetailSection>
 
@@ -701,11 +757,14 @@ export default function PropertyDetail() {
 }
 
 function DetailSection({
+  id,
   title,
   subtitle,
   actions,
   children,
 }: {
+  /** Optional anchor id for in-page jumps (e.g. `#reviews` from the title bar). */
+  id?: string;
   title: string;
   subtitle?: string;
   /** Right-aligned controls in the header — sort dropdown, view toggles, etc. */
@@ -713,7 +772,15 @@ function DetailSection({
   children: React.ReactNode;
 }) {
   return (
-    <section style={{ paddingTop: 32, paddingBottom: 32, borderTop: "1px solid var(--hairline)" }}>
+    <section
+      id={id}
+      style={{
+        paddingTop: 32,
+        paddingBottom: 32,
+        borderTop: "1px solid var(--hairline)",
+        scrollMarginTop: 80,
+      }}
+    >
       <div
         style={{
           display: "flex",
