@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Nav from "@/components/Nav";
 import Photo from "@/components/Photo";
@@ -12,7 +12,21 @@ import EmptyState from "@/components/EmptyState";
 import Footer from "@/components/Footer";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import { useViewport } from "@/hooks/useViewport";
+import { useSession } from "@/lib/session";
+import { createPropertiesApi, type PopularArea } from "@/lib/api/properties";
 import HeroSearch from "./HeroSearch";
+
+/**
+ * Initial chip line shown while the popular-areas request is in flight,
+ * and the fallback when the request fails outright. The server has its
+ * own editorial fallback for the empty-catalogue case, so a successful
+ * response is always preferred over this.
+ */
+const EDITORIAL_POPULAR_AREAS: PopularArea[] = [
+  { name: "Sandton", listingCount: 0 },
+  { name: "Umhlanga", listingCount: 0 },
+  { name: "Camps Bay", listingCount: 0 },
+];
 
 const FOOTER_COLUMNS = [
   { title: "Landlords", links: [
@@ -191,6 +205,27 @@ function TopRatedCard({
 }
 
 function SearchHero() {
+  const session = useSession();
+  const api = useMemo(() => createPropertiesApi(session.client), [session.client]);
+  const [popularAreas, setPopularAreas] = useState<PopularArea[]>(EDITORIAL_POPULAR_AREAS);
+
+  // Replace the editorial trio with live ranking on mount; ignore errors
+  // (the editorial defaults already render).
+  useEffect(() => {
+    let cancelled = false;
+    api.popularAreas(3).then(
+      (areas) => {
+        if (!cancelled && areas.length > 0) setPopularAreas(areas);
+      },
+      () => {
+        // Swallow — editorial fallback already renders.
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
   return (
     <section
       style={{
@@ -236,13 +271,13 @@ function SearchHero() {
         <HeroSearch />
         <div style={{ marginTop: 20, fontSize: 12, color: "var(--slate)" }}>
           Popular:{" "}
-          {["Sandton", "Umhlanga", "Camps Bay"].map((s, i, arr) => (
-            <span key={s}>
+          {popularAreas.map((area, i, arr) => (
+            <span key={area.name}>
               <Link
-                to={`/browse?location=${encodeURIComponent(s)}`}
+                to={`/browse?location=${encodeURIComponent(area.name)}`}
                 style={{ color: "var(--ink)", fontWeight: 500, textDecoration: "none" }}
               >
-                {s}
+                {area.name}
               </Link>
               {i < arr.length - 1 ? " · " : null}
             </span>

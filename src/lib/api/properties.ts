@@ -157,9 +157,22 @@ export type UpdateUnitPayload = Partial<CreateUnitPayload> & {
   status?: UnitStatus;
 };
 
+export interface PopularArea {
+  /** Suburb name — also a valid value for `/browse?location=…`. */
+  name: string;
+  /** Number of LISTED properties in this suburb. Zero for editorial-fallback rows. */
+  listingCount: number;
+}
+
 export interface PropertiesApi {
   list(filters?: PropertySearchFilters): Promise<PageResponse<PropertySummary>>;
   getById(id: string): Promise<PropertyDetail>;
+  /**
+   * Suburbs with the most LISTED properties, capped at {@code size}
+   * (default 3). The server falls back to an editorial list when no
+   * listings exist, so the response is never empty.
+   */
+  popularAreas(size?: number): Promise<PopularArea[]>;
   create(payload: CreatePropertyPayload): Promise<PropertyDetail>;
   update(id: string, payload: UpdatePropertyPayload): Promise<PropertyDetail>;
   delete(id: string): Promise<void>;
@@ -189,6 +202,12 @@ export function createPropertiesApi(client: ApiClient): PropertiesApi {
     },
     getById(id) {
       return client.get<PropertyDetail>(`/properties/${id}`);
+    },
+    popularAreas(size) {
+      const path = size != null
+        ? `/properties/popular-areas?size=${encodeURIComponent(String(size))}`
+        : "/properties/popular-areas";
+      return client.get<PopularArea[]>(path);
     },
     create(payload) {
       return client.post<PropertyDetail>("/properties", payload);
