@@ -16,6 +16,12 @@ import {
   type ApplicationStatus,
   type EmploymentStatus,
 } from "@/lib/api/applications";
+import {
+  APPLICATION_STEPS,
+  isCompleteStatus,
+  isDeclinedStatus,
+  statusToStep,
+} from "@/lib/applicationSteps";
 import ApplicationStatusTimeline from "./ApplicationStatusTimeline";
 
 const EMPLOYMENT_LABEL: Record<EmploymentStatus, string> = {
@@ -30,26 +36,23 @@ const EMPLOYMENT_LABEL: Record<EmploymentStatus, string> = {
 interface StatusMeta {
   label: string;
   tone: BadgeTone;
-  /** Index in the 4-stage timeline (Submitted/Vetting/Approved/Lease). */
-  stage: number;
-  declined?: boolean;
 }
 
 const STATUS_META: Record<ApplicationStatus, StatusMeta> = {
-  SUBMITTED:                { label: "Submitted",        tone: "neutral", stage: 0 },
-  AWAITING_DOCUMENTS:       { label: "Awaiting docs",    tone: "warn",    stage: 0 },
-  DOCUMENTS_SUBMITTED:      { label: "Docs uploaded",    tone: "neutral",    stage: 1 },
-  UNDER_REVIEW:             { label: "Under review",     tone: "neutral",    stage: 1 },
-  ON_HOLD:                  { label: "On hold",          tone: "warn",    stage: 1 },
-  APPROVED:                 { label: "Approved",         tone: "success", stage: 2 },
-  INVOICE_SENT:             { label: "Invoice sent",     tone: "accent",  stage: 2 },
-  DEPOSIT_PAID:             { label: "Deposit paid",     tone: "success", stage: 2 },
-  LEASE_GENERATED:          { label: "Lease ready",      tone: "accent",  stage: 3 },
-  LEASE_PENDING_SIGNATURES: { label: "Awaiting signatures", tone: "warn", stage: 3 },
-  COMPLETED:                { label: "Completed",        tone: "success", stage: 3 },
-  REJECTED:                 { label: "Declined",         tone: "danger",  stage: 1, declined: true },
-  WITHDRAWN:                { label: "Withdrawn",        tone: "neutral", stage: 0, declined: true },
-  EXPIRED:                  { label: "Expired",          tone: "neutral", stage: 0, declined: true },
+  SUBMITTED:                { label: "Submitted",           tone: "neutral" },
+  AWAITING_DOCUMENTS:       { label: "Awaiting docs",       tone: "warn"    },
+  DOCUMENTS_SUBMITTED:      { label: "Docs uploaded",       tone: "neutral" },
+  UNDER_REVIEW:             { label: "Under review",        tone: "neutral" },
+  ON_HOLD:                  { label: "On hold",             tone: "warn"    },
+  APPROVED:                 { label: "Approved",            tone: "success" },
+  INVOICE_SENT:             { label: "Invoice sent",        tone: "accent"  },
+  DEPOSIT_PAID:             { label: "Deposit paid",        tone: "success" },
+  LEASE_GENERATED:          { label: "Lease ready",         tone: "accent"  },
+  LEASE_PENDING_SIGNATURES: { label: "Awaiting signatures", tone: "warn"    },
+  COMPLETED:                { label: "Completed",           tone: "success" },
+  REJECTED:                 { label: "Declined",            tone: "danger"  },
+  WITHDRAWN:                { label: "Withdrawn",           tone: "neutral" },
+  EXPIRED:                  { label: "Expired",             tone: "neutral" },
 };
 
 function formatAppliedAt(iso: string): string {
@@ -158,6 +161,7 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
   const showInvoice = app.status === "INVOICE_SENT";
   const showLease = app.status === "LEASE_GENERATED" || app.status === "LEASE_PENDING_SIGNATURES";
   const showMoveIn = app.status === "COMPLETED";
+  const declined = isDeclinedStatus(app.status);
 
   return (
     <Card padding={0} style={{ overflow: "hidden" }}>
@@ -221,8 +225,11 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
             </Alert>
           ) : null}
 
-          <div style={{ marginTop: meta.declined || showAwaitingDocs || showInvoice ? 12 : 0 }}>
-            <ApplicationStatusTimeline stage={meta.stage} declined={meta.declined} />
+          <div style={{ marginTop: declined || showAwaitingDocs || showInvoice ? 12 : 0 }}>
+            <ApplicationStatusTimeline
+              stage={isCompleteStatus(app.status) ? APPLICATION_STEPS.length : statusToStep(app.status)}
+              declined={declined}
+            />
           </div>
         </div>
         <div

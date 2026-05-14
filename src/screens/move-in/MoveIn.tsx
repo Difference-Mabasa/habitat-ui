@@ -11,6 +11,7 @@ import Photo from "@/components/Photo";
 import Alert from "@/components/Alert";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
+import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
 import { useSession } from "@/lib/session";
 import { createLeasesApi, type LeaseResponse } from "@/lib/api/leases";
 
@@ -113,6 +114,8 @@ export default function MoveIn() {
   return (
     <TenantShell activeId="lease">
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "32px 32px 64px" }}>
+        <ApplicationProgressStepper currentStep={5} complete />
+
         {/* Hero */}
         <div style={{ marginBottom: 24 }}>
           <Eyebrow>Move-in · {lease.leaseRef}</Eyebrow>

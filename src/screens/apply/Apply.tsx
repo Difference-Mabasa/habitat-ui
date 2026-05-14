@@ -12,6 +12,8 @@ import Textarea from "@/components/Textarea";
 import PriceDisplay from "@/components/PriceDisplay";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
+import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
+import { STEP_INDEX } from "@/lib/applicationSteps";
 import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
@@ -182,6 +184,16 @@ export default function Apply() {
           maxWidth: 1100,
           margin: "0 auto",
           padding: isSm ? "20px 16px 64px" : "32px 32px 96px",
+        }}
+      >
+        <ApplicationProgressStepper currentStep={STEP_INDEX.Submit} />
+      </div>
+
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: "0 auto",
+          padding: isSm ? "0 16px 64px" : "0 32px 96px",
           display: "grid",
           gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 320px",
           gap: 32,

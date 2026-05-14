@@ -10,6 +10,8 @@ import Alert from "@/components/Alert";
 import Tabs from "@/components/Tabs";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
+import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
+import { STEP_INDEX } from "@/lib/applicationSteps";
 import { useSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
 import {
@@ -113,10 +115,15 @@ export default function Invoices() {
     }
   }
 
+  const allPaid = rows.length > 0 && rows.every((r) => r.status === "PAID");
+
   return (
     <TenantShell activeId="payments" background="var(--surface-2)">
       <div style={{ padding: 32 }}>
         <div style={{ maxWidth: 794, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
+          <ApplicationProgressStepper
+            currentStep={allPaid ? STEP_INDEX["Sign lease"] : STEP_INDEX["Pay deposit"]}
+          />
           {loading ? (
             <Card padding={32}>
               <LoadingState rows={4} />

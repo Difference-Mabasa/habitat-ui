@@ -1,16 +1,16 @@
 import { Fragment } from "react";
 import Icon from "@/components/Icon";
-
-export type TimelineStage = "Submitted" | "Vetting" | "Approved" | "Lease";
+import { APPLICATION_STEPS } from "@/lib/applicationSteps";
 
 export interface ApplicationStatusTimelineProps {
-  /** Index of current stage in STAGES. 0=Submitted, 3=Lease. */
+  /** Index of current stage in {@link stages}. */
   stage: number;
   declined?: boolean;
-  stages?: TimelineStage[];
+  /** Defaults to the canonical 6-step application flow. */
+  stages?: readonly string[];
 }
 
-const DEFAULT_STAGES: TimelineStage[] = ["Submitted", "Vetting", "Approved", "Lease"];
+const DEFAULT_STAGES: readonly string[] = APPLICATION_STEPS;
 
 export default function ApplicationStatusTimeline({
   stage,

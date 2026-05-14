@@ -15,6 +15,8 @@ import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
+import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
+import { STEP_INDEX } from "@/lib/applicationSteps";
 import { useSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
 import {
@@ -169,6 +171,10 @@ export default function Lease() {
   return (
     <TenantShell activeId="lease">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
+        <ApplicationProgressStepper
+          currentStep={isSigned ? STEP_INDEX["Move in"] : STEP_INDEX["Sign lease"]}
+          declined={isDeclined}
+        />
         <div
           style={{
             display: "flex",

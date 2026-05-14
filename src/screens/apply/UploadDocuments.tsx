@@ -9,6 +9,8 @@ import Icon from "@/components/Icon";
 import ProgressBar from "@/components/ProgressBar";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
+import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
+import { STEP_INDEX } from "@/lib/applicationSteps";
 import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
@@ -152,9 +154,10 @@ export default function UploadDocuments() {
         style={{
           maxWidth: 720,
           margin: "0 auto",
-          padding: isSm ? "32px 16px 64px" : "48px 32px 96px",
+          padding: isSm ? "20px 16px 64px" : "32px 32px 96px",
         }}
       >
+        <ApplicationProgressStepper currentStep={STEP_INDEX.Documents} />
         <Eyebrow style={{ marginBottom: 12 }}>One last step</Eyebrow>
         <h1
           style={{
