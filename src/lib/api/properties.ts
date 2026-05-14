@@ -4,10 +4,12 @@ import { type ApiClient } from "./client";
 // pulled from a generated client so the surface is grep-able from the UI.
 export type PropertyType =
   | "HOUSE"
+  | "FLAT"
   | "APARTMENT_BLOCK"
   | "TOWNHOUSE_COMPLEX"
   | "COMPLEX"
-  | "PLOT";
+  | "PLOT"
+  | "FARM";
 
 export type UnitType =
   | "APARTMENT"
