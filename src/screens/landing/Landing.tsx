@@ -303,7 +303,9 @@ function Hero() {
   const isMobile = isSm || isMd;
   const session = useSession();
   const api = useMemo(() => createLandingApi(session.client), [session.client]);
+  const propertiesApi = useMemo(() => createPropertiesApi(session.client), [session.client]);
   const [stats, setStats] = useState<LandingStats | null>(null);
+  const [heroCoverUrl, setHeroCoverUrl] = useState<string | null>(null);
 
   // Pre-launch the trust strip starts on em-dashes and is replaced as soon
   // as the API responds. Errors leave the placeholders in place — a missed
@@ -322,6 +324,22 @@ function Hero() {
       cancelled = true;
     };
   }, [api]);
+
+  // Hero photo: cover image of the most-recent LISTED property. Falls back
+  // to the design-system placeholder when the catalogue is empty or the
+  // fetch fails — both render fine under the floating cards.
+  useEffect(() => {
+    let cancelled = false;
+    propertiesApi.list({ size: 1, sort: "NEWEST", dir: "DESC" }).then(
+      (page) => {
+        if (!cancelled) setHeroCoverUrl(page.content[0]?.coverImageUrl ?? null);
+      },
+      () => {},
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [propertiesApi]);
 
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)" }}>
@@ -407,7 +425,88 @@ function Hero() {
         </div>
 
         <div style={{ position: "relative" }}>
-          <Photo ratio="4/5" label="Property cover photo" />
+          <Photo
+            ratio="4/5"
+            label="Property cover photo"
+            src={heroCoverUrl ?? undefined}
+            alt="A Habitat-listed property"
+          />
+
+          {/* Floating proof cards — verified tenant (bottom-left) and rent
+              received (top-right) — visualise the brand promise of the hero
+              headline. Per the design source (screen-landing.jsx:64-95), they
+              protrude beyond the photo on desktop; on small viewports we
+              tuck them inside to avoid horizontal overflow. The data is
+              illustrative (not live) — it's a hero proof-of-concept, not a
+              dashboard. */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 32,
+              left: isMobile ? 16 : -32,
+              padding: 16,
+              width: 280,
+              maxWidth: "calc(100% - 32px)",
+              boxShadow: "var(--shadow-lg)",
+              background: "var(--surface)",
+              border: "1px solid var(--hairline)",
+              borderRadius: "var(--r-md)",
+            }}
+          >
+            <Eyebrow style={{ marginBottom: 6 }}>Verified tenant</Eyebrow>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                className="mono"
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  background: "var(--surface-3)",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  flexShrink: 0,
+                }}
+              >
+                SD
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>Sipho Dlamini</div>
+                <div style={{ fontSize: 11, color: "var(--slate)" }}>
+                  FICA · Affordability checked
+                </div>
+              </div>
+              <Icon name="check" size={14} style={{ color: "var(--success)" }} />
+            </div>
+          </div>
+
+          <div
+            style={{
+              position: "absolute",
+              top: 24,
+              right: isMobile ? 16 : -28,
+              padding: 14,
+              width: 220,
+              maxWidth: "calc(100% - 32px)",
+              boxShadow: "var(--shadow-md)",
+              background: "var(--surface)",
+              border: "1px solid var(--hairline)",
+              borderRadius: "var(--r-md)",
+            }}
+          >
+            <Eyebrow style={{ marginBottom: 4 }}>Rent · April</Eyebrow>
+            <div
+              className="tabular"
+              style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em" }}
+            >
+              R 6,800
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+              <Badge tone="success">Received</Badge>
+              <span style={{ fontSize: 11, color: "var(--slate)" }}>2 hours ago</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
