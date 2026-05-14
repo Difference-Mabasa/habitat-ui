@@ -185,62 +185,95 @@ export default function Unit() {
         </div>
       </div>
 
-      {/* Gallery */}
-      <div style={{ maxWidth: 1440, margin: "0 auto", padding: isSm ? "16px 16px" : "24px 32px" }}>
-        <PhotoMosaicGallery photos={photos} alt={unitName} compact={isSm} />
-      </div>
-
-      {/* Body */}
+      {/* Title row — full width, sits above the gallery + apply hero. */}
       <div
         style={{
           maxWidth: 1440,
           margin: "0 auto",
-          padding: isSm ? "16px 16px 64px" : "16px 32px 80px",
+          padding: isSm ? "20px 16px 12px" : "28px 32px 16px",
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 24,
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+            <Badge tone={badge.tone}>{badge.label}</Badge>
+            <Badge tone="neutral">{unitTypeLabel}</Badge>
+            <Badge tone="neutral">{furnishingLabel}</Badge>
+            {unit.availableFrom ? <Badge tone="accent">From {unit.availableFrom}</Badge> : null}
+          </div>
+          <h1
+            style={{
+              fontSize: 36,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.1,
+              fontWeight: 500,
+              margin: "0 0 8px",
+            }}
+          >
+            {unitName}
+          </h1>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              color: "var(--slate)",
+              fontSize: 14,
+              flexWrap: "wrap",
+            }}
+          >
+            <Link
+              to={`/property/${property.id}`}
+              style={{
+                color: "var(--slate)",
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <Icon name="home" size={14} /> {property.title}
+            </Link>
+            <span>·</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Icon name="pin" size={14} /> {fullAddress || "—"}
+            </span>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <Button
+            variant={saved ? "accent" : "secondary"}
+            size="sm"
+            leftIcon="heart"
+            onClick={() => toggleSaved(property.id)}
+          >
+            {saved ? "Saved" : "Save"}
+          </Button>
+          <Button variant="secondary" size="sm" leftIcon="arrUR" onClick={handleShare}>
+            Share
+          </Button>
+        </div>
+      </div>
+
+      {/* Body grid: gallery left, sticky apply panel right. Gallery uses
+          the new `sm` size so Apply/Viewing sits in the fold next to the
+          first photo on landing. */}
+      <div
+        style={{
+          maxWidth: 1440,
+          margin: "0 auto",
+          padding: isSm ? "0 16px 64px" : "0 32px 80px",
           display: "grid",
           gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 380px",
-          gap: 64,
+          gap: isMobile ? 24 : 32,
         }}
       >
         <main>
-          {/* Title + status */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, marginBottom: 24 }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-                <Badge tone={badge.tone}>{badge.label}</Badge>
-                <Badge tone="neutral">{unitTypeLabel}</Badge>
-                <Badge tone="neutral">{furnishingLabel}</Badge>
-                {unit.availableFrom ? <Badge tone="accent">From {unit.availableFrom}</Badge> : null}
-              </div>
-              <h1 style={{ fontSize: 36, letterSpacing: "-0.025em", lineHeight: 1.1, fontWeight: 500, margin: "0 0 8px" }}>
-                {unitName}
-              </h1>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--slate)", fontSize: 14, flexWrap: "wrap" }}>
-                <Link
-                  to={`/property/${property.id}`}
-                  style={{ color: "var(--slate)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
-                >
-                  <Icon name="home" size={14} /> {property.title}
-                </Link>
-                <span>·</span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <Icon name="pin" size={14} /> {fullAddress || "—"}
-                </span>
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-              <Button
-                variant={saved ? "accent" : "secondary"}
-                size="sm"
-                leftIcon="heart"
-                onClick={() => toggleSaved(property.id)}
-              >
-                {saved ? "Saved" : "Save"}
-              </Button>
-              <Button variant="secondary" size="sm" leftIcon="arrUR" onClick={handleShare}>
-                Share
-              </Button>
-            </div>
-          </div>
+          <PhotoMosaicGallery photos={photos} alt={unitName} compact={isSm} size="sm" />
 
           {/* Quick stats */}
           <div
@@ -249,6 +282,7 @@ export default function Unit() {
               gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
               border: "1px solid var(--hairline)",
               borderRadius: 12,
+              marginTop: 24,
               marginBottom: 32,
             }}
           >

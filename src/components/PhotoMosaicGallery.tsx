@@ -3,6 +3,14 @@ import Photo from "./Photo";
 import Icon from "./Icon";
 import PhotoLightbox from "./PhotoLightbox";
 
+export type PhotoMosaicGallerySize = "sm" | "md";
+
+/** Desktop-mosaic heights per size token. */
+const SIZE_HEIGHTS: Record<PhotoMosaicGallerySize, number> = {
+  sm: 360,
+  md: 480,
+};
+
 export interface PhotoMosaicGalleryProps {
   /** Every photo in the set. The mosaic shows the first five; the lightbox cycles through all. */
   photos: string[];
@@ -12,10 +20,16 @@ export interface PhotoMosaicGalleryProps {
   emptyLabel?: string;
   /**
    * Compact layout flag for small viewports — single 320px-high tile
-   * instead of the 480px five-tile desktop mosaic. Callers typically pass
+   * instead of the multi-tile desktop mosaic. Callers typically pass
    * `useViewport().isSm`.
    */
   compact?: boolean;
+  /**
+   * Desktop mosaic height. `md` (480px) is the default standalone hero;
+   * `sm` (360px) suits a column-shared hero where the gallery sits
+   * beside an apply / details panel.
+   */
+  size?: PhotoMosaicGallerySize;
 }
 
 /**
@@ -32,10 +46,12 @@ export default function PhotoMosaicGallery({
   alt,
   emptyLabel = "No photos",
   compact = false,
+  size = "md",
 }: PhotoMosaicGalleryProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const galleryPhotos = photos.slice(0, 5);
   const overflow = photos.length > galleryPhotos.length;
+  const desktopHeight = SIZE_HEIGHTS[size];
 
   return (
     <>
@@ -45,7 +61,7 @@ export default function PhotoMosaicGallery({
           gridTemplateColumns: compact ? "1fr" : "2fr 1fr 1fr",
           gridTemplateRows: compact ? "320px" : "1fr 1fr",
           gap: 8,
-          height: compact ? 320 : 480,
+          height: compact ? 320 : desktopHeight,
           position: "relative",
           borderRadius: 12,
           overflow: "hidden",
