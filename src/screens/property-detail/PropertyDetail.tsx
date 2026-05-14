@@ -555,6 +555,12 @@ export default function PropertyDetail() {
             )}
           </DetailSection>
 
+          {property.latitude != null && property.longitude != null ? (
+            <DetailSection title="Neighbourhood">
+              <NearbyPlaces latitude={property.latitude} longitude={property.longitude} />
+            </DetailSection>
+          ) : null}
+
           <DetailSection
             id="reviews"
             title="Reviews"
@@ -598,12 +604,6 @@ export default function PropertyDetail() {
               />
             )}
           </DetailSection>
-
-          {property.latitude != null && property.longitude != null ? (
-            <DetailSection title="Neighbourhood">
-              <NearbyPlaces latitude={property.latitude} longitude={property.longitude} />
-            </DetailSection>
-          ) : null}
         </main>
 
         {/* Sticky property-info panel */}
