@@ -454,6 +454,52 @@ function Hero() {
         </div>
 
         <div style={{ position: "relative" }}>
+          {/* Inline SVG filter that gives the hero photo its rippling-flag
+              look. Pure transform on the image's pixels via
+              feDisplacementMap; the .ph frame around it stays a fixed
+              rectangle. Rendered once here — the CSS selector
+              `.flag-wave .ph > img { filter: url(#flag-ripple) }` resolves
+              against this <defs>. baseFrequency is animated through SMIL
+              so the ripple drifts over time. */}
+          <svg
+            aria-hidden="true"
+            width="0"
+            height="0"
+            style={{ position: "absolute", pointerEvents: "none" }}
+          >
+            <defs>
+              <filter
+                id="flag-ripple"
+                x="-5%"
+                y="-5%"
+                width="110%"
+                height="110%"
+              >
+                <feTurbulence
+                  type="fractalNoise"
+                  baseFrequency="0.015 0.025"
+                  numOctaves={2}
+                  seed={2}
+                  result="turb"
+                >
+                  <animate
+                    attributeName="baseFrequency"
+                    dur="7s"
+                    values="0.015 0.025;0.022 0.028;0.015 0.025"
+                    repeatCount="indefinite"
+                  />
+                </feTurbulence>
+                <feDisplacementMap
+                  in="SourceGraphic"
+                  in2="turb"
+                  scale={14}
+                  xChannelSelector="R"
+                  yChannelSelector="G"
+                />
+              </filter>
+            </defs>
+          </svg>
+
           <div className="flag-wave">
             <Photo
               ratio="4/5"

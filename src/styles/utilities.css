@@ -258,18 +258,17 @@
    motion.
    ───────────────────────────────────────────────────────────────────────── */
 
-@keyframes flag-wave {
-  0%   { transform: skewX(0deg)    skewY(0deg)     rotate(0deg); }
-  25%  { transform: skewX(1.4deg)  skewY(0.25deg)  rotate(0.35deg); }
-  50%  { transform: skewX(0deg)    skewY(0deg)     rotate(0deg); }
-  75%  { transform: skewX(-1.4deg) skewY(-0.25deg) rotate(-0.35deg); }
-  100% { transform: skewX(0deg)    skewY(0deg)     rotate(0deg); }
-}
-
-.flag-wave {
-  animation: flag-wave 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-  transform-origin: top center;
-  will-change: transform;
+/*
+   Flag wave — the FRAME stays a clean stationary rectangle; the image
+   PIXELS inside ripple via an SVG feDisplacementMap filter (defined
+   inline in the hero JSX as #flag-ripple). The img is scaled up 4%
+   so the displacement's edge pull doesn't reveal transparent borders;
+   the .ph parent's overflow: hidden clips the bleed away.
+*/
+.flag-wave .ph > img {
+  filter: url(#flag-ripple);
+  transform: scale(1.04);
+  will-change: filter, transform;
 }
 
 @keyframes float-a {
@@ -300,7 +299,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flag-wave,
+  .flag-wave .ph > img {
+    filter: none;
+    transform: none;
+  }
   .float-a,
   .float-b {
     animation: none;
