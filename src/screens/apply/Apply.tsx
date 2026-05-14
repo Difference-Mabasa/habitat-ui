@@ -23,31 +23,51 @@ import {
   type EmploymentStatus,
 } from "@/lib/api/applications";
 
-const EMPLOYMENT_OPTIONS: { value: EmploymentStatus; label: string; icon: IconName }[] = [
-  { value: "EMPLOYED", label: "Employed", icon: "user" },
-  { value: "SELF_EMPLOYED", label: "Self-employed", icon: "wrench" },
-  { value: "STUDENT", label: "Student", icon: "paper" },
-  { value: "PENSIONER", label: "Pensioner", icon: "home" },
-  { value: "UNEMPLOYED", label: "Currently looking", icon: "search" },
-  { value: "OTHER", label: "Other", icon: "sparkle" },
+// ── Wizard step model ───────────────────────────────────────────────
+
+type WizardStep = "about" | "application" | "review";
+const STEP_ORDER: WizardStep[] = ["about", "application", "review"];
+
+const STEPS: { id: WizardStep | "documents"; icon: IconName; title: string }[] = [
+  { id: "about",       icon: "user",  title: "About you" },
+  { id: "application", icon: "edit",  title: "Your application" },
+  { id: "review",      icon: "check", title: "Review" },
+  // "Documents" is the post-submit screen (/apply/upload-documents); shown
+  // in the rail so the journey is visible end-to-end. Not clickable from
+  // the wizard — the user lands there automatically after submit IF the
+  // landlord requires docs (AWAITING_DOCUMENTS branch).
+  { id: "documents",   icon: "doc",   title: "Documents" },
 ];
 
-// Wizard step list — ports the handoff's left-rail stepper (screen-apply.jsx).
-// Habitat collects "Message" today; the others are placeholders for the
-// wizard expansion. Show them all so the user sees the journey.
-const APPLY_SUBSTEPS: { icon: IconName; title: string }[] = [
-  { icon: "user", title: "About you" },
-  { icon: "cash", title: "Affordability" },
-  { icon: "doc", title: "Documents" },
-  { icon: "edit", title: "Message" },
-  { icon: "check", title: "Review" },
+const EMPLOYMENT_OPTIONS: { value: EmploymentStatus; label: string; icon: IconName }[] = [
+  { value: "EMPLOYED",      label: "Employed",          icon: "user" },
+  { value: "SELF_EMPLOYED", label: "Self-employed",     icon: "wrench" },
+  { value: "STUDENT",       label: "Student",           icon: "paper" },
+  { value: "PENSIONER",     label: "Pensioner",         icon: "home" },
+  { value: "UNEMPLOYED",    label: "Currently looking", icon: "search" },
+  { value: "OTHER",         label: "Other",             icon: "sparkle" },
 ];
-const CURRENT_SUBSTEP = 3; // "Message"
+
+const EMPLOYMENT_LABEL: Record<EmploymentStatus, string> = {
+  EMPLOYED: "Employed",
+  SELF_EMPLOYED: "Self-employed",
+  STUDENT: "Student",
+  PENSIONER: "Pensioner",
+  UNEMPLOYED: "Currently looking",
+  OTHER: "Other",
+};
 
 const TODAY = new Date().toISOString().split("T")[0];
 
 function formatRand(amount: number): string {
   return `R ${Math.round(amount).toLocaleString("en-ZA")}`;
+}
+
+function formatDate(iso: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export default function Apply() {
@@ -70,6 +90,8 @@ export default function Apply() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Wizard state — single source of truth for every step.
+  const [step, setStep] = useState<WizardStep>("about");
   const [employment, setEmployment] = useState<EmploymentStatus | null>(null);
   const [message, setMessage] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
@@ -145,9 +167,16 @@ export default function Apply() {
   ]
     .filter(Boolean)
     .join(" · ");
+  const stepIndex = STEP_ORDER.indexOf(step);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function goNext() {
+    if (stepIndex < STEP_ORDER.length - 1) setStep(STEP_ORDER[stepIndex + 1]);
+  }
+  function goBack() {
+    if (stepIndex > 0) setStep(STEP_ORDER[stepIndex - 1]);
+  }
+
+  async function handleSubmit() {
     if (submitting || !unit || !property) return;
     const submittedFor = unit;
     const submittedProperty = property;
@@ -230,19 +259,41 @@ export default function Apply() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            {APPLY_SUBSTEPS.map((s, i) => {
-              const state =
-                i < CURRENT_SUBSTEP ? "done" : i === CURRENT_SUBSTEP ? "current" : "next";
+            {STEPS.map((s, i) => {
+              const isDocs = s.id === "documents";
+              const state = isDocs
+                ? "next"
+                : i < stepIndex
+                  ? "done"
+                  : i === stepIndex
+                    ? "current"
+                    : "next";
+              const clickable = state === "done";
+              const onClick = clickable
+                ? () => setStep(STEPS[i].id as WizardStep)
+                : undefined;
               return (
                 <div
                   key={s.title}
+                  role={clickable ? "button" : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  onClick={onClick}
+                  onKeyDown={
+                    clickable
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") onClick?.();
+                        }
+                      : undefined
+                  }
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: 12,
                     padding: "10px 12px",
                     borderRadius: 8,
-                    background: state === "current" ? "var(--surface-2)" : "transparent",
+                    background:
+                      state === "current" ? "var(--surface-2)" : "transparent",
+                    cursor: clickable ? "pointer" : "default",
                   }}
                 >
                   <div
@@ -305,139 +356,88 @@ export default function Apply() {
               <Icon name="shield" size={14} /> Why we ask
             </div>
             <div style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5 }}>
-              Documents go straight to the landlord — encrypted, deleted after 90 days if
-              unsuccessful.
+              Everything you share goes straight to the landlord — encrypted, deleted after
+              90 days if unsuccessful.
             </div>
           </Card>
         </aside>
 
-        {/* ── Center: the form (Message step today) ──────────────────────── */}
-        <main>
-          <h1
+        {/* ── Center: current step's content ──────────────────────────────── */}
+        <main data-step={step}>
+          {step === "about" ? (
+            <StepAbout
+              employment={employment}
+              setEmployment={setEmployment}
+              isSm={isSm}
+            />
+          ) : step === "application" ? (
+            <StepApplication
+              message={message}
+              setMessage={setMessage}
+              moveInDate={moveInDate}
+              setMoveInDate={setMoveInDate}
+              today={TODAY}
+            />
+          ) : (
+            <StepReview
+              employment={employment}
+              message={message}
+              moveInDate={moveInDate}
+              unitTitle={unit.title}
+              propertyTitle={property.title ?? ""}
+            />
+          )}
+
+          {/* Footer nav — Back / Continue or Submit */}
+          <div
             style={{
-              fontSize: 28,
-              fontWeight: 500,
-              letterSpacing: "-0.02em",
-              margin: "0 0 8px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 32,
+              flexWrap: "wrap",
+              gap: 12,
             }}
           >
-            Your message to {property.title || "the landlord"}
-          </h1>
-          <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 32px" }}>
-            Tell the landlord a bit about you — employment, preferred move-in date, and a short
-            note. Submitting doesn't commit you to anything; they'll review and respond.
-          </p>
-
-          <form onSubmit={handleSubmit}>
-            <FormSection
-              title="What's your employment situation?"
-              hint="Optional — gives the landlord a quick read on your income story."
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
-                  gap: 10,
-                }}
-              >
-                {EMPLOYMENT_OPTIONS.map((opt) => {
-                  const active = employment === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setEmployment(active ? null : opt.value)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "12px 14px",
-                        border: `1px solid ${active ? "var(--accent)" : "var(--hairline)"}`,
-                        background: active ? "var(--accent-soft)" : "var(--surface)",
-                        borderRadius: 10,
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                        fontSize: 13,
-                        color: "var(--ink)",
-                        textAlign: "left",
-                        transition: "border-color 120ms, background 120ms",
-                      }}
-                    >
-                      <Icon
-                        name={opt.icon}
-                        size={16}
-                        style={{ color: active ? "var(--accent)" : "var(--slate)" }}
-                      />
-                      <span style={{ flex: 1, fontWeight: active ? 600 : 500 }}>{opt.label}</span>
-                      {active ? (
-                        <Icon name="check" size={14} style={{ color: "var(--accent)" }} />
-                      ) : null}
-                    </button>
-                  );
-                })}
-              </div>
-            </FormSection>
-
-            <FormSection
-              title="Message to landlord"
-              hint="Optional — introduce yourself in a sentence or two."
-            >
-              <FormField label="" htmlFor="apply-message">
-                <Textarea
-                  id="apply-message"
-                  rows={4}
-                  placeholder="Hi, I'm a young professional looking for a quiet place close to the Gautrain…"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  maxLength={2000}
-                />
-              </FormField>
-            </FormSection>
-
-            <FormSection
-              title="Preferred move-in date"
-              hint="Optional — the landlord may counter with their own date."
-            >
-              <FormField label="" htmlFor="apply-movein">
-                <Input
-                  id="apply-movein"
-                  type="date"
-                  value={moveInDate}
-                  min={TODAY}
-                  onChange={(e) => setMoveInDate(e.target.value)}
-                  style={{ maxWidth: 220 }}
-                />
-              </FormField>
-            </FormSection>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginTop: 32,
-                flexWrap: "wrap",
-                gap: 12,
-              }}
-            >
+            {stepIndex === 0 ? (
               <Link
                 to={`/unit?id=${unit.id}&prop=${property.id}`}
                 style={{ textDecoration: "none" }}
               >
                 <Button variant="ghost" leftIcon="chevL" disabled={submitting}>
-                  Back
+                  Back to property
                 </Button>
               </Link>
+            ) : (
               <Button
-                type="submit"
+                variant="ghost"
+                leftIcon="chevL"
+                onClick={goBack}
+                disabled={submitting}
+              >
+                Back
+              </Button>
+            )}
+            {step === "review" ? (
+              <Button
                 variant="accent"
                 rightIcon="arrR"
+                onClick={handleSubmit}
                 disabled={submitting}
               >
                 {submitting ? "Submitting…" : "Submit application"}
               </Button>
-            </div>
-          </form>
+            ) : (
+              <Button
+                variant="accent"
+                rightIcon="arrR"
+                onClick={goNext}
+                disabled={submitting}
+              >
+                Continue
+              </Button>
+            )}
+          </div>
         </main>
 
         {/* ── Right rail: listing recap ──────────────────────────────────── */}
@@ -479,6 +479,216 @@ export default function Apply() {
   );
 }
 
+// ── Step bodies ──────────────────────────────────────────────────────
+
+function StepAbout({
+  employment,
+  setEmployment,
+  isSm,
+}: {
+  employment: EmploymentStatus | null;
+  setEmployment: (v: EmploymentStatus | null) => void;
+  isSm: boolean;
+}) {
+  return (
+    <div>
+      <h1 style={{ fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", margin: "0 0 8px" }}>
+        Tell the landlord about you
+      </h1>
+      <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 32px" }}>
+        Habitat already has your name, email, and verified phone on file. Confirm your
+        employment situation so the landlord has the basics.
+      </p>
+
+      <section style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
+          Employment situation
+        </div>
+        <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 12 }}>
+          Pick the closest match.
+        </div>
+        <div
+          role="radiogroup"
+          aria-label="Employment situation"
+          style={{
+            display: "grid",
+            gridTemplateColumns: isSm ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
+            gap: 10,
+          }}
+        >
+          {EMPLOYMENT_OPTIONS.map((opt) => {
+            const active = employment === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setEmployment(active ? null : opt.value)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "12px 14px",
+                  border: `1px solid ${active ? "var(--accent)" : "var(--hairline)"}`,
+                  background: active ? "var(--accent-soft)" : "var(--surface)",
+                  borderRadius: 10,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  fontSize: 13,
+                  color: "var(--ink)",
+                  textAlign: "left",
+                }}
+              >
+                <Icon
+                  name={opt.icon}
+                  size={16}
+                  style={{ color: active ? "var(--accent)" : "var(--slate)" }}
+                />
+                <span style={{ flex: 1, fontWeight: active ? 600 : 500 }}>{opt.label}</span>
+                {active ? (
+                  <Icon name="check" size={14} style={{ color: "var(--accent)" }} />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function StepApplication({
+  message,
+  setMessage,
+  moveInDate,
+  setMoveInDate,
+  today,
+}: {
+  message: string;
+  setMessage: (v: string) => void;
+  moveInDate: string;
+  setMoveInDate: (v: string) => void;
+  today: string;
+}) {
+  return (
+    <div>
+      <h1 style={{ fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", margin: "0 0 8px" }}>
+        Your application
+      </h1>
+      <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 32px" }}>
+        A short note + your preferred move-in date. The landlord may counter the date.
+      </p>
+
+      <section style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
+          Message to landlord
+        </div>
+        <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 10 }}>
+          Optional — introduce yourself in a sentence or two.
+        </div>
+        <FormField label="" htmlFor="apply-message">
+          <Textarea
+            id="apply-message"
+            rows={5}
+            placeholder="Hi! I'm a young professional looking for a quiet place close to the Gautrain…"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            maxLength={2000}
+          />
+        </FormField>
+      </section>
+
+      <section>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
+          Preferred move-in date
+        </div>
+        <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 10 }}>
+          Optional — the landlord may counter with their own date.
+        </div>
+        <FormField label="" htmlFor="apply-movein">
+          <Input
+            id="apply-movein"
+            type="date"
+            value={moveInDate}
+            min={today}
+            onChange={(e) => setMoveInDate(e.target.value)}
+            style={{ maxWidth: 220 }}
+          />
+        </FormField>
+      </section>
+    </div>
+  );
+}
+
+function StepReview({
+  employment,
+  message,
+  moveInDate,
+  unitTitle,
+  propertyTitle,
+}: {
+  employment: EmploymentStatus | null;
+  message: string;
+  moveInDate: string;
+  unitTitle: string;
+  propertyTitle: string;
+}) {
+  return (
+    <div>
+      <h1 style={{ fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", margin: "0 0 8px" }}>
+        Review and submit
+      </h1>
+      <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 32px" }}>
+        Have a quick look. You can still go back and edit anything.
+      </p>
+
+      <Card padding={20} style={{ marginBottom: 16 }}>
+        <Eyebrow style={{ marginBottom: 12 }}>About you</Eyebrow>
+        <ReviewRow
+          label="Employment"
+          value={employment ? EMPLOYMENT_LABEL[employment] : "Not provided"}
+        />
+      </Card>
+
+      <Card padding={20} style={{ marginBottom: 16 }}>
+        <Eyebrow style={{ marginBottom: 12 }}>Your application</Eyebrow>
+        <ReviewRow
+          label="Move-in date"
+          value={moveInDate ? formatDate(moveInDate) : "Flexible"}
+        />
+        <div style={{ marginTop: 12 }}>
+          <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 4 }}>
+            Message to landlord
+          </div>
+          <div style={{ fontSize: 14, color: "var(--ink)", whiteSpace: "pre-wrap" }}>
+            {message.trim() ? message : <em style={{ color: "var(--slate)" }}>None</em>}
+          </div>
+        </div>
+      </Card>
+
+      <Card padding={20} style={{ marginBottom: 16, background: "var(--surface-2)" }}>
+        <Eyebrow style={{ marginBottom: 8 }}>What happens next</Eyebrow>
+        <div style={{ fontSize: 13, color: "var(--slate)", lineHeight: 1.5 }}>
+          Submitting sends your application to the landlord of {propertyTitle || unitTitle}.
+          If they require supporting documents, you'll be taken to the upload screen next.
+          Either way, you'll see your application's progress on{" "}
+          <strong style={{ color: "var(--ink)" }}>/my-apps</strong>.
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function ReviewRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+      <span style={{ color: "var(--slate)" }}>{label}</span>
+      <span style={{ fontWeight: 500 }}>{value}</span>
+    </div>
+  );
+}
+
 function RecapRow({ label, value }: { label: string; value: string }) {
   return (
     <div
@@ -494,25 +704,5 @@ function RecapRow({ label, value }: { label: string; value: string }) {
         {value}
       </span>
     </div>
-  );
-}
-
-function FormSection({
-  title,
-  hint,
-  children,
-}: {
-  title: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section style={{ marginBottom: 28 }}>
-      <div style={{ marginBottom: 10 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>{title}</div>
-        {hint ? <div style={{ fontSize: 12, color: "var(--slate)" }}>{hint}</div> : null}
-      </div>
-      {children}
-    </section>
   );
 }
