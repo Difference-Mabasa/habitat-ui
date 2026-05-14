@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
 import { useViewport } from "@/hooks/useViewport";
 import Photo from "@/components/Photo";
-import PhotoLightbox from "@/components/PhotoLightbox";
+import PhotoMosaicGallery from "@/components/PhotoMosaicGallery";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
@@ -73,7 +73,6 @@ export default function Unit() {
   const [property, setProperty] = useState<PropertyDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const { isSaved, toggle: toggleSaved } = useSavedProperties();
 
   useEffect(() => {
@@ -142,7 +141,6 @@ export default function Unit() {
   const badge = UNIT_BADGE[unit.status];
   const canApply = unit.status === "AVAILABLE";
   const photos = unit.images.map((i) => i.url);
-  const galleryPhotos = photos.slice(0, 5);
   const inclusions = buildInclusions(unit);
   const unitTypeLabel = titleCase(unit.unitType);
   const furnishingLabel = unit.furnishing
@@ -189,70 +187,8 @@ export default function Unit() {
 
       {/* Gallery */}
       <div style={{ maxWidth: 1440, margin: "0 auto", padding: isSm ? "16px 16px" : "24px 32px" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isSm ? "1fr" : "2fr 1fr 1fr",
-            gridTemplateRows: isSm ? "320px" : "1fr 1fr",
-            gap: 8,
-            height: isSm ? 320 : 480,
-            position: "relative",
-            borderRadius: 12,
-            overflow: "hidden",
-          }}
-        >
-          {galleryPhotos.map((src, i) => (
-            <button
-              key={src + i}
-              type="button"
-              onClick={() => setLightboxIndex(i)}
-              aria-label={`Open photo ${i + 1} of ${photos.length}`}
-              style={{
-                padding: 0,
-                border: 0,
-                background: "transparent",
-                cursor: "pointer",
-                ...(i === 0 && !isSm ? { gridRow: "1 / 3" } : {}),
-              }}
-            >
-              <Photo ratio="auto" src={src} label="" style={{ borderRadius: 0, height: "100%" }} />
-            </button>
-          ))}
-          {galleryPhotos.length === 0 ? (
-            <Photo ratio="auto" label="No photos" style={{ borderRadius: 0, height: "100%" }} />
-          ) : null}
-
-          {photos.length > galleryPhotos.length ? (
-            <button
-              type="button"
-              onClick={() => setLightboxIndex(0)}
-              style={{
-                position: "absolute",
-                right: 16,
-                bottom: 16,
-                padding: "8px 14px",
-                background: "var(--paper)",
-                color: "var(--ink)",
-                border: "1px solid var(--hairline)",
-                borderRadius: 999,
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                boxShadow: "var(--shadow-md)",
-                fontFamily: "inherit",
-              }}
-            >
-              <Icon name="grid" size={14} />
-              View all {photos.length} photos
-            </button>
-          ) : null}
-        </div>
+        <PhotoMosaicGallery photos={photos} alt={unitName} compact={isSm} />
       </div>
-
-      <PhotoLightbox photos={photos} index={lightboxIndex} onChange={setLightboxIndex} alt={unitName} />
 
       {/* Body */}
       <div
