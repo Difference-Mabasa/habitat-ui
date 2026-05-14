@@ -1,7 +1,9 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Nav from "@/components/Nav";
 import { useViewport } from "@/hooks/useViewport";
 import Photo from "@/components/Photo";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import Icon, { type IconName } from "@/components/Icon";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
@@ -14,41 +16,16 @@ import KeyValueRow from "@/components/KeyValueRow";
 import AgentCard from "@/components/AgentCard";
 import Alert from "@/components/Alert";
 import EmptyState from "@/components/EmptyState";
-
-type UnitStatus = "AVAILABLE" | "OCCUPIED" | "UNDER_MAINTENANCE" | "UNLISTED";
-
-interface UnitAmenity {
-  icon: IconName;
-  label: string;
-}
-
-interface UnitDetail {
-  id: string;
-  name: string;
-  unitNumber: string;
-  property: string;
-  propertyId: string;
-  address: string;
-  area: string;
-  type: string;
-  furnishing: "Furnished" | "Unfurnished" | "Partially furnished";
-  beds: number;
-  baths: number;
-  sqm: number;
-  price: number;
-  deposit: number;
-  status: UnitStatus;
-  availableFrom: string | null;
-  description: string;
-  amenities: UnitAmenity[];
-  photos: string[];
-  /** Floor (e.g. "Ground", "First floor") or "Standalone". */
-  floor: string;
-  /** Inclusions list (water, internet, etc.) */
-  inclusions: string[];
-}
-
-const UNITS: Record<string, UnitDetail> = {};
+import LoadingState from "@/components/LoadingState";
+import { useSession } from "@/lib/session";
+import { useSavedProperties } from "@/lib/useSavedProperties";
+import { toast } from "@/lib/toast";
+import {
+  createPropertiesApi,
+  type PropertyDetail as PropertyDetailDto,
+  type UnitDetail as UnitDetailDto,
+  type UnitStatus,
+} from "@/lib/api/properties";
 
 const UNIT_BADGE: Record<UnitStatus, { tone: BadgeTone; label: string }> = {
   AVAILABLE: { tone: "success", label: "Available" },
@@ -57,14 +34,92 @@ const UNIT_BADGE: Record<UnitStatus, { tone: BadgeTone; label: string }> = {
   UNLISTED: { tone: "neutral", label: "Unlisted" },
 };
 
+const FURNISHING_LABEL: Record<string, string> = {
+  FURNISHED: "Furnished",
+  SEMI_FURNISHED: "Semi-furnished",
+  UNFURNISHED: "Unfurnished",
+};
+
+function titleCase(s: string): string {
+  return s
+    .toLowerCase()
+    .split("_")
+    .map((w) => (w.length > 0 ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
+/** What's-included list derived from the Unit's boolean flags. */
+function buildInclusions(unit: UnitDetailDto): string[] {
+  const out: string[] = [];
+  if (unit.waterIncluded) out.push("Water included");
+  if (unit.electricityIncluded) out.push("Electricity included");
+  if (unit.petsAllowed) out.push("Pets allowed");
+  if (unit.furnishing && unit.furnishing !== "UNFURNISHED") {
+    out.push(FURNISHING_LABEL[unit.furnishing] ?? "Furnished");
+  }
+  return out;
+}
+
 export default function Unit() {
   const [params] = useSearchParams();
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
-  const id = params.get("id") ?? "";
-  const unit = UNITS[id];
+  const session = useSession();
+  const api = useMemo(() => createPropertiesApi(session.client), [session.client]);
 
-  if (!unit) {
+  const unitId = params.get("id") ?? "";
+  const propertyId = params.get("prop") ?? "";
+
+  const [property, setProperty] = useState<PropertyDetailDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const { isSaved, toggle: toggleSaved } = useSavedProperties();
+
+  useEffect(() => {
+    if (!propertyId || propertyId === ":id") {
+      setLoading(false);
+      setError("This link is missing the property reference. Open the unit from a property page.");
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    void api
+      .getById(propertyId)
+      .then((p) => {
+        if (cancelled) return;
+        setProperty(p);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Property not found.");
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [api, propertyId]);
+
+  const unit = useMemo(() => property?.units.find((u) => u.id === unitId), [property, unitId]);
+  const otherUnits = useMemo(
+    () => (property ? property.units.filter((u) => u.id !== unitId) : []),
+    [property, unitId],
+  );
+
+  if (loading) {
+    return (
+      <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
+        <Nav role="tenant" />
+        <div style={{ maxWidth: 1440, margin: "0 auto", padding: "48px 32px" }}>
+          <LoadingState rows={4} />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !property || !unit) {
     return (
       <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
         <Nav role="tenant" />
@@ -72,7 +127,7 @@ export default function Unit() {
           <EmptyState
             icon="home"
             title="Unit not found"
-            description="This unit isn't available right now. Try browsing other spots."
+            description={error ?? "This unit isn't available right now. Try browsing other spots."}
             actions={
               <Link to="/browse" style={{ textDecoration: "none" }}>
                 <Button variant="accent">Browse units</Button>
@@ -86,8 +141,34 @@ export default function Unit() {
 
   const badge = UNIT_BADGE[unit.status];
   const canApply = unit.status === "AVAILABLE";
+  const photos = unit.images.map((i) => i.url);
+  const galleryPhotos = photos.slice(0, 5);
+  const inclusions = buildInclusions(unit);
+  const unitTypeLabel = titleCase(unit.unitType);
+  const furnishingLabel = unit.furnishing
+    ? FURNISHING_LABEL[unit.furnishing] ?? titleCase(unit.furnishing)
+    : "Unfurnished";
+  const unitName = unit.unitNumber ? `${unit.title} · ${unit.unitNumber}` : unit.title;
+  const fullAddress = [property.addressLine, property.suburb, property.city, property.province]
+    .filter(Boolean)
+    .join(", ");
 
-  const otherUnits = Object.values(UNITS).filter((u) => u.id !== unit.id);
+  function handleShare() {
+    const url = window.location.href;
+    const title = unitName;
+    if (typeof navigator.share === "function") {
+      navigator.share({ title, url }).catch(() => {});
+      return;
+    }
+    void navigator.clipboard
+      .writeText(url)
+      .then(() => toast.success("Link copied to clipboard"))
+      .catch(() => toast.error("Couldn't copy the link"));
+  }
+
+  // Save state is keyed on the unit's parent property — saving a unit
+  // is functionally "save this property" until we add unit-level saves.
+  const saved = isSaved(property.id);
 
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
@@ -98,53 +179,87 @@ export default function Unit() {
           <Breadcrumbs
             items={[
               { label: "Browse", href: "/browse" },
-              { label: unit.area, href: "/browse" },
-              { label: unit.property, href: "/property" },
-              { label: unit.name },
+              ...(property.suburb ? [{ label: property.suburb, href: "/browse" }] : []),
+              { label: property.title, href: `/property/${property.id}` },
+              { label: unitName },
             ]}
           />
         </div>
       </div>
 
-      {/* Gallery — 5-photo mosaic identical layout to /property */}
-      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "24px 32px" }}>
+      {/* Gallery */}
+      <div style={{ maxWidth: 1440, margin: "0 auto", padding: isSm ? "16px 16px" : "24px 32px" }}>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: isSm ? "1fr" : "2fr 1fr 1fr",
-            gridTemplateRows: "1fr 1fr",
+            gridTemplateRows: isSm ? "320px" : "1fr 1fr",
             gap: 8,
-            height: 480,
+            height: isSm ? 320 : 480,
             position: "relative",
             borderRadius: 12,
             overflow: "hidden",
           }}
         >
-          <Photo
-            ratio="auto"
-            label={unit.photos[0]}
-            style={{ gridRow: "1 / 3", borderRadius: 0, height: "100%" }}
-          />
-          {unit.photos.slice(1, 5).map((p) => (
-            <Photo key={p} ratio="auto" label={p} style={{ borderRadius: 0, height: "100%" }} />
+          {galleryPhotos.map((src, i) => (
+            <button
+              key={src + i}
+              type="button"
+              onClick={() => setLightboxIndex(i)}
+              aria-label={`Open photo ${i + 1} of ${photos.length}`}
+              style={{
+                padding: 0,
+                border: 0,
+                background: "transparent",
+                cursor: "pointer",
+                ...(i === 0 && !isSm ? { gridRow: "1 / 3" } : {}),
+              }}
+            >
+              <Photo ratio="auto" src={src} label="" style={{ borderRadius: 0, height: "100%" }} />
+            </button>
           ))}
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon="grid"
-            style={{ position: "absolute", bottom: 16, right: 16 }}
-          >
-            View {unit.photos.length} photos
-          </Button>
+          {galleryPhotos.length === 0 ? (
+            <Photo ratio="auto" label="No photos" style={{ borderRadius: 0, height: "100%" }} />
+          ) : null}
+
+          {photos.length > galleryPhotos.length ? (
+            <button
+              type="button"
+              onClick={() => setLightboxIndex(0)}
+              style={{
+                position: "absolute",
+                right: 16,
+                bottom: 16,
+                padding: "8px 14px",
+                background: "var(--paper)",
+                color: "var(--ink)",
+                border: "1px solid var(--hairline)",
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                boxShadow: "var(--shadow-md)",
+                fontFamily: "inherit",
+              }}
+            >
+              <Icon name="grid" size={14} />
+              View all {photos.length} photos
+            </button>
+          ) : null}
         </div>
       </div>
+
+      <PhotoLightbox photos={photos} index={lightboxIndex} onChange={setLightboxIndex} alt={unitName} />
 
       {/* Body */}
       <div
         style={{
           maxWidth: 1440,
           margin: "0 auto",
-          padding: "16px 32px 80px",
+          padding: isSm ? "16px 16px 64px" : "16px 32px 80px",
           display: "grid",
           gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 380px",
           gap: 64,
@@ -156,26 +271,38 @@ export default function Unit() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
                 <Badge tone={badge.tone}>{badge.label}</Badge>
-                <Badge tone="neutral">{unit.type}</Badge>
-                <Badge tone="neutral">{unit.furnishing}</Badge>
-                {unit.availableFrom ? <Badge tone="accent">{unit.availableFrom}</Badge> : null}
+                <Badge tone="neutral">{unitTypeLabel}</Badge>
+                <Badge tone="neutral">{furnishingLabel}</Badge>
+                {unit.availableFrom ? <Badge tone="accent">From {unit.availableFrom}</Badge> : null}
               </div>
               <h1 style={{ fontSize: 36, letterSpacing: "-0.025em", lineHeight: 1.1, fontWeight: 500, margin: "0 0 8px" }}>
-                {unit.name}
+                {unitName}
               </h1>
               <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--slate)", fontSize: 14, flexWrap: "wrap" }}>
-                <Link to="/property" style={{ color: "var(--slate)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <Icon name="home" size={14} /> {unit.property}
+                <Link
+                  to={`/property/${property.id}`}
+                  style={{ color: "var(--slate)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  <Icon name="home" size={14} /> {property.title}
                 </Link>
                 <span>·</span>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <Icon name="pin" size={14} /> {unit.address}
+                  <Icon name="pin" size={14} /> {fullAddress || "—"}
                 </span>
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-              <Button variant="secondary" size="sm" leftIcon="heart">Save</Button>
-              <Button variant="secondary" size="sm" leftIcon="arrUR">Share</Button>
+              <Button
+                variant={saved ? "accent" : "secondary"}
+                size="sm"
+                leftIcon="heart"
+                onClick={() => toggleSaved(property.id)}
+              >
+                {saved ? "Saved" : "Save"}
+              </Button>
+              <Button variant="secondary" size="sm" leftIcon="arrUR" onClick={handleShare}>
+                Share
+              </Button>
             </div>
           </div>
 
@@ -189,92 +316,125 @@ export default function Unit() {
               marginBottom: 32,
             }}
           >
-            <QuickStat icon="bed" label="Bedrooms" value={`${unit.beds}`} divider />
-            <QuickStat icon="bath" label="Bathrooms" value={`${unit.baths}`} divider />
-            <QuickStat icon="sqm" label="Floor area" value={`${unit.sqm} m²`} divider />
-            <QuickStat icon="key" label="Floor / level" value={unit.floor} />
+            <QuickStat icon="bed" label="Bedrooms" value={`${unit.bedrooms}`} divider />
+            <QuickStat icon="bath" label="Bathrooms" value={`${unit.bathrooms}`} divider />
+            <QuickStat
+              icon="sqm"
+              label="Floor area"
+              value={unit.sqm != null ? `${unit.sqm} m²` : "—"}
+              divider
+            />
+            <QuickStat
+              icon="users"
+              label="Max occupants"
+              value={unit.maxOccupants != null ? `${unit.maxOccupants}` : "—"}
+            />
           </div>
 
-          <DetailSection title={`About ${unit.name}`}>
-            <p style={{ fontSize: 15, color: "var(--slate)", lineHeight: 1.7, margin: 0 }}>
-              {unit.description}
-            </p>
-          </DetailSection>
-
-          <DetailSection title="What's included">
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
-              {unit.inclusions.map((inc) => (
-                <div key={inc} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-                  <Icon name="check" size={14} style={{ color: "var(--success)" }} />
-                  {inc}
-                </div>
-              ))}
-            </div>
-          </DetailSection>
-
-          <DetailSection title="Unit amenities" subtitle="Specific to this unit">
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-              {unit.amenities.map((a) => (
-                <div key={a.label} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 14 }}>
-                  <Icon name={a.icon} size={16} style={{ color: "var(--slate)" }} />
-                  {a.label}
-                </div>
-              ))}
-            </div>
-          </DetailSection>
-
-          {!canApply ? (
-            <Alert tone="warn" title={`${unit.name} isn't taking applications right now`}>
-              {unit.status === "OCCUPIED"
-                ? "This unit is currently let. Set a saved search and we'll notify you when it opens."
-                : unit.status === "UNDER_MAINTENANCE"
-                  ? "This unit is being renovated. Check back closer to the move-in date."
-                  : "This unit is unlisted. The landlord may relist it later."}
-            </Alert>
+          {unit.description ? (
+            <DetailSection title={`About ${unit.title}`}>
+              <p style={{ fontSize: 15, color: "var(--slate)", lineHeight: 1.7, margin: 0, whiteSpace: "pre-line" }}>
+                {unit.description}
+              </p>
+            </DetailSection>
           ) : null}
 
-          <DetailSection title="Other units in this property" subtitle={`${otherUnits.length} more`}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
-              {otherUnits.map((u) => {
-                const uBadge = UNIT_BADGE[u.status];
-                return (
-                  <Link key={u.id} to={`/unit?id=${u.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                    <Card padding={0} interactive style={{ overflow: "hidden" }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "120px 1fr auto", gap: 14, alignItems: "center", padding: 12 }}>
-                        <Photo ratio="4/3" label={u.photos[0]} style={{ borderRadius: 8 }} />
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{u.name}</div>
-                          <div style={{ fontSize: 12, color: "var(--slate)", display: "flex", gap: 8 }}>
-                            <span><Icon name="bed" size={12} /> {u.beds}</span>
-                            <span><Icon name="bath" size={12} /> {u.baths}</span>
-                            <span><Icon name="sqm" size={12} /> {u.sqm} m²</span>
+          {inclusions.length > 0 ? (
+            <DetailSection title="What's included">
+              <div style={{ display: "grid", gridTemplateColumns: isSm ? "1fr" : "repeat(2, 1fr)", gap: 10 }}>
+                {inclusions.map((inc) => (
+                  <div key={inc} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
+                    <Icon name="check" size={14} style={{ color: "var(--success)" }} />
+                    {inc}
+                  </div>
+                ))}
+              </div>
+            </DetailSection>
+          ) : null}
+
+          {!canApply ? (
+            <div style={{ marginTop: 24 }}>
+              <Alert tone="warn" title={`${unit.title} isn't taking applications right now`}>
+                {unit.status === "OCCUPIED"
+                  ? "This unit is currently let. Set a saved search and we'll notify you when it opens."
+                  : unit.status === "UNDER_MAINTENANCE"
+                    ? "This unit is being renovated. Check back closer to the move-in date."
+                    : "This unit is unlisted. The landlord may relist it later."}
+              </Alert>
+            </div>
+          ) : null}
+
+          {otherUnits.length > 0 ? (
+            <DetailSection
+              title="Other units in this property"
+              subtitle={`${otherUnits.length} more`}
+            >
+              <div style={{ display: "grid", gridTemplateColumns: isSm ? "1fr" : "repeat(2, 1fr)", gap: 12 }}>
+                {otherUnits.slice(0, 4).map((u) => {
+                  const uBadge = UNIT_BADGE[u.status];
+                  const uCover = u.images.find((i) => i.isCover)?.url ?? u.images[0]?.url;
+                  return (
+                    <Link
+                      key={u.id}
+                      to={`/unit?id=${u.id}&prop=${property.id}`}
+                      style={{ textDecoration: "none", color: "inherit" }}
+                    >
+                      <Card padding={0} interactive style={{ overflow: "hidden" }}>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "120px 1fr auto",
+                            gap: 14,
+                            alignItems: "center",
+                            padding: 12,
+                          }}
+                        >
+                          <Photo ratio="4/3" src={uCover} label="" style={{ borderRadius: 8 }} />
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{u.title}</div>
+                            <div style={{ fontSize: 12, color: "var(--slate)", display: "flex", gap: 8 }}>
+                              <span>
+                                <Icon name="bed" size={12} /> {u.bedrooms}
+                              </span>
+                              <span>
+                                <Icon name="bath" size={12} /> {u.bathrooms}
+                              </span>
+                              {u.sqm != null ? (
+                                <span>
+                                  <Icon name="sqm" size={12} /> {u.sqm} m²
+                                </span>
+                              ) : null}
+                            </div>
+                            <div style={{ marginTop: 6 }}>
+                              <Badge tone={uBadge.tone}>{uBadge.label}</Badge>
+                            </div>
                           </div>
-                          <div style={{ marginTop: 6 }}>
-                            <Badge tone={uBadge.tone}>{uBadge.label}</Badge>
-                          </div>
+                          <PriceDisplay amount={Number(u.price)} period="/mo" size="sm" />
                         </div>
-                        <PriceDisplay amount={u.price} period="/mo" size="sm" />
-                      </div>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
-            <div style={{ marginTop: 12 }}>
-              <Link to="/property" style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600 }}>
-                View the whole property →
-              </Link>
-            </div>
-          </DetailSection>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <Link
+                  to={`/property/${property.id}`}
+                  style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600 }}
+                >
+                  View the whole property →
+                </Link>
+              </div>
+            </DetailSection>
+          ) : null}
         </main>
 
         {/* Sticky apply panel */}
         <aside>
           <Card padding={24} style={{ position: "sticky", top: 88 }}>
-            <Eyebrow style={{ marginBottom: 8 }}>{unit.name}</Eyebrow>
-            <PriceDisplay amount={unit.price} period="/ month" size="xl" />
+            <Eyebrow style={{ marginBottom: 8 }}>{unit.title}</Eyebrow>
+            <PriceDisplay amount={Number(unit.price)} period="/ month" size="xl" />
             <div style={{ fontSize: 13, color: "var(--slate)", marginTop: 4, marginBottom: 20 }}>
-              {unit.availableFrom ?? "Currently occupied"}
+              {unit.availableFrom ? `Available from ${unit.availableFrom}` : "Currently occupied"}
             </div>
 
             <div
@@ -287,14 +447,20 @@ export default function Unit() {
                 marginBottom: 16,
               }}
             >
-              <Tag icon="bed" label={`${unit.beds} bed`} />
-              <Tag icon="bath" label={`${unit.baths} bath`} />
-              <Tag icon="sqm" label={`${unit.sqm} m²`} />
+              <Tag icon="bed" label={`${unit.bedrooms} bed`} />
+              <Tag icon="bath" label={`${unit.bathrooms} bath`} />
+              {unit.sqm != null ? <Tag icon="sqm" label={`${unit.sqm} m²`} /> : null}
             </div>
 
-            <KeyValueRow label="Deposit" value={`R ${unit.deposit.toLocaleString("en-ZA")}`} size="sm" />
+            {unit.deposit != null ? (
+              <KeyValueRow
+                label="Deposit"
+                value={`R ${Number(unit.deposit).toLocaleString("en-ZA")}`}
+                size="sm"
+              />
+            ) : null}
             <KeyValueRow label="Application fee" value="Free" size="sm" divider />
-            <KeyValueRow label="Furnishing" value={unit.furnishing} size="sm" divider />
+            <KeyValueRow label="Furnishing" value={furnishingLabel} size="sm" divider />
             <KeyValueRow
               label="Status"
               value={badge.label}
@@ -306,12 +472,22 @@ export default function Unit() {
             <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 8 }}>
               {canApply ? (
                 <>
-                  <Link to={`/apply?unit=${unit.id}`} style={{ textDecoration: "none" }}>
-                    <Button variant="accent" size="lg" style={{ width: "100%", justifyContent: "center" }}>
-                      Apply for {unit.name}
+                  <Link
+                    to={`/apply?unit=${unit.id}&prop=${property.id}`}
+                    style={{ textDecoration: "none" }}
+                  >
+                    <Button
+                      variant="accent"
+                      size="lg"
+                      style={{ width: "100%", justifyContent: "center" }}
+                    >
+                      Apply for {unit.title}
                     </Button>
                   </Link>
-                  <Link to="/book-viewing" style={{ textDecoration: "none" }}>
+                  <Link
+                    to={`/book-viewing?unit=${unit.id}&prop=${property.id}`}
+                    style={{ textDecoration: "none" }}
+                  >
                     <Button
                       variant="secondary"
                       size="lg"
@@ -323,24 +499,32 @@ export default function Unit() {
                   </Link>
                 </>
               ) : (
-                <Button variant="secondary" size="lg" leftIcon="bell" style={{ width: "100%", justifyContent: "center" }}>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  leftIcon="bell"
+                  style={{ width: "100%", justifyContent: "center" }}
+                >
                   Notify me when available
                 </Button>
               )}
             </div>
 
-            <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 20, paddingTop: 20 }}>
-              <AgentCard
-                name="Landlord"
-                role="Landlord"
-                responseTime="—"
-                actions={
-                  <Link to="/inbox" aria-label="Message landlord">
-                    <IconButton icon="chat" label="Message" variant="secondary" size="sm" />
-                  </Link>
-                }
-              />
-            </div>
+            {property.manager ? (
+              <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 20, paddingTop: 20 }}>
+                <Eyebrow style={{ marginBottom: 10 }}>Listed by</Eyebrow>
+                <AgentCard
+                  name={`${property.manager.firstName} ${property.manager.surname}`}
+                  role="Landlord"
+                  responseTime="Typically responds in 2 hours"
+                  actions={
+                    <Link to={`/inbox?to=${property.manager.id}`} aria-label="Message landlord">
+                      <IconButton icon="chat" label="Message" variant="secondary" size="sm" />
+                    </Link>
+                  }
+                />
+              </div>
+            ) : null}
           </Card>
         </aside>
       </div>
@@ -359,7 +543,14 @@ function DetailSection({
 }) {
   return (
     <section style={{ paddingTop: 32, paddingBottom: 32, borderTop: "1px solid var(--hairline)" }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
         <h3 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.015em", margin: 0 }}>{title}</h3>
         {subtitle ? <span style={{ fontSize: 13, color: "var(--slate)" }}>{subtitle}</span> : null}
       </div>
@@ -380,7 +571,12 @@ function QuickStat({
   divider?: boolean;
 }) {
   return (
-    <div style={{ padding: 20, borderRight: divider ? "1px solid var(--hairline)" : "none" }}>
+    <div
+      style={{
+        padding: 20,
+        borderRight: divider ? "1px solid var(--hairline)" : undefined,
+      }}
+    >
       <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--slate)", marginBottom: 6 }}>
         <Icon name={icon} size={14} />
         <span style={{ fontSize: 12 }}>{label}</span>
@@ -392,8 +588,8 @@ function QuickStat({
 
 function Tag({ icon, label }: { icon: IconName; label: string }) {
   return (
-    <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--slate)" }}>
-      <Icon name={icon} size={14} /> {label}
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--ink)" }}>
+      <Icon name={icon} size={14} style={{ color: "var(--slate)" }} /> {label}
     </span>
   );
 }

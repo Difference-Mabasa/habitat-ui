@@ -506,7 +506,7 @@ export default function PropertyDetail() {
               <>
                 <div style={{ display: "grid", gridTemplateColumns: unitGridCols, gap: 16 }}>
                   {unitsOnPage.map((u) => (
-                    <UnitCard key={u.id} unit={u} />
+                    <UnitCard key={u.id} unit={u} propertyId={property.id} />
                   ))}
                 </div>
                 {unitPageCount > 1 ? (
@@ -802,13 +802,13 @@ function DetailSection({
   );
 }
 
-function UnitCard({ unit }: { unit: UnitDetail }) {
+function UnitCard({ unit, propertyId }: { unit: UnitDetail; propertyId: string }) {
   const closed = unit.status !== "AVAILABLE";
   const badge = UNIT_BADGE[unit.status];
   const cover = unit.images.find((i) => i.isCover)?.url ?? unit.images[0]?.url;
   return (
     <Link
-      to={`/unit?id=${unit.id}`}
+      to={`/unit?id=${unit.id}&prop=${propertyId}`}
       style={{
         textDecoration: "none",
         color: "inherit",
