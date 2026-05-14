@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import TenantShell from "@/components/TenantShell";
-import Photo from "@/components/Photo";
+import Logo from "@/components/Logo";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge, { type BadgeTone } from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
+import Alert from "@/components/Alert";
+import Tabs from "@/components/Tabs";
 import EmptyState from "@/components/EmptyState";
-import KeyValueRow from "@/components/KeyValueRow";
 import LoadingState from "@/components/LoadingState";
 import { useSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
@@ -16,13 +17,6 @@ import {
   type InvoiceResponse,
   type InvoiceStatus,
 } from "@/lib/api/invoices";
-
-const STATUS_LABEL: Record<InvoiceStatus, string> = {
-  PENDING: "Outstanding",
-  PAID: "Paid",
-  VOIDED: "Voided",
-  EXPIRED: "Expired",
-};
 
 const STATUS_TONE: Record<InvoiceStatus, BadgeTone> = {
   PENDING: "warn",
@@ -33,7 +27,7 @@ const STATUS_TONE: Record<InvoiceStatus, BadgeTone> = {
 
 function formatRand(amount: number | null): string {
   if (amount == null) return "R —";
-  return `R ${Math.round(amount).toLocaleString("en-ZA")}`;
+  return `R ${Math.round(amount).toLocaleString("en-ZA")}.00`;
 }
 
 function formatDate(iso: string | null): string {
@@ -43,13 +37,38 @@ function formatDate(iso: string | null): string {
   return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
 }
 
+function statusHeader(inv: InvoiceResponse): { tone: "warn" | "success" | "danger" | "neutral"; label: string; subline: string } {
+  const issued = `Issued ${formatDate(inv.issuedAt)}`;
+  switch (inv.status) {
+    case "PENDING":
+      return {
+        tone: "warn",
+        label: `PENDING · pay by ${formatDate(inv.expiresAt)}`,
+        subline: `${issued} · expires ${formatDate(inv.expiresAt)}`,
+      };
+    case "PAID":
+      return {
+        tone: "success",
+        label: `PAID · ${formatDate(inv.paidAt)}`,
+        subline: inv.paymentReference
+          ? `${issued} · reference ${inv.paymentReference}`
+          : issued,
+      };
+    case "EXPIRED":
+      return { tone: "danger", label: "EXPIRED", subline: `${issued} · no payment received` };
+    default:
+      return { tone: "neutral", label: inv.status, subline: issued };
+  }
+}
+
 export default function Invoices() {
   const session = useSession();
   const api = useMemo(() => createInvoicesApi(session.client), [session.client]);
   const [rows, setRows] = useState<InvoiceResponse[]>([]);
+  const [activeId, setActiveId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [payingId, setPayingId] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +79,8 @@ export default function Invoices() {
       .then((data) => {
         if (cancelled) return;
         setRows(data);
+        const pending = data.find((r) => r.status === "PENDING");
+        setActiveId((pending ?? data[0])?.id ?? "");
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -72,11 +93,14 @@ export default function Invoices() {
     };
   }, [api]);
 
-  async function handlePay(invoiceId: string) {
-    setPayingId(invoiceId);
+  const active = rows.find((r) => r.id === activeId) ?? rows[0];
+
+  async function handlePay() {
+    if (!active) return;
+    setPaying(true);
     try {
-      const updated = await api.pay(invoiceId);
-      setRows((rs) => rs.map((r) => (r.id === invoiceId ? updated : r)));
+      const updated = await api.pay(active.id);
+      setRows((rs) => rs.map((r) => (r.id === active.id ? updated : r)));
       toast.success(`Payment received · ${updated.invoiceRef}`);
     } catch (err: unknown) {
       const msg =
@@ -85,67 +109,61 @@ export default function Invoices() {
           : "Couldn't process payment.";
       toast.error(msg);
     } finally {
-      setPayingId(null);
+      setPaying(false);
     }
   }
 
-  const outstanding = rows.filter((r) => r.status === "PENDING");
-
   return (
-    <TenantShell activeId="applications">
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
-        <Eyebrow>You</Eyebrow>
-        <h1
-          style={{
-            fontSize: 30,
-            fontWeight: 500,
-            letterSpacing: "-0.02em",
-            margin: "8px 0 6px",
-          }}
-        >
-          Invoices
-        </h1>
-        <p style={{ fontSize: 14, color: "var(--slate)", margin: "0 0 32px" }}>
-          {loading
-            ? "Loading…"
-            : outstanding.length > 0
-              ? `${outstanding.length} outstanding · pay your deposit to confirm the unit.`
-              : "No outstanding invoices."}
-        </p>
-
-        {loading ? (
-          <LoadingState rows={3} />
-        ) : error ? (
-          <EmptyState icon="info" title="Couldn't load invoices" description={error} />
-        ) : rows.length === 0 ? (
-          <EmptyState
-            icon="paper"
-            title="No invoices yet"
-            description="Once a landlord approves your application, a deposit invoice will appear here."
-            actions={
-              <Link to="/my-apps" style={{ textDecoration: "none" }}>
-                <Button variant="accent">My applications</Button>
-              </Link>
-            }
-          />
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {rows.map((inv) => (
-              <InvoiceRow
-                key={inv.id}
-                invoice={inv}
-                onPay={() => handlePay(inv.id)}
-                paying={payingId === inv.id}
+    <TenantShell activeId="payments" background="var(--surface-2)">
+      <div style={{ padding: 32 }}>
+        <div style={{ maxWidth: 794, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
+          {loading ? (
+            <Card padding={32}>
+              <LoadingState rows={4} />
+            </Card>
+          ) : error ? (
+            <Card padding={32}>
+              <EmptyState icon="info" title="Couldn't load invoices" description={error} />
+            </Card>
+          ) : !active ? (
+            <Card padding={32}>
+              <EmptyState
+                icon="paper"
+                title="No invoices yet"
+                description="Once a landlord approves your application, a deposit invoice will appear here."
+                actions={
+                  <Link to="/my-apps" style={{ textDecoration: "none" }}>
+                    <Button variant="accent">My applications</Button>
+                  </Link>
+                }
               />
-            ))}
-          </div>
-        )}
+            </Card>
+          ) : (
+            <>
+              {rows.length > 1 ? (
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  <Tabs
+                    variant="segmented"
+                    tabs={rows.map((r) => ({ id: r.id, label: r.invoiceRef }))}
+                    value={active.id}
+                    onChange={(v) => setActiveId(v)}
+                  />
+                </div>
+              ) : null}
+              <InvoiceCanvas
+                invoice={active}
+                onPay={handlePay}
+                paying={paying}
+              />
+            </>
+          )}
+        </div>
       </div>
     </TenantShell>
   );
 }
 
-function InvoiceRow({
+function InvoiceCanvas({
   invoice,
   onPay,
   paying,
@@ -154,129 +172,229 @@ function InvoiceRow({
   onPay: () => void;
   paying: boolean;
 }) {
-  const propertyLine =
-    invoice.property.title ||
-    [invoice.property.suburb, invoice.property.city].filter(Boolean).join(", ") ||
-    "Property";
-  const isPaid = invoice.status === "PAID";
+  const header = statusHeader(invoice);
   const isPending = invoice.status === "PENDING";
 
-  return (
-    <Card padding={0} style={{ overflow: "hidden" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "160px 1fr 320px" }}>
-        <Photo
-          ratio="auto"
-          src={invoice.unit.coverImageUrl ?? undefined}
-          label=""
-          style={{ borderRadius: 0, height: "100%", minHeight: 160 }}
-        />
-        <div style={{ padding: 20 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 12,
-              marginBottom: 6,
-              flexWrap: "wrap",
-            }}
-          >
-            <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{propertyLine}</h3>
-            <Badge tone={STATUS_TONE[invoice.status]}>{STATUS_LABEL[invoice.status]}</Badge>
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--slate)",
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-            }}
-          >
-            <span>{invoice.unit.title ?? "Unit"}</span>
-            <span>·</span>
-            <span className="mono">{invoice.invoiceRef}</span>
-            <span>·</span>
-            <span>Issued {formatDate(invoice.issuedAt)}</span>
-            {invoice.expiresAt && isPending ? (
-              <>
-                <span>·</span>
-                <span>Due {formatDate(invoice.expiresAt)}</span>
-              </>
-            ) : null}
-            {isPaid && invoice.paidAt ? (
-              <>
-                <span>·</span>
-                <span>Paid {formatDate(invoice.paidAt)}</span>
-              </>
-            ) : null}
-          </div>
+  const subtotal = invoice.totalAmount;
+  const total = invoice.totalAmount;
 
-          <div style={{ marginTop: 14 }}>
-            <KeyValueRow
-              label="Deposit"
-              value={formatRand(invoice.depositAmount)}
-              size="sm"
-            />
-            {invoice.firstMonthRent != null ? (
-              <KeyValueRow
-                label="First month's rent"
-                value={formatRand(invoice.firstMonthRent)}
-                divider
-                size="sm"
-              />
-            ) : null}
-            <KeyValueRow
-              label="Total"
-              value={formatRand(invoice.totalAmount)}
-              divider
-              size="sm"
-              tone="accent"
-            />
-          </div>
+  const tenantBlock = invoice.unit.title
+    ? `${invoice.unit.title}${invoice.property.title ? " · " + invoice.property.title : ""}`
+    : invoice.property.title ?? "—";
+  const tenantAddress = [invoice.property.suburb, invoice.property.city]
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    <>
+      {/* Top bar */}
+      <Card
+        padding="12px 18px"
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+      >
+        <div style={{ fontSize: 13, color: "var(--slate)" }}>
+          Tax invoice <span className="mono">{invoice.invoiceRef}</span> · {header.subline}
         </div>
-        <div
-          style={{
-            padding: 20,
-            borderLeft: "1px solid var(--hairline)",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            gap: 8,
-          }}
-        >
+        <div style={{ display: "flex", gap: 8 }}>
           {isPending ? (
             <Button
               variant="accent"
-              size="lg"
+              size="sm"
               leftIcon="cash"
               onClick={onPay}
               disabled={paying}
-              style={{ width: "100%", justifyContent: "center" }}
             >
-              {paying ? "Processing…" : `Pay ${formatRand(invoice.totalAmount)}`}
+              {paying ? "Processing…" : `Pay ${formatRand(total)}`}
             </Button>
-          ) : isPaid ? (
-            <Link to="/payment" style={{ textDecoration: "none" }}>
-              <Button
-                variant="secondary"
-                size="sm"
-                style={{ width: "100%", justifyContent: "center" }}
-              >
-                View receipt
-              </Button>
-            </Link>
+          ) : (
+            <Button variant="accent" size="sm" leftIcon="paper" onClick={() => window.print()}>
+              Print
+            </Button>
+          )}
+          <Button variant="secondary" size="sm" leftIcon="download" disabled>
+            Download
+          </Button>
+        </div>
+      </Card>
+
+      {isPending && invoice.expiresAt ? (
+        <Alert tone="warn" title={`Pay by ${formatDate(invoice.expiresAt)}`}>
+          Settle the deposit to keep the offer active. If the invoice expires the landlord may
+          release the unit to the next applicant.{" "}
+          <span className="mono" style={{ fontSize: 11 }}>Status: PENDING</span>
+        </Alert>
+      ) : null}
+
+      {/* A4 canvas */}
+      <div style={{ background: "#fff", padding: 56, boxShadow: "var(--shadow-lg)" }}>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <Logo size={18} />
+            <div style={{ marginTop: 12, fontSize: 11, color: "var(--slate)", lineHeight: 1.5 }}>
+              Habitat SA (Pty) Ltd
+              <br />
+              3rd Floor, The Hive · 8 Bree Street, Cape Town 8001
+              <br />
+              VAT 4860298811 · PPRA FFC2026/00831
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div className="display" style={{ fontSize: 40, color: "var(--ink)" }}>
+              TAX INVOICE
+            </div>
+            <div className="mono" style={{ fontSize: 12, color: "var(--slate)", marginTop: 6 }}>
+              {invoice.invoiceRef}
+            </div>
+            <div className="mono" style={{ fontSize: 12, color: "var(--slate)" }}>
+              Issued {formatDate(invoice.issuedAt)}
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <Badge tone={STATUS_TONE[invoice.status]}>{header.label}</Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* From / To */}
+        <div style={{ marginTop: 32, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+          <div>
+            <Eyebrow style={{ marginBottom: 6, fontSize: 9 }}>Billed to</Eyebrow>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>Tenant</div>
+            <div style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5, marginTop: 4 }}>
+              {tenantBlock}
+              {tenantAddress ? (
+                <>
+                  <br />
+                  {tenantAddress}
+                </>
+              ) : null}
+            </div>
+          </div>
+          <div>
+            <Eyebrow style={{ marginBottom: 6, fontSize: 9 }}>Collected on behalf of</Eyebrow>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>{invoice.property.title ?? "Landlord"}</div>
+            <div style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5, marginTop: 4 }}>
+              Habitat trust account
+              <br />
+              PPRA FFC-022831
+            </div>
+          </div>
+        </div>
+
+        {/* Line items */}
+        <table style={{ width: "100%", marginTop: 32, borderCollapse: "collapse", fontSize: 12 }}>
+          <thead>
+            <tr>
+              {["Description", "Details", "Qty", "Unit", "Total"].map((h, i) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: "10px 8px",
+                    textAlign: i > 1 ? "right" : "left",
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: "0.14em",
+                    color: "var(--slate)",
+                    borderBottom: "2px solid var(--ink)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ borderBottom: "1px solid var(--hairline)" }}>
+              <td style={{ padding: "12px 8px", fontWeight: 500 }}>Deposit</td>
+              <td style={{ padding: "12px 8px", color: "var(--slate)" }}>Refundable · held in trust</td>
+              <td className="mono" style={{ padding: "12px 8px", textAlign: "right" }}>1</td>
+              <td className="mono" style={{ padding: "12px 8px", textAlign: "right" }}>{formatRand(invoice.depositAmount)}</td>
+              <td className="mono" style={{ padding: "12px 8px", textAlign: "right", fontWeight: 600 }}>{formatRand(invoice.depositAmount)}</td>
+            </tr>
+            {invoice.firstMonthRent != null ? (
+              <tr style={{ borderBottom: "1px solid var(--hairline)" }}>
+                <td style={{ padding: "12px 8px", fontWeight: 500 }}>First month's rent</td>
+                <td style={{ padding: "12px 8px", color: "var(--slate)" }}>Advance rent payment</td>
+                <td className="mono" style={{ padding: "12px 8px", textAlign: "right" }}>1</td>
+                <td className="mono" style={{ padding: "12px 8px", textAlign: "right" }}>{formatRand(invoice.firstMonthRent)}</td>
+                <td className="mono" style={{ padding: "12px 8px", textAlign: "right", fontWeight: 600 }}>{formatRand(invoice.firstMonthRent)}</td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+
+        {/* Totals */}
+        <div style={{ marginTop: 18, marginLeft: "auto", width: 280, fontSize: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", color: "var(--slate)" }}>
+            <span>Subtotal</span>
+            <span className="mono">{formatRand(subtotal)}</span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "10px 0 0",
+              borderTop: "2px solid var(--ink)",
+              marginTop: 6,
+              fontWeight: 700,
+              fontSize: 16,
+            }}
+          >
+            <span>TOTAL</span>
+            <span className="mono">{formatRand(total)}</span>
+          </div>
+        </div>
+
+        {/* Watermark for PAID / EXPIRED */}
+        {invoice.status === "PAID" || invoice.status === "EXPIRED" ? (
+          <div
+            aria-hidden="true"
+            style={{ position: "relative", marginTop: 24, textAlign: "center" }}
+          >
+            <span
+              className="display"
+              style={{
+                fontSize: 48,
+                letterSpacing: "0.08em",
+                color: invoice.status === "PAID" ? "var(--success)" : "var(--danger)",
+                opacity: 0.18,
+                border: `4px solid ${invoice.status === "PAID" ? "var(--success)" : "var(--danger)"}`,
+                padding: "8px 24px",
+                borderRadius: 8,
+                display: "inline-block",
+                transform: "rotate(-4deg)",
+              }}
+            >
+              {invoice.status}
+            </span>
+          </div>
+        ) : null}
+
+        {/* Footer */}
+        <div
+          style={{
+            marginTop: 48,
+            padding: "20px 0",
+            borderTop: "1px solid var(--hairline)",
+            fontSize: 10,
+            color: "var(--slate)",
+            lineHeight: 1.6,
+          }}
+        >
+          This is an electronically generated tax invoice — no signature required. Habitat acts as a
+          trust-account intermediary under PPRA regulations. For queries, email{" "}
+          <strong>billing@habitat.co.za</strong> within 30 days.
+          {isPending ? (
+            <>
+              <br />
+              <span className="mono" style={{ color: "var(--accent)" }}>
+                Pay link: hb.co.za/p/{invoice.invoiceRef}
+              </span>
+            </>
           ) : null}
-          <Link to="/my-apps" style={{ textDecoration: "none" }}>
-            <Button
-              variant="ghost"
-              size="sm"
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              Back to applications
-            </Button>
-          </Link>
         </div>
       </div>
-    </Card>
+    </>
   );
 }
