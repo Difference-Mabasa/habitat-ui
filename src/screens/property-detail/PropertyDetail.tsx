@@ -219,7 +219,7 @@ export default function PropertyDetail() {
 
   // ── Units section: sort + paginate ──
   type UnitSort = "price-asc" | "price-desc";
-  const UNITS_PER_PAGE = 9;
+  const UNITS_PER_PAGE = 3;
   const [unitSort, setUnitSort] = useState<UnitSort>("price-asc");
   const [unitPage, setUnitPage] = useState(0);
 
@@ -469,7 +469,7 @@ export default function PropertyDetail() {
 
           <DetailSection
             title="Units"
-            subtitle={`${availableUnits.length} of ${units.length} available`}
+            subtitle="Select a unit to view its photos and apply"
             actions={
               units.length > 1 ? (
                 <Select
@@ -492,25 +492,6 @@ export default function PropertyDetail() {
               <EmptyState icon="home" title="No units yet" />
             ) : (
               <>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "12px 14px",
-                    marginBottom: 16,
-                    background: "var(--accent-soft)",
-                    border: "1px solid var(--accent-ring)",
-                    borderRadius: 10,
-                    fontSize: 13,
-                    color: "var(--ink)",
-                  }}
-                >
-                  <Icon name="arrR" size={14} style={{ color: "var(--accent)" }} />
-                  <span>
-                    <strong style={{ fontWeight: 600 }}>Select a unit</strong> to view its photos and apply.
-                  </span>
-                </div>
                 <div style={{ display: "grid", gridTemplateColumns: unitGridCols, gap: 16 }}>
                   {unitsOnPage.map((u) => (
                     <UnitCard key={u.id} unit={u} />
