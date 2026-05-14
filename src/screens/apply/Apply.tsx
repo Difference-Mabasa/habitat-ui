@@ -26,11 +26,10 @@ import {
 
 // ── Wizard step model ───────────────────────────────────────────────
 
-type WizardStep = "about" | "application" | "documents" | "review";
-const STEP_ORDER: WizardStep[] = ["about", "application", "documents", "review"];
+type WizardStep = "application" | "documents" | "review";
+const STEP_ORDER: WizardStep[] = ["application", "documents", "review"];
 
 const STEPS: { id: WizardStep; icon: IconName; title: string }[] = [
-  { id: "about",       icon: "user",  title: "About you" },
   { id: "application", icon: "edit",  title: "Your application" },
   { id: "documents",   icon: "doc",   title: "Documents" },
   { id: "review",      icon: "check", title: "Review" },
@@ -120,7 +119,7 @@ export default function Apply() {
   const [error, setError] = useState<string | null>(null);
 
   // Wizard state — single source of truth for every step.
-  const [step, setStep] = useState<WizardStep>("about");
+  const [step, setStep] = useState<WizardStep>("application");
   const [employment, setEmployment] = useState<EmploymentStatus | null>(null);
   const [message, setMessage] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
@@ -415,19 +414,16 @@ export default function Apply() {
 
         {/* ── Center: current step's content ──────────────────────────────── */}
         <main data-step={step}>
-          {step === "about" ? (
-            <StepAbout
+          {step === "application" ? (
+            <StepApplication
               employment={employment}
               setEmployment={setEmployment}
-              isSm={isSm}
-            />
-          ) : step === "application" ? (
-            <StepApplication
               message={message}
               setMessage={setMessage}
               moveInDate={moveInDate}
               setMoveInDate={setMoveInDate}
               today={TODAY}
+              isSm={isSm}
             />
           ) : step === "documents" ? (
             <StepDocuments docs={docs} setDocs={setDocs} />
@@ -535,23 +531,33 @@ export default function Apply() {
 
 // ── Step bodies ──────────────────────────────────────────────────────
 
-function StepAbout({
+function StepApplication({
   employment,
   setEmployment,
+  message,
+  setMessage,
+  moveInDate,
+  setMoveInDate,
+  today,
   isSm,
 }: {
   employment: EmploymentStatus | null;
   setEmployment: (v: EmploymentStatus | null) => void;
+  message: string;
+  setMessage: (v: string) => void;
+  moveInDate: string;
+  setMoveInDate: (v: string) => void;
+  today: string;
   isSm: boolean;
 }) {
   return (
     <div>
       <h1 style={{ fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", margin: "0 0 8px" }}>
-        Tell the landlord about you
+        Your application
       </h1>
       <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 32px" }}>
-        Habitat already has your name, email, and verified phone on file. Confirm your
-        employment situation so the landlord has the basics.
+        Employment, a short note, and your preferred move-in date. The landlord may
+        counter the date.
       </p>
 
       <section style={{ marginBottom: 28 }}>
@@ -608,31 +614,6 @@ function StepAbout({
           })}
         </div>
       </section>
-    </div>
-  );
-}
-
-function StepApplication({
-  message,
-  setMessage,
-  moveInDate,
-  setMoveInDate,
-  today,
-}: {
-  message: string;
-  setMessage: (v: string) => void;
-  moveInDate: string;
-  setMoveInDate: (v: string) => void;
-  today: string;
-}) {
-  return (
-    <div>
-      <h1 style={{ fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", margin: "0 0 8px" }}>
-        Your application
-      </h1>
-      <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 32px" }}>
-        A short note + your preferred move-in date. The landlord may counter the date.
-      </p>
 
       <section style={{ marginBottom: 28 }}>
         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
@@ -852,19 +833,17 @@ function StepReview({
       </p>
 
       <Card padding={20} style={{ marginBottom: 16 }}>
-        <Eyebrow style={{ marginBottom: 12 }}>About you</Eyebrow>
-        <ReviewRow
-          label="Employment"
-          value={employment ? EMPLOYMENT_LABEL[employment] : "Not provided"}
-        />
-      </Card>
-
-      <Card padding={20} style={{ marginBottom: 16 }}>
         <Eyebrow style={{ marginBottom: 12 }}>Your application</Eyebrow>
-        <ReviewRow
-          label="Move-in date"
-          value={moveInDate ? formatDate(moveInDate) : "Flexible"}
-        />
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <ReviewRow
+            label="Employment"
+            value={employment ? EMPLOYMENT_LABEL[employment] : "Not provided"}
+          />
+          <ReviewRow
+            label="Move-in date"
+            value={moveInDate ? formatDate(moveInDate) : "Flexible"}
+          />
+        </div>
         <div style={{ marginTop: 12 }}>
           <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 4 }}>
             Message to landlord

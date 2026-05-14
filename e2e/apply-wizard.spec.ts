@@ -63,26 +63,18 @@ test("apply wizard: lands on About you and clicks through to Review", async ({ p
     waitUntil: "networkidle",
   });
 
-  // ── Step 1 — About you ──
-  await expect(page.getByRole("heading", { name: /Tell the landlord about you/i })).toBeVisible();
-  await expect(page.locator('main[data-step="about"]')).toBeVisible();
-  await page.getByRole("radio", { name: /^Employed$/i }).click();
-  await page.getByRole("button", { name: /^Continue$/i }).click();
-
-  // ── Step 2 — Your application ──
+  // ── Step 1 — Your application (employment + message + move-in) ──
   await expect(page.getByRole("heading", { name: /^Your application$/i })).toBeVisible();
   await expect(page.locator('main[data-step="application"]')).toBeVisible();
+  await page.getByRole("radio", { name: /^Employed$/i }).click();
   await page.getByPlaceholder(/Hi! I'm a young professional/i).fill(
-    "Wizard click-through test — step 2 OK.",
+    "Wizard click-through test — step 1 OK.",
   );
   await page.getByRole("button", { name: /^Continue$/i }).click();
 
-  // ── Step 3 — Documents ──
+  // ── Step 2 — Documents ──
   await expect(page.getByRole("heading", { name: /Upload your documents/i })).toBeVisible();
   await expect(page.locator('main[data-step="documents"]')).toBeVisible();
-  // Pick a tiny fake file for one of the docs (SA_ID) so submission has
-  // something to send through the loop. Choose-file buttons sit on each
-  // doc row; click the first and let Playwright set a file.
   const sampleFile = {
     name: "id-front.pdf",
     mimeType: "application/pdf",
@@ -92,11 +84,10 @@ test("apply wizard: lands on About you and clicks through to Review", async ({ p
   await expect(page.getByText("id-front.pdf").first()).toBeVisible();
   await page.getByRole("button", { name: /^Continue$/i }).click();
 
-  // ── Step 4 — Review ──
+  // ── Step 3 — Review ──
   await expect(page.getByRole("heading", { name: /Review and submit/i })).toBeVisible();
   await expect(page.locator('main[data-step="review"]')).toBeVisible();
   await expect(page.getByText(/Wizard click-through test/i)).toBeVisible();
-  // The file we picked must be acknowledged on Review.
   await expect(page.getByText("id-front.pdf").first()).toBeVisible();
   await expect(page.getByRole("button", { name: /Submit application/i })).toBeVisible();
 
@@ -105,8 +96,8 @@ test("apply wizard: lands on About you and clicks through to Review", async ({ p
   await expect(page.getByRole("heading", { name: /Upload your documents/i })).toBeVisible();
 
   // ── Left rail click-back to a done step ──
-  await page.getByRole("button", { name: /About you/i }).first().click();
-  await expect(page.getByRole("heading", { name: /Tell the landlord about you/i })).toBeVisible();
+  await page.getByRole("button", { name: /Your application/i }).first().click();
+  await expect(page.locator('main[data-step="application"]')).toBeVisible();
 
   // Filter out the harmless dev refresh chatter that fires when API is
   // briefly probed; everything else should be silent.
