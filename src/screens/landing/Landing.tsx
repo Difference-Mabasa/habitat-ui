@@ -454,12 +454,14 @@ function Hero() {
         </div>
 
         <div style={{ position: "relative" }}>
-          <Photo
-            ratio="4/5"
-            label="Property cover photo"
-            src={latestListing?.coverImageUrl ?? undefined}
-            alt={latestListing ? `Cover photo of ${latestListing.title}` : "A Habitat-listed property"}
-          />
+          <div className="flag-wave">
+            <Photo
+              ratio="4/5"
+              label="Property cover photo"
+              src={latestListing?.coverImageUrl ?? undefined}
+              alt={latestListing ? `Cover photo of ${latestListing.title}` : "A Habitat-listed property"}
+            />
+          </div>
 
           {/* Floating proof cards — both live from the API:
               - "This week" tenant momentum (bottom-left) → visualises
@@ -470,6 +472,7 @@ function Hero() {
               protrude beyond the photo on desktop; on small viewports we
               tuck them inside to avoid horizontal overflow. */}
           <div
+            className="float-a"
             style={{
               position: "absolute",
               bottom: 32,
@@ -514,6 +517,7 @@ function Hero() {
           </div>
 
           <div
+            className="float-b"
             style={{
               position: "absolute",
               top: 24,

@@ -249,3 +249,60 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Landing hero animations — `flag-wave` for the photo, `float-a` / `float-b`
+   for the two proof cards. Small amplitudes, slow durations, asynchronous
+   periods so nothing snaps into sync. GPU-composited transforms only (no
+   layout-thrashing properties). Disabled when the user prefers reduced
+   motion.
+   ───────────────────────────────────────────────────────────────────────── */
+
+@keyframes flag-wave {
+  0%   { transform: skewX(0deg)    skewY(0deg)     rotate(0deg); }
+  25%  { transform: skewX(1.4deg)  skewY(0.25deg)  rotate(0.35deg); }
+  50%  { transform: skewX(0deg)    skewY(0deg)     rotate(0deg); }
+  75%  { transform: skewX(-1.4deg) skewY(-0.25deg) rotate(-0.35deg); }
+  100% { transform: skewX(0deg)    skewY(0deg)     rotate(0deg); }
+}
+
+.flag-wave {
+  animation: flag-wave 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  transform-origin: top center;
+  will-change: transform;
+}
+
+@keyframes float-a {
+  0%   { transform: translate(0px,  0px)   rotate(0deg); }
+  25%  { transform: translate(-4px, -8px)  rotate(-0.8deg); }
+  50%  { transform: translate(2px,  -14px) rotate(0.4deg); }
+  75%  { transform: translate(-2px, -6px)  rotate(-0.4deg); }
+  100% { transform: translate(0px,  0px)   rotate(0deg); }
+}
+
+@keyframes float-b {
+  0%   { transform: translate(0px,  0px)  rotate(0deg); }
+  33%  { transform: translate(5px,  8px)  rotate(0.7deg); }
+  66%  { transform: translate(-3px, 12px) rotate(-0.5deg); }
+  100% { transform: translate(0px,  0px)  rotate(0deg); }
+}
+
+.float-a {
+  animation: float-a 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+.float-b {
+  /* Different period (9s) so the two cards drift in and out of phase
+     instead of bobbing in lockstep. */
+  animation: float-b 9s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flag-wave,
+  .float-a,
+  .float-b {
+    animation: none;
+  }
+}
