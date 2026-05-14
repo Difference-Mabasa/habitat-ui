@@ -552,7 +552,7 @@ export default function PropertyDetail() {
 
         {/* Sticky property-info panel */}
         <aside>
-          <Card padding={24} style={{ position: "sticky", top: 88, maxHeight: "calc(100vh - 104px)", overflowY: "auto" }}>
+          <Card padding={24}>
             <Eyebrow style={{ marginBottom: 8 }}>About this property</Eyebrow>
             <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
               {property.title}
@@ -610,23 +610,20 @@ export default function PropertyDetail() {
             <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12, marginTop: 16 }}>
               <Eyebrow style={{ marginBottom: 6 }}>Property details</Eyebrow>
               <div>
-                <KeyValueRow label="Type" value={titleCase(property.propertyType)} size="sm" />
+                {addressLine ? (
+                  <KeyValueRow
+                    label="Address"
+                    value={
+                      <span style={{ textAlign: "right", fontWeight: 500, fontSize: 12, lineHeight: 1.4, maxWidth: 200, display: "inline-block" }}>
+                        {addressLine}
+                      </span>
+                    }
+                    size="sm"
+                  />
+                ) : null}
                 <KeyValueRow
-                  label="Status"
-                  value={titleCase(property.status)}
-                  size="sm"
-                  divider
-                  tone={
-                    property.status === "LISTED"
-                      ? "success"
-                      : property.status === "DRAFT"
-                        ? "warn"
-                        : "neutral"
-                  }
-                />
-                <KeyValueRow
-                  label="Units"
-                  value={`${availableUnits.length} of ${units.length} available`}
+                  label="Type"
+                  value={titleCase(property.propertyType)}
                   size="sm"
                   divider
                 />
@@ -658,26 +655,6 @@ export default function PropertyDetail() {
                   <KeyValueRow
                     label="Move in"
                     value={earliestMoveIn}
-                    size="sm"
-                    divider
-                  />
-                ) : null}
-                {addressLine ? (
-                  <KeyValueRow
-                    label="Address"
-                    value={
-                      <span style={{ textAlign: "right", fontWeight: 500, fontSize: 12, lineHeight: 1.4, maxWidth: 200, display: "inline-block" }}>
-                        {addressLine}
-                      </span>
-                    }
-                    size="sm"
-                    divider
-                  />
-                ) : null}
-                {property.postalCode ? (
-                  <KeyValueRow
-                    label="Postal code"
-                    value={property.postalCode}
                     size="sm"
                     divider
                   />
