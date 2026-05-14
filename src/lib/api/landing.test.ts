@@ -8,13 +8,14 @@ const client = createClient();
 const api = createLandingApi(client);
 
 describe("api/landing.stats", () => {
-  it("returns the three counts as numbers", async () => {
+  it("returns the four counts as numbers", async () => {
     server.use(
       http.get("/api/v1/landing/stats", () =>
         HttpResponse.json({
           activeListings: 50,
           registeredTenants: 17,
           suburbsCovered: 40,
+          tenantsLast7Days: 5,
         }),
       ),
     );
@@ -25,6 +26,7 @@ describe("api/landing.stats", () => {
       activeListings: 50,
       registeredTenants: 17,
       suburbsCovered: 40,
+      tenantsLast7Days: 5,
     });
   });
 
@@ -35,6 +37,7 @@ describe("api/landing.stats", () => {
           activeListings: 0,
           registeredTenants: 0,
           suburbsCovered: 0,
+          tenantsLast7Days: 0,
         }),
       ),
     );
@@ -44,5 +47,6 @@ describe("api/landing.stats", () => {
     expect(out.activeListings).toBe(0);
     expect(out.registeredTenants).toBe(0);
     expect(out.suburbsCovered).toBe(0);
+    expect(out.tenantsLast7Days).toBe(0);
   });
 });

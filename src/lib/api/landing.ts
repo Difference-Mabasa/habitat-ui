@@ -15,6 +15,8 @@ export interface LandingStats {
   registeredTenants: number;
   /** Distinct non-blank suburb values across LISTED properties. */
   suburbsCovered: number;
+  /** USER-active-role accounts created in the rolling last 7 days. */
+  tenantsLast7Days: number;
 }
 
 export interface LandingApi {

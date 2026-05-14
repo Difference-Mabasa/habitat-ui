@@ -13,7 +13,7 @@ import Footer from "@/components/Footer";
 import PropertyCard, { type PropertyCardData } from "@/components/PropertyCard";
 import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
-import { createPropertiesApi, type PopularArea } from "@/lib/api/properties";
+import { createPropertiesApi, type PopularArea, type PropertySummary } from "@/lib/api/properties";
 import { createLandingApi, type LandingStats } from "@/lib/api/landing";
 import HeroSearch from "./HeroSearch";
 
@@ -298,6 +298,34 @@ function formatStat(n: number): string {
   return n.toLocaleString("en-ZA");
 }
 
+/**
+ * Verbose relative-time ("12 minutes ago" / "2 hours ago" / "yesterday").
+ * Distinct from Nav's compact "5m / 3h / 2d" format because hero copy
+ * reads aloud — we want full words, not abbreviations. Returns an empty
+ * string for invalid input so callers can fall back to a placeholder.
+ */
+function formatAgoVerbose(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const diffSec = Math.max(0, Math.round((Date.now() - then) / 1000));
+  if (diffSec < 60) return "just now";
+  const min = Math.round(diffSec / 60);
+  if (min < 60) return `${min} ${min === 1 ? "minute" : "minutes"} ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr} ${hr === 1 ? "hour" : "hours"} ago`;
+  const day = Math.round(hr / 24);
+  if (day === 1) return "yesterday";
+  if (day < 7) return `${day} days ago`;
+  return new Date(iso).toLocaleDateString("en-ZA", { day: "numeric", month: "short" });
+}
+
+/** Format a ZAR amount for the floating card: "R 6,800" — no decimals. */
+function formatRand(amount: number | null | undefined): string {
+  if (amount == null || Number.isNaN(amount)) return "—";
+  return `R ${Math.round(amount).toLocaleString("en-ZA")}`;
+}
+
 function Hero() {
   const { isSm, isMd } = useViewport();
   const isMobile = isSm || isMd;
@@ -305,7 +333,7 @@ function Hero() {
   const api = useMemo(() => createLandingApi(session.client), [session.client]);
   const propertiesApi = useMemo(() => createPropertiesApi(session.client), [session.client]);
   const [stats, setStats] = useState<LandingStats | null>(null);
-  const [heroCoverUrl, setHeroCoverUrl] = useState<string | null>(null);
+  const [latestListing, setLatestListing] = useState<PropertySummary | null>(null);
 
   // Pre-launch the trust strip starts on em-dashes and is replaced as soon
   // as the API responds. Errors leave the placeholders in place — a missed
@@ -325,14 +353,15 @@ function Hero() {
     };
   }, [api]);
 
-  // Hero photo: cover image of the most-recent LISTED property. Falls back
-  // to the design-system placeholder when the catalogue is empty or the
-  // fetch fails — both render fine under the floating cards.
+  // Most-recent LISTED property — drives both the hero photo (cover image)
+  // and the "Just listed" floating proof card (suburb · price · time ago).
+  // Both gracefully degrade to placeholders when the catalogue is empty
+  // or the fetch fails.
   useEffect(() => {
     let cancelled = false;
     propertiesApi.list({ size: 1, sort: "NEWEST", dir: "DESC" }).then(
       (page) => {
-        if (!cancelled) setHeroCoverUrl(page.content[0]?.coverImageUrl ?? null);
+        if (!cancelled) setLatestListing(page.content[0] ?? null);
       },
       () => {},
     );
@@ -428,17 +457,18 @@ function Hero() {
           <Photo
             ratio="4/5"
             label="Property cover photo"
-            src={heroCoverUrl ?? undefined}
-            alt="A Habitat-listed property"
+            src={latestListing?.coverImageUrl ?? undefined}
+            alt={latestListing ? `Cover photo of ${latestListing.title}` : "A Habitat-listed property"}
           />
 
-          {/* Floating proof cards — verified tenant (bottom-left) and rent
-              received (top-right) — visualise the brand promise of the hero
-              headline. Per the design source (screen-landing.jsx:64-95), they
+          {/* Floating proof cards — both live from the API:
+              - "This week" tenant momentum (bottom-left) → visualises
+                "Vet your tenant" with rolling-7-day registration count.
+              - "Just listed" (top-right) → visualises "List your property"
+                with the newest LISTED property's suburb · price · age.
+              Per the design source (screen-landing.jsx:64-95), they
               protrude beyond the photo on desktop; on small viewports we
-              tuck them inside to avoid horizontal overflow. The data is
-              illustrative (not live) — it's a hero proof-of-concept, not a
-              dashboard. */}
+              tuck them inside to avoid horizontal overflow. */}
           <div
             style={{
               position: "absolute",
@@ -453,31 +483,33 @@ function Hero() {
               borderRadius: "var(--r-md)",
             }}
           >
-            <Eyebrow style={{ marginBottom: 6 }}>Verified tenant</Eyebrow>
+            <Eyebrow style={{ marginBottom: 6 }}>This week</Eyebrow>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div
-                className="mono"
                 style={{
                   width: 40,
                   height: 40,
                   borderRadius: "50%",
-                  background: "var(--surface-3)",
+                  background: "var(--accent-soft)",
+                  color: "var(--accent)",
                   display: "grid",
                   placeItems: "center",
-                  fontSize: 13,
-                  fontWeight: 600,
                   flexShrink: 0,
                 }}
               >
-                SD
+                <Icon name="users" size={18} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>Sipho Dlamini</div>
+                <div
+                  className="tabular"
+                  style={{ fontSize: 18, fontWeight: 600, letterSpacing: "-0.01em" }}
+                >
+                  {stats ? `${formatStat(stats.tenantsLast7Days)} new ${stats.tenantsLast7Days === 1 ? "tenant" : "tenants"}` : "—"}
+                </div>
                 <div style={{ fontSize: 11, color: "var(--slate)" }}>
-                  FICA · Affordability checked
+                  Joined in the last 7 days
                 </div>
               </div>
-              <Icon name="check" size={14} style={{ color: "var(--success)" }} />
             </div>
           </div>
 
@@ -487,7 +519,7 @@ function Hero() {
               top: 24,
               right: isMobile ? 16 : -28,
               padding: 14,
-              width: 220,
+              width: 240,
               maxWidth: "calc(100% - 32px)",
               boxShadow: "var(--shadow-md)",
               background: "var(--surface)",
@@ -495,16 +527,18 @@ function Hero() {
               borderRadius: "var(--r-md)",
             }}
           >
-            <Eyebrow style={{ marginBottom: 4 }}>Rent · April</Eyebrow>
+            <Eyebrow style={{ marginBottom: 4 }}>Just listed</Eyebrow>
             <div
               className="tabular"
               style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em" }}
             >
-              R 6,800
+              {latestListing ? formatRand(latestListing.headlinePrice) : "—"}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
-              <Badge tone="success">Received</Badge>
-              <span style={{ fontSize: 11, color: "var(--slate)" }}>2 hours ago</span>
+              <Badge tone="accent">{latestListing?.suburb ?? "Coming soon"}</Badge>
+              <span style={{ fontSize: 11, color: "var(--slate)" }}>
+                {formatAgoVerbose(latestListing?.createdAt)}
+              </span>
             </div>
           </div>
         </div>
