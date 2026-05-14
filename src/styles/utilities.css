@@ -251,25 +251,11 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Landing hero animations — `flag-wave` for the photo, `float-a` / `float-b`
-   for the two proof cards. Small amplitudes, slow durations, asynchronous
-   periods so nothing snaps into sync. GPU-composited transforms only (no
-   layout-thrashing properties). Disabled when the user prefers reduced
-   motion.
+   Landing hero card animations — `float-a` / `float-b` for the two proof
+   cards. Different durations so they drift in and out of phase instead of
+   bobbing in sync. GPU-composited transforms only. Disabled under
+   prefers-reduced-motion.
    ───────────────────────────────────────────────────────────────────────── */
-
-/*
-   Flag wave — the FRAME stays a clean stationary rectangle; the image
-   PIXELS inside ripple via an SVG feDisplacementMap filter (defined
-   inline in the hero JSX as #flag-ripple). The img is scaled up 4%
-   so the displacement's edge pull doesn't reveal transparent borders;
-   the .ph parent's overflow: hidden clips the bleed away.
-*/
-.flag-wave .ph > img {
-  filter: url(#flag-ripple);
-  transform: scale(1.04);
-  will-change: filter, transform;
-}
 
 @keyframes float-a {
   0%   { transform: translate(0px,  0px)   rotate(0deg); }
@@ -299,10 +285,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flag-wave .ph > img {
-    filter: none;
-    transform: none;
-  }
   .float-a,
   .float-b {
     animation: none;
