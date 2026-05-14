@@ -49,13 +49,13 @@ function titleCase(s: string): string {
 }
 
 /** What's-included list derived from the Unit's boolean flags. */
-function buildInclusions(unit: UnitDetailDto): string[] {
-  const out: string[] = [];
-  if (unit.waterIncluded) out.push("Water included");
-  if (unit.electricityIncluded) out.push("Electricity included");
-  if (unit.petsAllowed) out.push("Pets allowed");
+function buildInclusions(unit: UnitDetailDto): { icon: IconName; label: string }[] {
+  const out: { icon: IconName; label: string }[] = [];
+  if (unit.waterIncluded) out.push({ icon: "bath", label: "Water included" });
+  if (unit.electricityIncluded) out.push({ icon: "bolt", label: "Electricity included" });
+  if (unit.petsAllowed) out.push({ icon: "pet", label: "Pets allowed" });
   if (unit.furnishing && unit.furnishing !== "UNFURNISHED") {
-    out.push(FURNISHING_LABEL[unit.furnishing] ?? "Furnished");
+    out.push({ icon: "home", label: FURNISHING_LABEL[unit.furnishing] ?? "Furnished" });
   }
   return out;
 }
@@ -277,11 +277,14 @@ export default function Unit() {
 
           {inclusions.length > 0 ? (
             <DetailSection title="What's included">
-              <div style={{ display: "grid", gridTemplateColumns: isSm ? "1fr" : "repeat(2, 1fr)", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isSm ? "1fr" : "repeat(2, 1fr)", gap: 14 }}>
                 {inclusions.map((inc) => (
-                  <div key={inc} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-                    <Icon name="check" size={14} style={{ color: "var(--success)" }} />
-                    {inc}
+                  <div
+                    key={inc.label}
+                    style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: "var(--ink)" }}
+                  >
+                    <Icon name={inc.icon} size={16} style={{ color: "var(--slate)" }} />
+                    {inc.label}
                   </div>
                 ))}
               </div>
@@ -417,7 +420,7 @@ export default function Unit() {
                       size="lg"
                       style={{ width: "100%", justifyContent: "center" }}
                     >
-                      Apply for {unit.title}
+                      Apply now
                     </Button>
                   </Link>
                   <Link
