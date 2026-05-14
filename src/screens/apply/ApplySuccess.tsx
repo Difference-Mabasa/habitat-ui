@@ -4,8 +4,6 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Icon from "@/components/Icon";
 import Eyebrow from "@/components/Eyebrow";
-import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
-import { STEP_INDEX } from "@/lib/applicationSteps";
 import { useViewport } from "@/hooks/useViewport";
 import type { ApplicationResponse } from "@/lib/api/applications";
 import type { PropertyDetail, UnitDetail } from "@/lib/api/properties";
@@ -29,13 +27,6 @@ export default function ApplySuccess() {
 
   const { application, property, unit } = state;
 
-  // If the API auto-transitioned to AWAITING_DOCUMENTS we're heading
-  // into the documents step next; otherwise we're parked in Review.
-  const currentStep =
-    application?.status === "AWAITING_DOCUMENTS"
-      ? STEP_INDEX.Documents
-      : STEP_INDEX.Review;
-
   return (
     <div style={{ background: "var(--paper)", minHeight: "100vh" }}>
       <Nav role="tenant" />
@@ -44,17 +35,7 @@ export default function ApplySuccess() {
         style={{
           maxWidth: 720,
           margin: "0 auto",
-          padding: isSm ? "20px 16px 0" : "32px 32px 0",
-        }}
-      >
-        <ApplicationProgressStepper currentStep={currentStep} />
-      </div>
-
-      <div
-        style={{
-          maxWidth: 720,
-          margin: "0 auto",
-          padding: isSm ? "16px 16px 48px" : "16px 32px 72px",
+          padding: isSm ? "48px 16px" : "72px 32px",
           textAlign: "center",
         }}
       >

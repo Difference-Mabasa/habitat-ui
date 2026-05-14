@@ -16,12 +16,7 @@ import {
   type ApplicationStatus,
   type EmploymentStatus,
 } from "@/lib/api/applications";
-import {
-  APPLICATION_STEPS,
-  isCompleteStatus,
-  isDeclinedStatus,
-  statusToStep,
-} from "@/lib/applicationSteps";
+import { isDeclinedStatus, statusToCardStage } from "@/lib/applicationSteps";
 import ApplicationStatusTimeline from "./ApplicationStatusTimeline";
 
 const EMPLOYMENT_LABEL: Record<EmploymentStatus, string> = {
@@ -227,7 +222,7 @@ function ApplicationCard({ app }: { app: ApplicationResponse }) {
 
           <div style={{ marginTop: declined || showAwaitingDocs || showInvoice ? 12 : 0 }}>
             <ApplicationStatusTimeline
-              stage={isCompleteStatus(app.status) ? APPLICATION_STEPS.length : statusToStep(app.status)}
+              stage={statusToCardStage(app.status)}
               declined={declined}
             />
           </div>

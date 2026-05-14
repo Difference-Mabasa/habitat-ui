@@ -1,21 +1,19 @@
 import { Fragment } from "react";
 import Icon from "@/components/Icon";
-import { APPLICATION_STEPS } from "@/lib/applicationSteps";
+import { CARD_MILESTONES } from "@/lib/applicationSteps";
 
 export interface ApplicationStatusTimelineProps {
   /** Index of current stage in {@link stages}. */
   stage: number;
   declined?: boolean;
-  /** Defaults to the canonical 6-step application flow. */
+  /** Defaults to the 4-stage milestone view from the design handoff. */
   stages?: readonly string[];
 }
-
-const DEFAULT_STAGES: readonly string[] = APPLICATION_STEPS;
 
 export default function ApplicationStatusTimeline({
   stage,
   declined = false,
-  stages = DEFAULT_STAGES,
+  stages = CARD_MILESTONES,
 }: ApplicationStatusTimelineProps) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

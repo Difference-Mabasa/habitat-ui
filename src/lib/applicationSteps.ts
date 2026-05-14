@@ -68,3 +68,37 @@ export function isDeclinedStatus(status: ApplicationStatus): boolean {
 export function isCompleteStatus(status: ApplicationStatus): boolean {
   return status === "COMPLETED";
 }
+
+/**
+ * The 4-stage per-card milestone view used in MyApplications, matching
+ * the design handoff (screen-my-apps.jsx). Coarser than {@link
+ * APPLICATION_STEPS} on purpose — this is a glanceable progress dot
+ * row, not a detailed step indicator.
+ */
+export const CARD_MILESTONES = ["Submitted", "Vetting", "Approved", "Lease"] as const;
+
+export function statusToCardStage(status: ApplicationStatus): number {
+  switch (status) {
+    case "SUBMITTED":
+    case "AWAITING_DOCUMENTS":
+      return 1; // applied — first dot done, sitting at Vetting next
+    case "DOCUMENTS_SUBMITTED":
+    case "UNDER_REVIEW":
+    case "ON_HOLD":
+      return 1; // Vetting
+    case "APPROVED":
+    case "INVOICE_SENT":
+    case "DEPOSIT_PAID":
+      return 2; // Approved
+    case "LEASE_GENERATED":
+    case "LEASE_PENDING_SIGNATURES":
+      return 3; // Lease
+    case "COMPLETED":
+      return 4; // beyond the last dot — every step done
+    case "REJECTED":
+    case "WITHDRAWN":
+    case "EXPIRED":
+    default:
+      return 1;
+  }
+}

@@ -8,15 +8,11 @@ import Badge from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
 import Avatar from "@/components/Avatar";
 import Alert from "@/components/Alert";
-import Tabs from "@/components/Tabs";
-import KeyValueRow from "@/components/KeyValueRow";
 import FormField from "@/components/FormField";
 import Input from "@/components/Input";
 import Textarea from "@/components/Textarea";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
-import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
-import { STEP_INDEX } from "@/lib/applicationSteps";
 import { useSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
 import {
@@ -171,10 +167,6 @@ export default function Lease() {
   return (
     <TenantShell activeId="lease">
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 64px" }}>
-        <ApplicationProgressStepper
-          currentStep={isSigned ? STEP_INDEX["Move in"] : STEP_INDEX["Sign lease"]}
-          declined={isDeclined}
-        />
         <div
           style={{
             display: "flex",
@@ -199,20 +191,6 @@ export default function Lease() {
         <h1 style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px" }}>
           {isDeclined ? "You declined this lease" : "Review and sign your lease"}
         </h1>
-
-        {!isDeclined && !isSigned ? (
-          <div style={{ marginBottom: 24 }}>
-            <Tabs
-              tabs={[
-                { id: "review", label: "1 · Review" },
-                { id: "sign", label: "2 · Sign (OTP)" },
-                { id: "decline", label: "× Decline" },
-              ]}
-              value={stage}
-              onChange={(id) => setStage(id as Stage)}
-            />
-          </div>
-        ) : null}
 
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 380px", gap: 32 }}>
           {/* MAIN COLUMN */}
@@ -286,53 +264,20 @@ export default function Lease() {
           <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Card padding={20}>
               <Eyebrow style={{ marginBottom: 16 }}>Lease summary</Eyebrow>
-              <KeyValueRow
-                label="Property"
-                value={lease.property.title ?? "—"}
-                size="sm"
-              />
-              <KeyValueRow
-                label="Unit"
-                value={lease.unit.title ?? "—"}
-                size="sm"
-                divider
-              />
-              <KeyValueRow
-                label="Landlord"
-                value={partyName(lease.landlord)}
-                size="sm"
-                divider
-              />
-              <KeyValueRow
-                label="Term"
-                value={`${lease.termMonths} months`}
-                size="sm"
-                divider
-              />
-              <KeyValueRow
-                label="Start"
-                value={formatDate(lease.startDate)}
-                size="sm"
-                divider
-              />
-              <KeyValueRow
-                label="Rent"
-                value={`${formatRand(lease.monthlyRent)} / mo`}
-                size="sm"
-                divider
-              />
-              <KeyValueRow
-                label="Deposit"
-                value={formatRand(lease.deposit)}
-                size="sm"
-                divider
-              />
-              <KeyValueRow
-                label="Template"
-                value={<span className="mono">{TEMPLATE_LABEL[lease.template]}</span>}
-                size="sm"
-                divider
-              />
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <SummaryRow label="Property" value={lease.property.title ?? "—"} />
+                <SummaryRow label="Unit" value={lease.unit.title ?? "—"} />
+                <SummaryRow label="Landlord" value={partyName(lease.landlord)} />
+                <SummaryRow label="Term" value={`${lease.termMonths} months`} />
+                <SummaryRow label="Start" value={formatDate(lease.startDate)} />
+                <SummaryRow label="Rent" value={`${formatRand(lease.monthlyRent)} / mo`} />
+                <SummaryRow label="Deposit" value={formatRand(lease.deposit)} />
+                <SummaryRow
+                  label="Template"
+                  value={TEMPLATE_LABEL[lease.template]}
+                  mono
+                />
+              </div>
             </Card>
 
             <Card padding={20}>
@@ -433,6 +378,25 @@ export default function Lease() {
         </div>
       </div>
     </TenantShell>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+      <span style={{ color: "var(--slate)" }}>{label}</span>
+      <span className={mono ? "mono" : undefined} style={{ fontWeight: 500 }}>
+        {value}
+      </span>
+    </div>
   );
 }
 

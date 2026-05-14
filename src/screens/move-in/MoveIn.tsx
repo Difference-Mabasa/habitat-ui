@@ -3,15 +3,12 @@ import { Link } from "react-router-dom";
 import TenantShell from "@/components/TenantShell";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
-import Badge from "@/components/Badge";
+import Badge, { type BadgeTone } from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
-import Icon from "@/components/Icon";
-import KeyValueRow from "@/components/KeyValueRow";
+import Icon, { type IconName } from "@/components/Icon";
 import Photo from "@/components/Photo";
-import Alert from "@/components/Alert";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
-import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
 import { useSession } from "@/lib/session";
 import { createLeasesApi, type LeaseResponse } from "@/lib/api/leases";
 
@@ -19,6 +16,15 @@ function partyName(p: { firstName: string | null; surname: string | null; email:
   if (!p) return "—";
   const name = [p.firstName, p.surname].filter(Boolean).join(" ");
   return name || (p.email ?? "—");
+}
+
+function initials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 function formatRand(amount: number | null): string {
@@ -33,12 +39,28 @@ function formatDate(iso: string | null): string {
   return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
 }
 
-const CHECKLIST = [
-  { icon: "key" as const,      title: "Collect your keys",      body: "Arrange a time with the landlord on or before your move-in date." },
-  { icon: "doc" as const,      title: "Walk-through inspection", body: "Document the unit's condition with photos — protects your deposit." },
-  { icon: "bolt" as const,     title: "Utility transfers",       body: "Arrange your electricity prepaid meter / water account in your name." },
-  { icon: "shield" as const,   title: "Tenant's insurance",      body: "Optional but recommended — covers your belongings against theft, fire, water damage." },
-];
+function formatShortDate(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short" });
+}
+
+function daysFromNow(iso: string | null): number | null {
+  if (!iso) return null;
+  const target = new Date(iso);
+  if (Number.isNaN(target.getTime())) return null;
+  const ms = target.getTime() - Date.now();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+}
+
+/** First of the month >= today. */
+function nextRentDue(): Date {
+  const now = new Date();
+  return now.getDate() === 1
+    ? now
+    : new Date(now.getFullYear(), now.getMonth() + 1, 1);
+}
 
 export default function MoveIn() {
   const session = useSession();
@@ -55,7 +77,6 @@ export default function MoveIn() {
       .listMine()
       .then((rows) => {
         if (cancelled) return;
-        // Most recent signed lease, fall back to most recent overall.
         const signed = rows.find((r) => r.status === "SIGNED" || r.status === "COMPLETED");
         setLease(signed ?? rows[0] ?? null);
         setLoading(false);
@@ -73,7 +94,7 @@ export default function MoveIn() {
   if (loading) {
     return (
       <TenantShell activeId="lease">
-        <div style={{ maxWidth: 980, margin: "0 auto", padding: "32px 32px 64px" }}>
+        <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px" }}>
           <LoadingState rows={6} />
         </div>
       </TenantShell>
@@ -83,13 +104,13 @@ export default function MoveIn() {
   if (error || !lease || (lease.status !== "SIGNED" && lease.status !== "COMPLETED")) {
     return (
       <TenantShell activeId="lease">
-        <div style={{ maxWidth: 980, margin: "0 auto", padding: "32px 32px 64px" }}>
+        <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px" }}>
           <EmptyState
             icon="home"
             title="Move-in isn't ready yet"
             description={
               error ??
-              "Once both you and your landlord sign the lease, your move-in checklist will appear here."
+              "Once both you and your landlord sign the lease, your move-in dashboard will appear here."
             }
             actions={
               <Link to="/lease" style={{ textDecoration: "none" }}>
@@ -102,178 +123,409 @@ export default function MoveIn() {
     );
   }
 
-  const address = [
-    lease.property.addressLine,
-    lease.property.suburb,
-    lease.property.city,
-    lease.property.postalCode,
-  ]
+  const monthly = Number(lease.monthlyRent);
+  const tenantFirst = lease.tenant.firstName ?? "tenant";
+  const homeTitle =
+    lease.property.title ?? lease.unit.title ?? "Your home";
+  const homeSuburb = [lease.property.suburb, lease.property.city]
     .filter(Boolean)
-    .join(", ") || lease.property.title || "—";
+    .join(", ");
+  const homeAddress =
+    lease.property.addressLine || homeSuburb || lease.property.title || "";
+  const leaseEnd = (() => {
+    if (!lease.startDate) return null;
+    const d = new Date(lease.startDate);
+    if (Number.isNaN(d.getTime())) return null;
+    const end = new Date(d.getFullYear() + 1, d.getMonth(), d.getDate() - 1);
+    return end.toISOString().slice(0, 10);
+  })();
+  const rentDueDate = nextRentDue().toISOString().slice(0, 10);
+  const rentDueIn = daysFromNow(rentDueDate);
+  const landlord = partyName(lease.landlord);
 
   return (
     <TenantShell activeId="lease">
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: "32px 32px 64px" }}>
-        <ApplicationProgressStepper currentStep={5} complete />
-
-        {/* Hero */}
-        <div style={{ marginBottom: 24 }}>
-          <Eyebrow>Move-in · {lease.leaseRef}</Eyebrow>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginTop: 8 }}>
-            <h1 style={{ fontSize: 32, fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>
-              Welcome home, {lease.tenant.firstName ?? "tenant"}!
-            </h1>
-            <Badge tone="success" leftIcon="check">Both signed</Badge>
-          </div>
-          <p style={{ fontSize: 14, color: "var(--slate)", margin: "8px 0 0", maxWidth: 640 }}>
-            The lease is signed by both parties. Your move-in date is{" "}
-            <strong style={{ color: "var(--ink)" }}>{formatDate(lease.startDate)}</strong>.
-            Here's what to take care of before you collect your keys.
-          </p>
+      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "32px 32px" }}>
+        {/* Greeting */}
+        <div style={{ marginBottom: 32 }}>
+          <Eyebrow style={{ marginBottom: 8 }}>My rental</Eyebrow>
+          <h1
+            style={{
+              fontSize: 32,
+              fontWeight: 500,
+              letterSpacing: "-0.025em",
+              margin: 0,
+            }}
+          >
+            Welcome home, {tenantFirst}
+          </h1>
         </div>
-
-        <Alert tone="success" title="You're in.">
-          A confirmation has been sent to both you and {partyName(lease.landlord)}. The lease PDF and
-          this checklist are always available from your /lease page.
-        </Alert>
 
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) 320px",
+            gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)",
+            gap: 24,
+          }}
+        >
+          {/* Home card */}
+          <Card padding={0} style={{ overflow: "hidden" }}>
+            <div style={{ display: "flex" }}>
+              <Photo
+                ratio="auto"
+                src={lease.unit.coverImageUrl ?? undefined}
+                label=""
+                style={{ borderRadius: 0, width: 240, height: "auto", minHeight: 200 }}
+              />
+              <div style={{ padding: 24, flex: 1 }}>
+                <Eyebrow style={{ marginBottom: 8 }}>Current home</Eyebrow>
+                <div
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 600,
+                    letterSpacing: "-0.01em",
+                    marginBottom: 4,
+                  }}
+                >
+                  {homeTitle}
+                </div>
+                <div style={{ fontSize: 13, color: "var(--slate)", marginBottom: 20 }}>
+                  {homeAddress}
+                  {lease.startDate ? ` · since ${formatDate(lease.startDate)}` : ""}
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: 16,
+                    paddingTop: 16,
+                    borderTop: "1px solid var(--hairline)",
+                  }}
+                >
+                  <Mini label="Lease ends" value={leaseEnd ? formatDate(leaseEnd) : "—"} />
+                  <Mini label="Rent" value={formatRand(monthly)} />
+                  <Mini label="Next due" value={formatShortDate(rentDueDate)} />
+                </div>
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                borderTop: "1px solid var(--hairline)",
+              }}
+            >
+              <ActionTile
+                to="/payment"
+                icon="cash"
+                title="Pay rent"
+                sub={rentDueIn != null ? `Due in ${rentDueIn} days` : "Set up auto-pay"}
+              />
+              <ActionTile
+                to="/maintenance"
+                icon="bolt"
+                title="Report issue"
+                sub="24h response"
+              />
+              <ActionTile
+                to={`/lease?id=${lease.id}`}
+                icon="paper"
+                title="View lease"
+                sub={
+                  lease.tenantSignedAt
+                    ? `Signed ${formatShortDate(lease.tenantSignedAt)}`
+                    : "Signed"
+                }
+                last
+              />
+            </div>
+          </Card>
+
+          {/* Rent timeline */}
+          <Card padding={24}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "space-between",
+                marginBottom: 20,
+              }}
+            >
+              <div>
+                <Eyebrow style={{ marginBottom: 6 }}>Next payment</Eyebrow>
+                <div
+                  className="tabular"
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 600,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {formatRand(monthly)}
+                </div>
+                <div style={{ fontSize: 13, color: "var(--slate)" }}>
+                  Due {formatDate(rentDueDate)} · debit order
+                </div>
+              </div>
+              <Badge tone="accent">Auto-pay on</Badge>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                marginTop: 24,
+              }}
+            >
+              {/* Deposit + first month paid via the invoice flow */}
+              <PayRow
+                date={formatDate(lease.tenantSignedAt ?? lease.createdAt)}
+                amount={formatRand(Number(lease.deposit))}
+                status="paid"
+                sub="Deposit"
+              />
+              {lease.startDate ? (
+                <PayRow
+                  date={formatDate(lease.startDate)}
+                  amount={formatRand(monthly)}
+                  status="paid"
+                  sub="First month"
+                />
+              ) : null}
+            </div>
+
+            <Link
+              to="/statements"
+              style={{ textDecoration: "none", display: "block", marginTop: 12 }}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                rightIcon="chevR"
+                style={{ width: "100%", justifyContent: "center" }}
+              >
+                View all payments
+              </Button>
+            </Link>
+          </Card>
+        </div>
+
+        {/* Maintenance + landlord */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
             gap: 24,
             marginTop: 24,
           }}
         >
-          <main>
-            <Card padding={24}>
-              <Eyebrow style={{ marginBottom: 16 }}>Move-in checklist</Eyebrow>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {CHECKLIST.map((item) => (
-                  <ChecklistRow key={item.title} icon={item.icon} title={item.title} body={item.body} />
-                ))}
+          <Card padding={24}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 16,
+              }}
+            >
+              <div>
+                <Eyebrow style={{ marginBottom: 6 }}>Maintenance</Eyebrow>
+                <div style={{ fontSize: 18, fontWeight: 600 }}>Open requests</div>
               </div>
-            </Card>
+              <Link to="/maintenance" style={{ textDecoration: "none" }}>
+                <Button variant="secondary" size="sm" leftIcon="plus">
+                  New request
+                </Button>
+              </Link>
+            </div>
+            <EmptyState
+              icon="bolt"
+              size="sm"
+              title="No maintenance requests"
+              description="Anything that breaks or needs attention — log it here and we'll route it to your landlord."
+            />
+          </Card>
 
-            <Card padding={24} style={{ marginTop: 16 }}>
-              <Eyebrow style={{ marginBottom: 12 }}>Your landlord</Eyebrow>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    width: 48, height: 48, borderRadius: "50%",
-                    background: "var(--surface-2)", display: "grid", placeItems: "center",
-                    color: "var(--slate)", fontWeight: 600,
-                  }}
+          <Card padding={24}>
+            <Eyebrow style={{ marginBottom: 16 }}>Your landlord</Eyebrow>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                marginBottom: 20,
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background: "var(--surface-3)",
+                  display: "grid",
+                  placeItems: "center",
+                  fontFamily: "var(--font-mono)",
+                  fontWeight: 600,
+                }}
+              >
+                {initials(landlord) || "?"}
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 600 }}>{landlord}</div>
+                <div style={{ fontSize: 12, color: "var(--slate)" }}>
+                  Responds in ~2 hrs
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <Link to="/inbox" style={{ textDecoration: "none", flex: 1 }}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon="chat"
+                  style={{ width: "100%", justifyContent: "center" }}
                 >
-                  {(lease.landlord?.firstName ?? "?").charAt(0)}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>{partyName(lease.landlord)}</div>
-                  {lease.landlord?.email ? (
-                    <div style={{ fontSize: 12, color: "var(--slate)" }}>{lease.landlord.email}</div>
-                  ) : null}
-                </div>
-                <Link to="/inbox" style={{ textDecoration: "none" }}>
-                  <Button variant="secondary" size="sm" leftIcon="chat">Message</Button>
-                </Link>
-              </div>
-            </Card>
-          </main>
-
-          <aside>
-            <Card padding={0} style={{ overflow: "hidden", position: "sticky", top: 88 }}>
-              <Photo
-                ratio="4/3"
-                src={lease.unit.coverImageUrl ?? undefined}
-                label=""
-                style={{ borderRadius: 0 }}
-              />
-              <div style={{ padding: 18 }}>
-                <Eyebrow style={{ marginBottom: 8 }}>Your spot</Eyebrow>
-                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
-                  {lease.property.title ?? "Property"}
-                </div>
-                <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
-                  <Icon name="pin" size={12} /> {address}
-                </div>
-                <KeyValueRow label="Unit" value={lease.unit.title ?? "—"} size="sm" />
-                <KeyValueRow label="Move-in" value={formatDate(lease.startDate)} size="sm" divider />
-                <KeyValueRow
-                  label="Rent"
-                  value={`${formatRand(lease.monthlyRent)} / mo`}
+                  Message
+                </Button>
+              </Link>
+              <Link to="/book-viewing" style={{ textDecoration: "none", flex: 1 }}>
+                <Button
+                  variant="secondary"
                   size="sm"
-                  divider
-                />
-                <KeyValueRow
-                  label="Deposit"
-                  value={formatRand(lease.deposit)}
-                  size="sm"
-                  divider
-                />
-                <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-                  <Link to={`/lease?id=${lease.id}`} style={{ textDecoration: "none" }}>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      leftIcon="paper"
-                      style={{ width: "100%", justifyContent: "center" }}
-                    >
-                      View lease
-                    </Button>
-                  </Link>
-                  <Link to="/my-apps" style={{ textDecoration: "none" }}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      style={{ width: "100%", justifyContent: "center" }}
-                    >
-                      My applications
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </Card>
-          </aside>
+                  leftIcon="calendar"
+                  style={{ width: "100%", justifyContent: "center" }}
+                >
+                  Schedule
+                </Button>
+              </Link>
+            </div>
+          </Card>
         </div>
       </div>
     </TenantShell>
   );
 }
 
-function ChecklistRow({
+function Mini({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div
+        className="mono"
+        style={{
+          fontSize: 11,
+          color: "var(--slate)",
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+          marginBottom: 4,
+        }}
+      >
+        {label}
+      </div>
+      <div className="tabular" style={{ fontSize: 14, fontWeight: 600 }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function ActionTile({
+  to,
   icon,
   title,
-  body,
+  sub,
+  last,
 }: {
-  icon: "key" | "doc" | "bolt" | "shield";
+  to: string;
+  icon: IconName;
   title: string;
-  body: string;
+  sub: string;
+  last?: boolean;
 }) {
   return (
-    <div
+    <Link
+      to={to}
       style={{
+        flex: 1,
+        padding: "20px 24px",
         display: "flex",
+        alignItems: "center",
         gap: 14,
-        padding: "12px 14px",
-        border: "1px solid var(--hairline)",
-        borderRadius: 10,
-        background: "var(--surface)",
+        background: "transparent",
+        borderRight: last ? "none" : "1px solid var(--hairline)",
+        textDecoration: "none",
+        color: "var(--ink)",
+        transition: "background 120ms",
       }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
       <div
         style={{
-          width: 36, height: 36, flexShrink: 0,
+          width: 36,
+          height: 36,
           borderRadius: 8,
-          background: "var(--accent-soft)",
-          display: "grid", placeItems: "center",
-          color: "var(--accent)",
+          background: "var(--surface-3)",
+          display: "grid",
+          placeItems: "center",
         }}
       >
         <Icon name={icon} size={16} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>{title}</div>
-        <div style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5 }}>{body}</div>
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
+        <div style={{ fontSize: 12, color: "var(--slate)", marginTop: 2 }}>{sub}</div>
+      </div>
+      <Icon
+        name="arrR"
+        size={14}
+        style={{ color: "var(--slate)", marginLeft: "auto" }}
+      />
+    </Link>
+  );
+}
+
+function PayRow({
+  date,
+  amount,
+  status,
+  sub,
+}: {
+  date: string;
+  amount: string;
+  status: "paid" | "due";
+  sub?: string;
+}) {
+  const tone = status === "paid" ? "var(--success)" : "var(--slate)";
+  const badgeTone: BadgeTone = status === "paid" ? "success" : "neutral";
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        padding: "10px 0",
+        borderTop: "1px solid var(--hairline)",
+      }}
+    >
+      <div
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          background: tone,
+          marginRight: 12,
+        }}
+      />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 500 }}>{date}</div>
+        {sub ? (
+          <div style={{ fontSize: 11, color: "var(--slate)" }}>{sub}</div>
+        ) : null}
+      </div>
+      <span className="tabular" style={{ fontSize: 13, fontWeight: 600 }}>
+        {amount}
+      </span>
+      <div style={{ marginLeft: 16 }}>
+        <Badge tone={badgeTone}>{status}</Badge>
       </div>
     </div>
   );

@@ -9,11 +9,8 @@ import Icon, { type IconName } from "@/components/Icon";
 import Input from "@/components/Input";
 import FormField from "@/components/FormField";
 import Textarea from "@/components/Textarea";
-import PriceDisplay from "@/components/PriceDisplay";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
-import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
-import { STEP_INDEX } from "@/lib/applicationSteps";
 import { useViewport } from "@/hooks/useViewport";
 import { useSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
@@ -35,7 +32,23 @@ const EMPLOYMENT_OPTIONS: { value: EmploymentStatus; label: string; icon: IconNa
   { value: "OTHER", label: "Other", icon: "sparkle" },
 ];
 
+// Wizard step list — ports the handoff's left-rail stepper (screen-apply.jsx).
+// Habitat collects "Message" today; the others are placeholders for the
+// wizard expansion. Show them all so the user sees the journey.
+const APPLY_SUBSTEPS: { icon: IconName; title: string }[] = [
+  { icon: "user", title: "About you" },
+  { icon: "cash", title: "Affordability" },
+  { icon: "doc", title: "Documents" },
+  { icon: "edit", title: "Message" },
+  { icon: "check", title: "Review" },
+];
+const CURRENT_SUBSTEP = 3; // "Message"
+
 const TODAY = new Date().toISOString().split("T")[0];
+
+function formatRand(amount: number): string {
+  return `R ${Math.round(amount).toLocaleString("en-ZA")}`;
+}
 
 export default function Apply() {
   const [params] = useSearchParams();
@@ -57,8 +70,6 @@ export default function Apply() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Form state — every field is optional per the API contract (only
-  // unitId is required, which we already have from the URL).
   const [employment, setEmployment] = useState<EmploymentStatus | null>(null);
   const [message, setMessage] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
@@ -127,9 +138,13 @@ export default function Apply() {
   }
 
   const cover = unit.images.find((i) => i.isCover)?.url ?? unit.images[0]?.url;
-  const heroAddress = [property.suburb, property.city, property.province]
+  const unitSize = [
+    unit.sqm != null ? `${unit.sqm} m²` : null,
+    unit.bedrooms != null ? `${unit.bedrooms} bed` : null,
+    unit.bathrooms != null ? `${unit.bathrooms} bath` : null,
+  ]
     .filter(Boolean)
-    .join(", ");
+    .join(" · ");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -144,9 +159,6 @@ export default function Apply() {
         moveInDate: moveInDate || undefined,
         employmentStatus: employment ?? undefined,
       });
-      // API auto-transitions to AWAITING_DOCUMENTS when the property has
-      // required docs — route the tenant straight to the upload screen
-      // in that case; otherwise go to the simple success page.
       const target =
         application.status === "AWAITING_DOCUMENTS"
           ? "/apply/upload-documents"
@@ -181,55 +193,139 @@ export default function Apply() {
 
       <div
         style={{
-          maxWidth: 1100,
+          maxWidth: 1280,
           margin: "0 auto",
-          padding: isSm ? "20px 16px 64px" : "32px 32px 96px",
-        }}
-      >
-        <ApplicationProgressStepper currentStep={STEP_INDEX.Submit} />
-      </div>
-
-      <div
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          padding: isSm ? "0 16px 64px" : "0 32px 96px",
+          padding: isSm ? "20px 16px 64px" : "32px 32px 80px",
           display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 320px",
-          gap: 32,
+          gridTemplateColumns: isMobile ? "1fr" : "260px minmax(0, 1fr) 320px",
+          gap: isMobile ? 32 : 48,
         }}
       >
-        <main>
+        {/* ── Left rail: stepper + privacy card ──────────────────────────── */}
+        <aside>
           <Link
             to={`/unit?id=${unit.id}&prop=${property.id}`}
             style={{
               fontSize: 13,
               color: "var(--slate)",
-              textDecoration: "none",
               display: "inline-flex",
               alignItems: "center",
-              gap: 6,
-              marginBottom: 16,
+              gap: 4,
+              marginBottom: 24,
+              textDecoration: "none",
             }}
           >
-            <Icon name="chevL" size={14} />
-            Back to {unit.title}
+            <Icon name="chevL" size={14} /> Back to property
           </Link>
+          <Eyebrow style={{ marginBottom: 8 }}>Application</Eyebrow>
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 600,
+              marginBottom: 20,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {unit.title}
+          </div>
 
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {APPLY_SUBSTEPS.map((s, i) => {
+              const state =
+                i < CURRENT_SUBSTEP ? "done" : i === CURRENT_SUBSTEP ? "current" : "next";
+              return (
+                <div
+                  key={s.title}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    background: state === "current" ? "var(--surface-2)" : "transparent",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      border:
+                        "1px solid " +
+                        (state === "next" ? "var(--hairline-strong)" : "var(--ink)"),
+                      background:
+                        state === "done"
+                          ? "var(--ink)"
+                          : state === "current"
+                            ? "var(--surface)"
+                            : "transparent",
+                      color: state === "done" ? "var(--paper)" : "var(--ink)",
+                      display: "grid",
+                      placeItems: "center",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {state === "done" ? <Icon name="check" size={12} /> : i + 1}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 14,
+                      fontWeight: state === "current" ? 600 : 500,
+                      color: state === "next" ? "var(--slate)" : "var(--ink)",
+                    }}
+                  >
+                    {s.title}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <Card
+            padding={16}
+            style={{
+              marginTop: 24,
+              background: "var(--surface-2)",
+              borderColor: "var(--hairline)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 8,
+                fontSize: 12,
+                color: "var(--slate)",
+              }}
+            >
+              <Icon name="shield" size={14} /> Why we ask
+            </div>
+            <div style={{ fontSize: 12, color: "var(--slate)", lineHeight: 1.5 }}>
+              Documents go straight to the landlord — encrypted, deleted after 90 days if
+              unsuccessful.
+            </div>
+          </Card>
+        </aside>
+
+        {/* ── Center: the form (Message step today) ──────────────────────── */}
+        <main>
           <h1
             style={{
-              fontSize: 32,
-              letterSpacing: "-0.025em",
-              lineHeight: 1.1,
+              fontSize: 28,
               fontWeight: 500,
+              letterSpacing: "-0.02em",
               margin: "0 0 8px",
             }}
           >
-            Apply for {unit.title}
+            Your message to {property.title || "the landlord"}
           </h1>
-          <p style={{ fontSize: 14, color: "var(--slate)", margin: "0 0 32px" }}>
-            Submitting doesn't commit you to anything — the landlord reviews each application and
-            responds.
+          <p style={{ fontSize: 15, color: "var(--slate)", margin: "0 0 32px" }}>
+            Tell the landlord a bit about you — employment, preferred move-in date, and a short
+            note. Submitting doesn't commit you to anything; they'll review and respond.
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -314,90 +410,89 @@ export default function Apply() {
               </FormField>
             </FormSection>
 
-            <div style={{ display: "flex", gap: 12, marginTop: 28, flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 32,
+                flexWrap: "wrap",
+                gap: 12,
+              }}
+            >
+              <Link
+                to={`/unit?id=${unit.id}&prop=${property.id}`}
+                style={{ textDecoration: "none" }}
+              >
+                <Button variant="ghost" leftIcon="chevL" disabled={submitting}>
+                  Back
+                </Button>
+              </Link>
               <Button
                 type="submit"
                 variant="accent"
-                size="lg"
                 rightIcon="arrR"
                 disabled={submitting}
               >
                 {submitting ? "Submitting…" : "Submit application"}
               </Button>
-              <Link
-                to={`/unit?id=${unit.id}&prop=${property.id}`}
-                style={{ textDecoration: "none" }}
-              >
-                <Button variant="ghost" size="lg" disabled={submitting}>
-                  Cancel
-                </Button>
-              </Link>
             </div>
           </form>
         </main>
 
+        {/* ── Right rail: listing recap ──────────────────────────────────── */}
         <aside>
-          <Card padding={0} style={{ position: "sticky", top: 88, overflow: "hidden" }}>
-            <Photo ratio="4/3" src={cover} label="" style={{ borderRadius: 0 }} />
-            <div style={{ padding: 18 }}>
-              <Eyebrow style={{ marginBottom: 6 }}>Applying for</Eyebrow>
-              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>{unit.title}</div>
+          <Card padding={0} style={{ position: "sticky", top: 24, overflow: "hidden" }}>
+            <Photo ratio="16/10" src={cover} label="" style={{ borderRadius: 0 }} />
+            <div style={{ padding: 16 }}>
               <div
+                className="mono"
                 style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   color: "var(--slate)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  marginBottom: 12,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                  marginBottom: 6,
                 }}
               >
-                <Icon name="home" size={12} /> {property.title}
+                Applying for
               </div>
-              {heroAddress ? (
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: "var(--slate)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    marginBottom: 14,
-                  }}
-                >
-                  <Icon name="pin" size={12} /> {heroAddress}
+              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{unit.title}</div>
+              {unitSize ? (
+                <div style={{ fontSize: 12, color: "var(--slate)", marginBottom: 16 }}>
+                  {unitSize}
                 </div>
-              ) : null}
-              <div
-                style={{
-                  paddingTop: 12,
-                  borderTop: "1px solid var(--hairline)",
-                  display: "flex",
-                  alignItems: "baseline",
-                  justifyContent: "space-between",
-                }}
-              >
-                <span style={{ fontSize: 12, color: "var(--slate)" }}>Rent</span>
-                <PriceDisplay amount={Number(unit.price)} period="/mo" size="md" />
-              </div>
-              {unit.availableFrom ? (
-                <div
-                  style={{
-                    paddingTop: 8,
-                    fontSize: 12,
-                    color: "var(--slate)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <Icon name="calendar" size={12} /> Available from {unit.availableFrom}
-                </div>
-              ) : null}
+              ) : (
+                <div style={{ marginBottom: 16 }} />
+              )}
+              <RecapRow label="Rent" value={`${formatRand(Number(unit.price))} /mo`} />
+              <RecapRow
+                label="Deposit"
+                value={formatRand(Number(unit.deposit ?? unit.price))}
+              />
+              <RecapRow label="Application fee" value="Free" />
             </div>
           </Card>
         </aside>
       </div>
+    </div>
+  );
+}
+
+function RecapRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        padding: "10px 0",
+        borderTop: "1px solid var(--hairline)",
+      }}
+    >
+      <span style={{ fontSize: 13, color: "var(--slate)" }}>{label}</span>
+      <span className="tabular" style={{ fontSize: 13, fontWeight: 600 }}>
+        {value}
+      </span>
     </div>
   );
 }

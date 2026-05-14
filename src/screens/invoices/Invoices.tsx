@@ -6,12 +6,9 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Badge, { type BadgeTone } from "@/components/Badge";
 import Eyebrow from "@/components/Eyebrow";
-import Alert from "@/components/Alert";
 import Tabs from "@/components/Tabs";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
-import ApplicationProgressStepper from "@/components/ApplicationProgressStepper";
-import { STEP_INDEX } from "@/lib/applicationSteps";
 import { useSession } from "@/lib/session";
 import { toast } from "@/lib/toast";
 import {
@@ -115,15 +112,10 @@ export default function Invoices() {
     }
   }
 
-  const allPaid = rows.length > 0 && rows.every((r) => r.status === "PAID");
-
   return (
     <TenantShell activeId="payments" background="var(--surface-2)">
       <div style={{ padding: 32 }}>
         <div style={{ maxWidth: 794, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
-          <ApplicationProgressStepper
-            currentStep={allPaid ? STEP_INDEX["Sign lease"] : STEP_INDEX["Pay deposit"]}
-          />
           {loading ? (
             <Card padding={32}>
               <LoadingState rows={4} />
@@ -223,14 +215,6 @@ function InvoiceCanvas({
           </Button>
         </div>
       </Card>
-
-      {isPending && invoice.expiresAt ? (
-        <Alert tone="warn" title={`Pay by ${formatDate(invoice.expiresAt)}`}>
-          Settle the deposit to keep the offer active. If the invoice expires the landlord may
-          release the unit to the next applicant.{" "}
-          <span className="mono" style={{ fontSize: 11 }}>Status: PENDING</span>
-        </Alert>
-      ) : null}
 
       {/* A4 canvas */}
       <div style={{ background: "#fff", padding: 56, boxShadow: "var(--shadow-lg)" }}>
