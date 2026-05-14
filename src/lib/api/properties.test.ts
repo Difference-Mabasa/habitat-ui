@@ -62,3 +62,33 @@ describe("api/properties.popularAreas", () => {
     ]);
   });
 });
+
+describe("api/properties.topRated", () => {
+  it("forwards an explicit size parameter", async () => {
+    let seenUrl = "";
+    server.use(
+      http.get("/api/v1/properties/top-rated", ({ request }) => {
+        seenUrl = request.url;
+        return HttpResponse.json([]);
+      }),
+    );
+
+    await api.topRated(6);
+
+    expect(seenUrl).toContain("size=6");
+  });
+
+  it("omits the size query param when caller does not pass one", async () => {
+    let seenUrl = "";
+    server.use(
+      http.get("/api/v1/properties/top-rated", ({ request }) => {
+        seenUrl = request.url;
+        return HttpResponse.json([]);
+      }),
+    );
+
+    await api.topRated();
+
+    expect(seenUrl).not.toContain("size=");
+  });
+});

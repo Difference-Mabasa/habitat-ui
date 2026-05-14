@@ -92,6 +92,10 @@ export interface PropertySummary {
   availableUnits: number;
   /** ISO 8601 timestamp of when the property was first created. */
   createdAt: string;
+  /** Aggregated rating (0.00–5.00). Zero for new / un-reviewed listings. */
+  avgRating: number;
+  /** Number of reviews backing avgRating. Zero for un-reviewed listings. */
+  ratingCount: number;
 }
 
 export interface PageResponse<T> {
@@ -175,6 +179,13 @@ export interface PropertiesApi {
    * listings exist, so the response is never empty.
    */
   popularAreas(size?: number): Promise<PopularArea[]>;
+  /**
+   * Highest-rated LISTED properties, capped at {@code size} (default 4).
+   * Server sorts by avgRating DESC, then ratingCount DESC, then
+   * createdAt DESC — so an un-reviewed catalogue falls back to newest
+   * first instead of returning an empty grid.
+   */
+  topRated(size?: number): Promise<PropertySummary[]>;
   create(payload: CreatePropertyPayload): Promise<PropertyDetail>;
   update(id: string, payload: UpdatePropertyPayload): Promise<PropertyDetail>;
   delete(id: string): Promise<void>;
@@ -210,6 +221,12 @@ export function createPropertiesApi(client: ApiClient): PropertiesApi {
         ? `/properties/popular-areas?size=${encodeURIComponent(String(size))}`
         : "/properties/popular-areas";
       return client.get<PopularArea[]>(path);
+    },
+    topRated(size) {
+      const path = size != null
+        ? `/properties/top-rated?size=${encodeURIComponent(String(size))}`
+        : "/properties/top-rated";
+      return client.get<PropertySummary[]>(path);
     },
     create(payload) {
       return client.post<PropertyDetail>("/properties", payload);

@@ -91,21 +91,93 @@ export default function Landing() {
   );
 }
 
-interface TopRatedItem {
-  data: PropertyCardData;
-  rating: number;
-  reviews: number;
-  distanceKm: number;
-}
-
-const TOP_RATED: TopRatedItem[] = [];
+/** A top-rated listing with an optional pre-computed distance from the viewer. */
+type TopRatedItem = PropertySummary & { distanceKm: number | null };
 
 type LocationState = "ask" | "granted" | "denied";
 
+/** How many cards the section renders at most. */
+const TOP_RATED_VISIBLE = 4;
+
+/** How many we ask the API for — over-fetch so location-sort has options. */
+const TOP_RATED_FETCH = 8;
+
+/** Great-circle distance between two WGS-84 points (km). Ported from backroom. */
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function TopRatedNearYou() {
-  const [location, setLocation] = useState<LocationState>("ask");
+  const session = useSession();
+  const api = useMemo(() => createPropertiesApi(session.client), [session.client]);
   const { isSm, isMd } = useViewport();
   const topRatedCols = isSm ? "1fr" : isMd ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
+
+  const [items, setItems] = useState<TopRatedItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState<LocationState>("ask");
+
+  useEffect(() => {
+    let cancelled = false;
+    api.topRated(TOP_RATED_FETCH).then(
+      (rows) => {
+        if (cancelled) return;
+        setItems(rows.map((r) => ({ ...r, distanceKm: null })));
+        setLoading(false);
+      },
+      () => {
+        if (cancelled) return;
+        setLoading(false);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
+  // Triggered by the "Allow Location" button — the call MUST be on a
+  // user gesture for the browser to even consider granting permission.
+  function requestLocation() {
+    if (!navigator.geolocation) {
+      setLocation("denied");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const userLat = pos.coords.latitude;
+        const userLng = pos.coords.longitude;
+        setLocation("granted");
+        setItems((current) =>
+          [...current]
+            .map((p) => ({
+              ...p,
+              distanceKm:
+                p.latitude != null && p.longitude != null
+                  ? haversineKm(userLat, userLng, p.latitude, p.longitude)
+                  : null,
+            }))
+            .sort((a, b) => {
+              // Properties without coords sink to the bottom; everyone
+              // else sorts ascending by distance from the viewer.
+              if (a.distanceKm == null) return 1;
+              if (b.distanceKm == null) return -1;
+              return a.distanceKm - b.distanceKm;
+            }),
+        );
+      },
+      () => setLocation("denied"),
+    );
+  }
+
+  const visible = items.slice(0, TOP_RATED_VISIBLE);
 
   return (
     <section style={{ borderBottom: "1px solid var(--hairline)" }}>
@@ -121,7 +193,7 @@ function TopRatedNearYou() {
           }}
         >
           <div>
-            <Eyebrow style={{ marginBottom: 12 }}>Based on ratings &amp; your location</Eyebrow>
+            <Eyebrow style={{ marginBottom: 12 }}>Based on Ratings &amp; Your Location</Eyebrow>
             <h2
               style={{
                 fontSize: 40,
@@ -131,36 +203,36 @@ function TopRatedNearYou() {
                 margin: 0,
               }}
             >
-              Top rated <span style={{ color: "var(--accent)" }}>near you</span>
+              Top Rated <span style={{ color: "var(--accent)" }}>Near You</span>
             </h2>
           </div>
 
           {location === "granted" ? (
-            <Badge tone="success" leftIcon="pin">Sorted by distance from you</Badge>
+            <Badge tone="success" leftIcon="pin">Sorted by Distance from You</Badge>
           ) : location === "denied" ? (
-            <Badge tone="neutral">Showing top-rated · location off</Badge>
+            <Badge tone="neutral">Showing Top-Rated · Location Off</Badge>
           ) : (
             <Button
               variant="secondary"
               size="sm"
               leftIcon="pin"
-              onClick={() => setLocation("granted")}
+              onClick={requestLocation}
             >
-              Allow location for nearest results
+              Allow Location for Nearest Results
             </Button>
           )}
         </div>
 
-        {TOP_RATED.length === 0 ? (
+        {loading || visible.length === 0 ? (
           <EmptyState
             icon="home"
-            title="No listings yet"
+            title="No Listings Yet"
             description="Top-rated listings will appear here once they're published."
           />
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: topRatedCols, gap: 16 }}>
-            {TOP_RATED.map((item) => (
-              <TopRatedCard key={item.data.id} item={item} showDistance={location === "granted"} />
+            {visible.map((item) => (
+              <TopRatedCard key={item.id} item={item} showDistance={location === "granted"} />
             ))}
           </div>
         )}
@@ -168,13 +240,39 @@ function TopRatedNearYou() {
         <div style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
           <Link to="/browse" style={{ textDecoration: "none" }}>
             <Button variant="ghost" rightIcon="arrR">
-              Browse all listings
+              Browse All Listings
             </Button>
           </Link>
         </div>
       </div>
     </section>
   );
+}
+
+/**
+ * Map a {@link PropertySummary} to the {@link PropertyCardData} shape the
+ * card consumes. The "tag" pill shows the rating when reviews exist, or
+ * a "New" badge when the property hasn't been reviewed yet — same surface,
+ * different content.
+ */
+function summaryToCardData(p: PropertySummary): PropertyCardData {
+  const area = p.suburb ?? p.city ?? "—";
+  const tag =
+    p.ratingCount > 0
+      ? `★ ${Number(p.avgRating).toFixed(1)} · ${p.ratingCount} ${p.ratingCount === 1 ? "review" : "reviews"}`
+      : "New";
+  return {
+    id: p.id,
+    title: p.title,
+    area,
+    price: p.headlinePrice ?? 0,
+    beds: p.headlineBeds ?? 0,
+    baths: p.headlineBaths ?? 0,
+    sqm: p.headlineSqm ?? undefined,
+    type: p.headlineUnitType ?? undefined,
+    tag,
+    photoSrc: p.coverImageUrl ?? undefined,
+  };
 }
 
 function TopRatedCard({
@@ -186,14 +284,8 @@ function TopRatedCard({
 }) {
   return (
     <div style={{ position: "relative" }}>
-      <PropertyCard
-        data={{
-          ...item.data,
-          tag: `★ ${item.rating.toFixed(1)} · ${item.reviews} reviews`,
-        }}
-        variant="grid"
-      />
-      {showDistance ? (
+      <PropertyCard data={summaryToCardData(item)} variant="grid" />
+      {showDistance && item.distanceKm != null ? (
         <div
           style={{
             position: "absolute",
