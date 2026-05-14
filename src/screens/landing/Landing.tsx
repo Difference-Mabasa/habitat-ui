@@ -232,7 +232,13 @@ function TopRatedNearYou() {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: topRatedCols, gap: 16 }}>
             {visible.map((item) => (
-              <TopRatedCard key={item.id} item={item} showDistance={location === "granted"} />
+              <PropertyCard
+                key={item.id}
+                data={summaryToCardData(item)}
+                variant="grid"
+                href={`/property/${item.id}`}
+                distanceKm={location === "granted" ? item.distanceKm : null}
+              />
             ))}
           </div>
         )}
@@ -275,46 +281,6 @@ function summaryToCardData(p: PropertySummary): PropertyCardData {
   };
 }
 
-function TopRatedCard({
-  item,
-  showDistance,
-}: {
-  item: TopRatedItem;
-  showDistance: boolean;
-}) {
-  return (
-    <div style={{ position: "relative" }}>
-      <PropertyCard
-        data={summaryToCardData(item)}
-        variant="grid"
-        href={`/property/${item.id}`}
-      />
-      {showDistance && item.distanceKm != null ? (
-        <div
-          style={{
-            position: "absolute",
-            top: 12,
-            right: 12 + 32 + 8, // dodge the save heart on the card
-            background: "var(--ink)",
-            color: "var(--paper)",
-            padding: "4px 8px",
-            borderRadius: 999,
-            fontSize: 11,
-            fontWeight: 600,
-            fontVariantNumeric: "tabular-nums",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            boxShadow: "var(--shadow-sm)",
-            pointerEvents: "none",
-          }}
-        >
-          <Icon name="pin" size={11} /> {item.distanceKm.toFixed(1)} km
-        </div>
-      ) : null}
-    </div>
-  );
-}
 
 function SearchHero() {
   const session = useSession();

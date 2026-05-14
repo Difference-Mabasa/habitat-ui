@@ -34,6 +34,14 @@ export interface PropertyCardProps {
   onToggleSave?: (id: string) => void;
   onHover?: (id: string) => void;
   href?: string;
+  /**
+   * Distance from the viewer to this property in km. Renders a small pill
+   * overlay in the top-right of the card photo when set; omitted when
+   * null/undefined. Drives the landing "Top Rated Near You" card layout
+   * — Browse leaves it unset and sees no pill. Currently only honoured
+   * by the grid variant.
+   */
+  distanceKm?: number | null;
 }
 
 export default function PropertyCard({
@@ -44,6 +52,7 @@ export default function PropertyCard({
   onToggleSave,
   onHover,
   href = "/property",
+  distanceKm,
 }: PropertyCardProps) {
   if (variant === "compact") return <CompactCard data={data} href={href} />;
   if (variant === "row") {
@@ -66,6 +75,7 @@ export default function PropertyCard({
       onToggleSave={onToggleSave}
       onHover={onHover}
       href={href}
+      distanceKm={distanceKm}
     />
   );
 }
@@ -129,6 +139,38 @@ function TagPill({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Distance-from-viewer pill rendered top-right of the photo. Offset 8px
+ * further left than the SaveButton (which sits at right:12, width:32) so
+ * the two pills sit side-by-side without overlapping.
+ */
+function DistancePill({ km }: { km: number }) {
+  return (
+    <span
+      aria-label={`${km.toFixed(1)} km from you`}
+      style={{
+        position: "absolute",
+        top: 12,
+        right: 12 + 32 + 8,
+        background: "var(--ink)",
+        color: "var(--paper)",
+        padding: "4px 8px",
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 600,
+        fontVariantNumeric: "tabular-nums",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        boxShadow: "var(--shadow-sm)",
+        pointerEvents: "none",
+      }}
+    >
+      <Icon name="pin" size={11} /> {km.toFixed(1)} km
+    </span>
+  );
+}
+
 function GridCard({
   data,
   saved,
@@ -136,6 +178,7 @@ function GridCard({
   onToggleSave,
   onHover,
   href,
+  distanceKm,
 }: Required<Pick<PropertyCardProps, "data">> & Omit<PropertyCardProps, "data" | "variant">) {
   return (
     <Link to={href ?? "/property"} style={{ textDecoration: "none", color: "inherit" }}>
@@ -159,6 +202,7 @@ function GridCard({
           />
           <SaveButton saved={!!saved} onClick={() => onToggleSave?.(data.id)} />
           {data.tag ? <TagPill>{data.tag}</TagPill> : null}
+          {distanceKm != null ? <DistancePill km={distanceKm} /> : null}
         </div>
         <div style={{ padding: 16 }}>
           <div
